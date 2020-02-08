@@ -72,3 +72,6 @@ The `Subscriber` is an inheritable class that allows its Derived class to Receiv
 that give it the ability to perform `Double Buffering` which is useful when `Systems` that Inherit `Subscriber` run on different
 thread/s, as they need to perform a work on the `Messages` they Receive and working on them directly would block the `Message Bus` for
 all other `Systems`, `Publishers` and `Subscribers` that either want to Send or Receive a `Message` from the `Bus`.
+
+![double_buffering](https://user-images.githubusercontent.com/22328021/74092207-83e61f80-4ac9-11ea-80d4-5fb9aecb26b0.png)
+
