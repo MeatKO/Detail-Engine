@@ -34,7 +34,7 @@ the same Type
 `Entities` and `Components`. The `Entity Controller` functionality has thread synchronisation and the `Systems` can be on different 
 threads.
 
-![dtl_pcs_ecs](https://user-images.githubusercontent.com/22328021/74090871-51342b00-4ab9-11ea-86e0-ccae2be81c9a.png)
+![dtl_pcs_ecs](https://user-images.githubusercontent.com/22328021/74091918-171d5600-4ac6-11ea-93f8-6ad2c9227404.png)
 
 # Publisher Channel Subscriber
 As shown in the picture above, the Detail Engine architecture doesn't just make use of ECS, as it is just a way of managing Entities and
