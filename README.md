@@ -19,7 +19,9 @@ In that case, the Entity doesnt have direct knowledge of the `Components` it own
 The controller/manager has to store the `Components` somewhere, most likely in a list and if there are many `Entities` and `Components`,
 the `Systems` have to potentially loop trough a big number of elements for each `Entity` to find out their IDs. 
 This is not necessarily bad and better solutions may exist, but I am not yet aware of them as everyone has their own approach when it
-comes to ECS.
+comes to ECS.  
+The approach I took in Detail Engine is to make `Entities` that store a vector of `Components` for direct access without the need
+of loops.
 
 ### Components
 `Components` are just Data holders attached to the `Entities` one way or another. The Detail Engine stores the `Components` in vectors
