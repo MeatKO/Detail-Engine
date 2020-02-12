@@ -10,6 +10,8 @@
 *.userosscache
 *.sln.docstates
 
+SOIL2.obj
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
@@ -27,6 +29,8 @@ bld/
 [Oo]bj/
 [Ll]og/
 old/
+
+!/OpenGL/**
 
 # Visual Studio 2015/2017 cache/options directory
 .vs/
