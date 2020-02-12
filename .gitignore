@@ -24,7 +24,7 @@ x86/
 [Aa][Rr][Mm]64/
 bld/
 [Bb]in/
-# [Oo]bj/
+[Oo]bj/
 [Ll]og/
 old/
 
@@ -66,7 +66,7 @@ StyleCopReport.xml
 *_h.h
 *.ilk
 *.meta
-*.obj
+# *.obj
 *.iobj
 *.pch
 *.pdb
