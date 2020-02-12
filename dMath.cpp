@@ -4,11 +4,13 @@ namespace dMath
 {
 	vec3 dMath::normalize(vec3 a)
 	{
-		return sqrt(a.x * a.x + a.y * a.y + a.z * a.z);
+		float vecLength = sqrt(a.x * a.x + a.y * a.y + a.z * a.z);
+		return a / vecLength;
 	}
 	vec2 normalize(vec2 a)
 	{
-		return sqrt(a.x * a.x + a.y * a.y);
+		float vecLength = sqrt(a.x * a.x + a.y * a.y);
+		return a / vecLength;
 	}
 	vec3 dMath::cross(vec3 a, vec3 b)
 	{

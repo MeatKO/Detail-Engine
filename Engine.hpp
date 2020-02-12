@@ -18,12 +18,11 @@ namespace detailEngine
 {
 	enum SystemThread
 	{
-		THR_FILESYSTEM,
 		THR_PHYSICS,
 		THR_NETWORK,
 		THR_AUDIO,
-		THR_MIX,
-		THR_CONSOLE,
+		THR_OUTSOURCE,
+		THR_FILESYSTEM,
 		THR_LAST
 	};
 
@@ -32,12 +31,30 @@ namespace detailEngine
 	public:
 		Engine() {}
 
-		void UpdateFS(std::string* str)
+		void UpdateFileSystem()
 		{
 			while (threadWork)
 			{
+				fileSystem->NotifyChannels();
 				fileSystem->sUpdate();
 				Sleep(50);
+			}
+		}
+
+		void UpdateThread()
+		{
+			while (threadWork)
+			{
+				input->NotifyChannels();
+				console->NotifyChannels();
+
+				input->Update(currentTime);
+				console->Update(input);
+
+				messageLog->sUpdate();
+				console->sUpdate();
+
+				Sleep(10);
 			}
 		}
 
@@ -74,6 +91,9 @@ namespace detailEngine
 			if (!renderer->Init("Window", 1200, 900, input))
 				pSendMessage(Message(MSG_LOG, std::string("Engine Info"), std::string("Renderer initialization failed.")));
 
+			threadList[THR_OUTSOURCE] = std::move(std::thread(&Engine::UpdateThread, this));
+			threadList[THR_FILESYSTEM] = std::move(std::thread(&Engine::UpdateFileSystem, this));
+
 			return true;
 		}
 
@@ -85,26 +105,15 @@ namespace detailEngine
 			renderer->time = currentTime;
 
 			this->NotifyChannels();
-			input->NotifyChannels();
-			console->NotifyChannels();
 			entityController->NotifyChannels();
-			fileSystem->NotifyChannels();
-
+			
 			messageBus->NotifySubs();
-
-			input->Update(currentTime);
-			console->Update(input);
+			
 			renderer->Update(entityController, currentTime, deltaTime);
 
-			// These should be on different threads along with Update()
 			this->sUpdate();
 			entityController->sUpdate();
-			messageLog->sUpdate();
 			renderer->sUpdate();
-			console->sUpdate();
-			fileSystem->sUpdate();
-
-			fileSystem->OpenPack("pk1");
 		}
 
 		bool ShouldClose()
