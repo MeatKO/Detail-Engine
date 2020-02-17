@@ -82,7 +82,9 @@ namespace detailEngine
 			glEnable(GL_STENCIL_TEST);
 			glEnable(GL_FRAMEBUFFER_SRGB);
 
-			glfwSwapInterval(1); // VSYNC
+			//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Wireframe
+
+			glfwSwapInterval(0); // VSYNC
 
 			if (glGenVertexArrays == NULL)
 				pSendMessage(Message(MSG_LOG, std::string("OpenGL Error"), std::string("glGenVertexArray returned NULL at initialization.")));
@@ -110,9 +112,10 @@ namespace detailEngine
 
 			skybox = new Shader("skybox");
 			modelShader = new Shader("lighting");
-			skyTexture = new CubemapTex("frozen");
+			normalShader = new Shader("normal", "normal");
+			skyTexture = new CubemapTex("black");
 
-			mdl = new Model("earth", MDL_OBJ);
+			mdl = new Model("snowgrass", MDL_OBJ);
 
 			return true;
 		}
@@ -173,14 +176,12 @@ namespace detailEngine
 			glm::mat4 view = glm::mat4(); 
 			glm::mat4 model = glm::mat4();
 
-			view = glm::mat4(glm::mat3(playerCamera.GetViewMatrix()));
-			skyTexture->Draw(*skybox, view, projection);
+			//view = glm::mat4(glm::mat3(playerCamera.GetViewMatrix()));
+			//skyTexture->Draw(*skybox, view, projection);
 
 			view = playerCamera.GetViewMatrix();
 			model = glm::translate(model, glm::vec3(0,0,0));
 			model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
-
-			
 
 			modelShader->Use();
 
@@ -188,8 +189,19 @@ namespace detailEngine
 			glUniformMatrix4fv(glGetUniformLocation(modelShader->Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 			glUniformMatrix4fv(glGetUniformLocation(modelShader->Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
 			glUniform3f(glGetUniformLocation(modelShader->Program, "viewPos"), playerCamera.GetPosition().x, playerCamera.GetPosition().y, playerCamera.GetPosition().z);
+			//glUniform3f(glGetUniformLocation(modelShader->Program, "lightPos"), playerCamera.GetPosition().x, playerCamera.GetPosition().y, playerCamera.GetPosition().z);
 
 			mdl->Draw(modelShader);
+
+			normalShader->Use();
+
+			glUniformMatrix4fv(glGetUniformLocation(normalShader->Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+			glUniformMatrix4fv(glGetUniformLocation(normalShader->Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+			glUniformMatrix4fv(glGetUniformLocation(normalShader->Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
+			glUniform3f(glGetUniformLocation(normalShader->Program, "viewPos"), playerCamera.GetPosition().x, playerCamera.GetPosition().y, playerCamera.GetPosition().z);
+			//glUniform3f(glGetUniformLocation(modelShader->Program, "lightPos"), playerCamera.GetPosition().x, playerCamera.GetPosition().y, playerCamera.GetPosition().z);
+
+			mdl->Draw(normalShader);
 
 			glfwSwapBuffers(glWindow);
 		}
@@ -203,7 +215,9 @@ namespace detailEngine
 		Camera playerCamera = Camera(glm::vec3(0.0f, 0.0f, 0.0f));
 		Shader* skybox;
 		Shader* modelShader;
+		Shader* normalShader;
 		CubemapTex* skyTexture;
 		Model* mdl;
+		int a = 0;
 	};
 }

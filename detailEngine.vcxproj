@@ -163,6 +163,7 @@
     <ClCompile Include="Source.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AssetManager.h" />
     <ClInclude Include="Console.hpp" />
     <ClInclude Include="dMath.hpp" />
     <ClInclude Include="ECS.hpp" />
@@ -172,6 +173,7 @@
     <ClInclude Include="glCubemap.hpp" />
     <ClInclude Include="glModel.hpp" />
     <ClInclude Include="glShader.hpp" />
+    <ClInclude Include="glTexture.hpp" />
     <ClInclude Include="Input.hpp" />
     <ClInclude Include="Log.hpp" />
     <ClInclude Include="OpenGL.hpp" />
