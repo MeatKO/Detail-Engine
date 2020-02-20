@@ -76,14 +76,26 @@ namespace dMath
 		return o << "Vec4(" << v.x << ", " << v.y << ", " << v.z << ", " << v.w << ")";
 	}
 
-	struct Int3
+	struct int3
 	{
-		Int3() {}
-		Int3(int X, int Y, int Z) : x(X), y(Y), z(Z) {}
+		int3() {}
+		int3(int X, int Y, int Z) : x(X), y(Y), z(Z) {}
 		int x, y, z;
 	};
 
-	inline std::ostream& operator << (std::ostream& o, const Int3& v) {
+	inline std::ostream& operator << (std::ostream& o, const int3& v) {
+		return o << "Int3(" << v.x << ", " << v.y << ", " << v.z << ")";
+	}
+
+	struct uint3
+	{
+		uint3() : x(0), y(0), z(0) {}
+		uint3(unsigned int A) : x(A), y(A), z(A) {}
+		uint3(unsigned int X, unsigned int Y, unsigned int Z) : x(X), y(Y), z(Z) {}
+		unsigned int x, y, z;
+	};
+
+	inline std::ostream& operator << (std::ostream& o, const uint3& v) {
 		return o << "Int3(" << v.x << ", " << v.y << ", " << v.z << ")";
 	}
 

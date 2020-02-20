@@ -1,14 +1,16 @@
-#version 330 core
+#version 450 core
 out vec4 FragColor;
 
 in VS_OUT {
     vec3 FragPos;
     vec3 Normal;
     vec2 TexCoords;
+	float meshID;
 } fs_in;
 
 uniform sampler2D map_Kd;
 //uniform sampler2D specularTexture;
+uniform sampler2D maps_Kd[128];
 
 uniform vec3 lightPos;
 uniform vec3 viewPos;
@@ -34,4 +36,12 @@ void main()
     //vec3 specular = vec3(0.3) * spec * texture(specularTexture, fs_in.TexCoords).rgb; // assuming bright white light color
     vec3 specular = vec3(0.3) * spec * vec3(0.1); // assuming bright white light color
     FragColor = vec4(ambient + diffuse + specular, color_b.a);
+	if(fs_in.meshID == 10)
+	{
+	    FragColor.r = 1.0;
+	}
+	else
+	{
+	    FragColor.r = 0.0;
+	}
 }

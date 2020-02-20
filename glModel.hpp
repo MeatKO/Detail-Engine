@@ -11,35 +11,6 @@ using namespace dMath;
 
 namespace detailEngine
 {
-	struct Face;
-	struct Vertex;
-	struct Texture;
-	struct Material;
-	struct Mesh;
-	class Model;
-
-	enum ModelType;
-	enum FaceType;
-
-	void LoadObj(std::string modelName, std::vector<Mesh>& meshes, std::vector<Material>& materials);
-	void TriangulateFaces(std::vector<unsigned int>& vertexIndices, std::vector<unsigned int>& uvIndices, std::vector<unsigned int>& normalIndices, FaceType Type);
-	bool LoadOBJMtl(std::string absolutePath, Material& material);
-
-	enum ModelType
-	{
-		MDL_OBJ
-	};
-
-	// Faces can have Vertices (V), UVs (T) and Normals (N)
-	// Sometimes the model files don't contain UVs or Normals so knowing the type of loaded information is necessary while processing the mesh geometry
-	enum FaceType
-	{
-		VTN,
-		VT,
-		VN,
-		V
-	};
-
 	struct Vertex
 	{
 		dMath::vec3 Position;
@@ -47,22 +18,29 @@ namespace detailEngine
 		dMath::vec2 UV;
 		dMath::vec3 Tangent;
 		dMath::vec3 Bitangent;
+		float meshID;
 
 		bool operator == (Vertex vert)
 		{
-			if (!(this->Position.x == vert.Position.x && this->Position.y != vert.Position.y && this->Position.z != vert.Position.z))
+			//if (!(this->meshID == vert.meshID)
+			//	|| !(this->Position.x == vert.Position.x && this->Position.y == vert.Position.y && this->Position.z == vert.Position.z)
+			//	|| !(this->Normal.x == vert.Normal.x && this->Normal.y == vert.Normal.y && this->Normal.z == vert.Normal.z)
+			//	|| !(this->UV.x == vert.UV.x && this->UV.y == vert.UV.y))
+			//	return false;
+			//
+			//return true;
+			if (this->Position.x == vert.Position.x && this->Position.y == vert.Position.y && this->Position.z == vert.Position.z)
 			{
-				return false;
+				//return true;
+				if (this->Normal.x == vert.Normal.x && this->Normal.y == vert.Normal.y && this->Normal.z == vert.Normal.z)
+				{
+					if (this->UV.x == vert.UV.x && this->UV.y == vert.UV.y)
+					{
+						return true;
+					}
+				}
 			}
-			if (!(this->Normal.x == vert.Normal.x && this->Normal.y != vert.Normal.y && this->Normal.z != vert.Normal.z))
-			{
-				return false;
-			}
-			if (!(this->UV.x == vert.UV.x && this->UV.y != vert.UV.y))
-			{
-				return false;
-			}
-			return true;
+			return false;
 		}
 	};
 
@@ -83,42 +61,238 @@ namespace detailEngine
 
 	struct Mesh
 	{
-		unsigned int VAO, VBO, EBO;
-
 		bool soft = true;
-		int vertPerFace = 0;
-		int facesCount = 0;
-		FaceType type;
-
 		std::string name;
 		std::string usedMaterial;
-		std::vector<Vertex> vertices;
-		std::vector<unsigned int> indices;
-		std::vector<unsigned int> vertexIndices;
-		std::vector<unsigned int> uvIndices;
-		std::vector<unsigned int> normalIndices;
-		std::vector<dMath::vec3> loadVertices;
-		std::vector<dMath::vec2> loadUVs;
-		std::vector<dMath::vec3> loadNormals;
+		std::vector<uint3> faces;
+	};
 
-		void BuildVertices()
+	class Model
+	{
+	public:
+		Model(std::string name)
 		{
-			for (vec3 outVec : loadNormals)
-			{
-				//std::cout << outVec << "\n";
-			}
-			for (int i = 0; i < vertexIndices.size(); i++)
-			{
-				Vertex newVert;
-				newVert.Position = loadVertices[vertexIndices[i] - 1];
-				dMath::vec2 uv = loadUVs[uvIndices[i] - 1];
-				dMath::vec3 normal;
-				newVert.UV = dMath::vec2(uv.x, 1 - uv.y);
-				int vertexIndex = vertexIndices[i];
-				newVert.Normal = loadNormals[normalIndices[i] - 1];
+			LoadOBJ(name); // Loads materials as well
+			ProcessMeshes();
+			//OptimizeVertices();
+			SetupMesh();
 
-				vertices.push_back(newVert);
+			for (Material mat : materials)
+			{
+				std::cout << mat.name << std::endl;
 			}
+		}
+
+		void Draw(Shader* shader)
+		{
+			//for (GLuint i = 0; i < this->.size(); i++)
+			//{
+			//	glActiveTexture(GL_TEXTURE0 + i);
+			//
+			//	std::stringstream ss;
+			//	std::string number;
+			//	std::string name = this->textures[i].type;
+			//
+			//	if (name == "texture_diffuse") { ss << diffuseNr++; }
+			//	else if (name == "texture_specular") { ss << specularNr++; }
+			//	else if (name == "texture_normal") { ss << normalNr++; }
+			//	else if (name == "texture_height") { ss << heightNr++; }
+			//
+			//	number = ss.str();
+			//
+			//	glUniform1i(glGetUniformLocation((shader->Program), (name + number).c_str()), i);
+			//	glBindTexture(GL_TEXTURE_2D, this->textures[i].id);
+			//}
+
+			for (int i = 0; i < meshes.size(); i++)
+			{
+
+			}
+
+			glBindVertexArray(VAO);
+			//glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+			glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr);
+			glBindVertexArray(0);
+
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, 0);
+		}
+
+		void LoadOBJ(std::string name)
+		{
+			std::string filePath = "detail/models/" + name + "/" + name + ".obj";
+			std::ifstream file(filePath);
+
+			if (!file)
+			{
+				return;
+			}
+
+			std::vector<std::string> materialNames;
+
+			meshes.push_back(Mesh()); // adding a default mesh in case the file contains data before a new object or a group
+
+			std::string line;
+			long lineCount = 0;
+			while (std::getline(file, line))
+			{
+				std::stringstream lineStream(line);
+				std::string word;
+				float x = 1, y = 1, z = 1;
+
+				lineStream >> word;
+				if (word == "#")
+				{
+					continue;
+				}
+				else if (word == "mtllib")
+				{
+					lineStream >> word;
+					materialNames.push_back(word);
+				}
+				else if (word == "usemtl")
+				{
+					lineStream >> word;
+					meshes.back().usedMaterial = word;
+				}
+				else if (word == "s")
+				{
+					lineStream >> word; // smooth shading
+					if (word == "off" || word == "0")
+					{
+						meshes.back().soft = false;
+					}
+				}
+				else if (word == "o" || word == "g") // new mesh
+				{
+					meshes.push_back(Mesh());
+					lineStream >> word; // obj name
+					meshes.back().name = word;
+				}
+				else if (word == "v")
+				{
+					lineStream >> x >> y >> z;
+					loadVertices.push_back(vec3(x, y, z));
+				}
+				else if (word == "vt")
+				{
+					lineStream >> x >> y;
+					loadUVs.push_back(vec2(x, y));
+				}
+				else if (word == "vn")
+				{
+					lineStream >> x >> y >> z;
+					loadNormals.push_back(vec3(x, y, z));
+				}
+				else if (word == "f")
+				{
+					while (lineStream >> word)
+					{
+						// Initializing this to be 1,1,1 in case a parameter is missing while loading
+						// If one of the face components is missing then its index will be 0 and the face wont pass the check later in ProcessMeshes()
+						uint3 face(1);
+						// Making sure i wont read nonsense if the model doesnt include UVs or normals
+						if (sscanf(word.c_str(), "%u/%u/%u ", &face.x, &face.y, &face.z) != 3) // Normal model containing vertex uv and normal
+						{
+							if (sscanf(word.c_str(), "%u//%u ", &face.x, &face.z) != 2) // only vertex and normal
+							{
+								if (sscanf(word.c_str(), "%u/%u ", &face.x, &face.z) != 2) // only vertex and normal 
+								{
+									if (sscanf(word.c_str(), "%u// ", &face.x) != 1) // only vertex
+									{
+										if (sscanf(word.c_str(), "%u ", &face.x) != 1) // only vertex
+										{
+											// The line begins with "f" and contains no values
+											continue;
+										}
+									}
+								}
+							}
+						}
+
+						meshes.back().faces.push_back(face);
+					}
+				}
+			}
+
+			// This doesnt follow the .mtl specification fix it 
+			for (std::string mtlName : materialNames)
+			{
+				std::cout << "Material " << mtlName << std::endl;
+				std::string path = "detail/models/" + name + "/" + mtlName;
+				LoadOBJMtl(path);
+			}
+
+			file.close();
+		}
+
+		// This function turns the raw loadVertices, loadUVs and loadNormals into Vertex and combines the data from all the meshes
+		void ProcessMeshes()
+		{
+			// Read the face data from all the meshes and create the Vertex vector
+			// Starting from 1 because the first element is the default mesh and normally it would have nothing in it
+			for (int i = 1; i < meshes.size(); i++)
+			{
+				int vertSize = loadVertices.size();
+				int uvSize = loadUVs.size();
+				int normalSize = loadNormals.size();
+
+				vertices.resize(loadVertices.size());
+				// The definition of 'face' might be a bit confusing here, a face here is defined as a  V/T/N pair thats why it was necessary to keep the count
+				// of vertices per face
+				for (uint3 face : meshes[i].faces)
+				{
+					// Making sure we wont read elements with negative index... and not read empty vectors as well
+					if (face.x > 0 && face.y > 0 && face.z > 0)
+					{
+						Vertex newVert;
+						if (vertSize > 0)
+							newVert.Position = loadVertices[face.x - 1];
+						if (uvSize > 0)
+							newVert.UV = loadUVs[face.y - 1];
+						if (normalSize > 0)
+							newVert.Normal = loadNormals[face.z - 1];
+						newVert.meshID = i;
+
+						// Sorting the vertices and indices the same way they were in the .obj file
+						// This helps us optimize-out the repeating vertices later
+						vertices[face.x - 1] = newVert;
+						indices.push_back(face.x - 1);
+					}
+				}
+			}
+		}
+		
+		void OptimizeVertices()
+		{
+			std::vector<Vertex> newVertexVec = vertices;
+			std::vector<unsigned int> newIndexVec = indices;
+
+			int repeats = 1;
+			for (int i = 0; i < newVertexVec.size(); i++)
+			{
+				for (int k = newVertexVec.size() - 1; k > i; k--)
+				{
+					if (newVertexVec[i] == newVertexVec[k])
+					{
+						newVertexVec.erase(newVertexVec.begin() + k);
+					}
+				}
+			}
+
+			for (int i = 0; i < indices.size(); i++)
+			{
+				for (int k = 0; k < newVertexVec.size(); k++)
+				{
+					if (vertices[indices[i]] == newVertexVec[k])
+					{
+						newIndexVec[i] = k;
+					}
+				}
+			}
+
+			vertices = newVertexVec;
+			indices = newIndexVec;
 		}
 
 		void SetupMesh()
@@ -130,7 +304,7 @@ namespace detailEngine
 			glBufferData(GL_ARRAY_BUFFER, this->vertices.size() * sizeof(Vertex), &this->vertices[0], GL_STATIC_DRAW);
 			glGenBuffers(1, &EBO);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-			glBufferData(GL_ELEMENT_ARRAY_BUFFER, vertexIndices.size() * sizeof(unsigned int), &vertexIndices[0], GL_STATIC_DRAW);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
 
 			// Vertex Positions
 			glEnableVertexAttribArray(0);
@@ -152,356 +326,104 @@ namespace detailEngine
 			glEnableVertexAttribArray(4);
 			glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Bitangent));
 
+			// mesh ID
+			glEnableVertexAttribArray(5);
+			glVertexAttribPointer(5, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, meshID));
+
 			glBindVertexArray(0);
 		}
-	};
 
-	class Model
-	{
-	public:
-		Model(std::string modelName, ModelType Type) : type(Type)
+		bool LoadOBJMtl(std::string absolutePath)
 		{
-			if (Type == MDL_OBJ)
+			std::fstream materialFile(absolutePath);
+
+			if (!materialFile)
 			{
-				LoadObj(modelName, meshes, materials);
+				return false;
 			}
+			float x, y, z;
+
+			// Pushing a default material in case the file contains data before a "newmtl"
+			materials.push_back(Material());
+
+			std::string Line;
+			while (std::getline(materialFile, Line))
+			{
+				std::stringstream lineStream(Line);
+				std::string word;
+				lineStream >> word;
+
+				if (word == "#")
+				{
+					continue;
+				}
+				else if (word == "newmtl")
+				{
+					materials.push_back(Material());
+					lineStream >> word;
+					materials.back().name = word;
+				}
+				else if (word == "illum")
+				{
+					lineStream >> x;
+					materials.back().illum = x;
+				}
+				else if (word == "Ns")
+				{
+					lineStream >> x;
+					materials.back().Ns = x;
+				}
+				else if (word == "Ni")
+				{
+					lineStream >> x;
+					materials.back().Ni = x;
+				}
+				else if (word == "d")
+				{
+					lineStream >> x;
+					materials.back().d = x;
+				}
+				else if (word == "Ka")
+				{
+					lineStream >> x >> y >> z;
+					materials.back().Ka = dMath::vec3(x, y, z);
+				}
+				else if (word == "Kd")
+				{
+					lineStream >> x >> y >> z;
+					materials.back().Kd = dMath::vec3(x, y, z);
+				}
+				else if (word == "Ks")
+				{
+					lineStream >> x >> y >> z;
+					materials.back().Ks = dMath::vec3(x, y, z);
+				}
+				else if (word == "Ke")
+				{
+					lineStream >> x >> y >> z;
+					materials.back().Ke = dMath::vec3(x, y, z);
+				}
+				else if (word == "map_Ka" || word == "map_Kd" || word == "map_Ks" || word == "map_Ns" || word == "map_d" || word == "map_bump")
+				{
+					materials.back().textureList.push_back(Texture());
+
+					materials.back().textureList.back().type = word;
+					lineStream >> word;
+					materials.back().textureList.back().name = word;
+				}
+			}
+
+			materialFile.close();
+			return true;
 		}
 
-		void Draw(Shader* shader)
-		{
-			Material usedMat;
-			for (Mesh mesh : meshes)
-			{
-				for (Material mat : materials)
-				{
-					if (mat.name == mesh.usedMaterial)
-					{
-						usedMat = mat;
-					}
-				}
-
-				for (int i = 0; i < usedMat.textureList.size(); i++)
-				{
-					glActiveTexture(GL_TEXTURE0 + i);
-
-					glUniform1i(glGetUniformLocation((shader->Program), usedMat.textureList[i].name.c_str()), i);
-					glBindTexture(GL_TEXTURE_2D, usedMat.textureList[i].id);
-				}
-				
-				//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.EBO);
-				//glDrawElements(GL_TRIANGLES, mesh.vertexIndices.size(),GL_UNSIGNED_INT, (void*)0);
-
-				glBindVertexArray(mesh.VAO);
-				glDrawArrays(GL_TRIANGLES, 0, mesh.vertices.size());
-				glBindVertexArray(0);
-
-				//std::cout << mesh.vertexIndices.size() << std::endl;
-
-				glActiveTexture(GL_TEXTURE0);
-				glBindTexture(GL_TEXTURE_2D, 0);
-			}
-		}
-
-	private:
-		ModelType type;
+		unsigned int VAO, VBO, EBO;
+		std::vector<Vertex> vertices;
+		std::vector<unsigned int> indices;
+		std::vector<vec3> loadVertices, loadNormals;
+		std::vector<vec2> loadUVs;
 		std::vector<Mesh> meshes;
 		std::vector<Material> materials;
 	};
-
-	// The vertex indices vector contains values above 0, so we have to substract 1 to access the vertex vector
-	// The output index vector contains values directly for OpenGL ( starting from 0 ) 
-	void IndexVertices(std::vector<Vertex>& vertices, std::vector<unsigned int>& vertexIndices)
-	{
-		std::vector<unsigned int> outIndices;
-		std::vector<Vertex> outVertices;
-
-		// Make a copy of the vertices vector so we can keep the original data while removing duplicate vertices
-		outVertices = vertices;
-
-		// Removing duplicates from the vertex vector
-		for (int i = 0; i < outVertices.size(); i++)
-		{
-			for (int k = 0; k < outVertices.size(); k++)
-			{
-				// Make sure we're not deleting the Vertex if its matching its own element id...
-				if (outVertices[i] == outVertices[k] && i != k)
-				{
-					outVertices.erase(outVertices.begin() + k);
-				}
-			}
-		}
-
-
-	}
-
-	void LoadObj(std::string modelName, std::vector<Mesh>& meshes, std::vector<Material>& materials)
-	{
-		std::string filePath = "detail/models/" + modelName + "/" + modelName + ".obj";
-		std::ifstream file(filePath);
-
-		if (!file)
-		{
-			return;
-		}
-
-		//std::vector<Mesh> tempMeshes;
-		std::vector<std::string> materialNames;
-		std::string Line;
-
-		while (std::getline(file, Line))
-		{
-			std::stringstream lineStream(Line);
-			std::string word;
-			lineStream >> word;
-
-			// These will be used for indexing as well so if one of them is 0 then we will read elements below 0
-			float x = 1, y = 1, z = 1; 
-
-			if (word == "#")
-			{
-				continue;
-			}
-			else if (word == "mtllib")
-			{
-				lineStream >> word; // mtllib name
-				materialNames.push_back(word);
-			}
-			else if (word == "usemtl")
-			{
-				lineStream >> word; // usemtl name
-				meshes.back().usedMaterial = word;
-			}
-			else if (word == "s")
-			{
-				lineStream >> word; // smooth shading
-				if (word == "off" || word == "0")
-				{
-					meshes.back().soft = false;
-				}
-			}
-			else if (word == "o") // new mesh
-			{
-				meshes.push_back(Mesh());
-				lineStream >> word; // obj name
-				meshes.back().name = word;
-			}
-			else if (word == "v")
-			{
-				lineStream >> x >> y >> z;
-				meshes.back().loadVertices.push_back(vec3(x, y, z));
-			}
-			else if (word == "vt")
-			{
-				lineStream >> x >> y;
-				meshes.back().loadUVs.push_back(vec2(x, y));
-			}
-			else if (word == "vn")
-			{
-				lineStream >> x >> y >> z;
-				meshes.back().loadNormals.push_back(vec3(x, y, z));
-			}
-			else if (word == "f")
-			{
-				meshes.back().facesCount++;
-				while (lineStream >> word)
-				{
-					// Making sure i wont read nonsense if the model doesnt include UVs or normals
-					if (sscanf(word.c_str(), "%f/%f/%f ", &x, &y, &z) != 3) // Normal model containing vertex uv and normal
-					{
-						if (sscanf(word.c_str(), "%f//%f ", &x, &z) != 2) // only vertex and normal
-						{
-							if (sscanf(word.c_str(), "%f/%f ", &x, &z) != 2) // only vertex and normal 
-							{
-								if (sscanf(word.c_str(), "%f// ", &x) != 1) // only vertex
-								{
-									if (sscanf(word.c_str(), "%f ", &x) != 1) // only vertex
-									{
-										// The line begins with "f" and contains no values
-										return;
-									}
-									else
-										meshes.back().type = V;
-								}
-								else
-									meshes.back().type = V;
-							}
-							else
-								meshes.back().type = VN;
-						}
-						else
-							meshes.back().type = VN;
-					}
-					else
-						meshes.back().type = VTN;
-
-					meshes.back().vertexIndices.push_back(x);
-					meshes.back().uvIndices.push_back(y);
-					meshes.back().normalIndices.push_back(z);
-				}
-			}
-		}
-
-		for (Mesh& mesh : meshes)
-		{
-			std::cout << mesh.name << std::endl;
-			mesh.vertPerFace = (mesh.vertexIndices.size() / mesh.facesCount);
-			if (mesh.vertPerFace == 4)
-			{
-				TriangulateFaces(mesh.vertexIndices, mesh.uvIndices, mesh.normalIndices, mesh.type);
-			}
-			mesh.BuildVertices();
-			mesh.SetupMesh();
-
-			//for (vec3 norm : mesh.loadNormals)
-			//{
-			//	std::cout << "N : "<< norm << "\n";
-			//}
-		}
-		
-		for (std::string materialName : materialNames)
-		{
-			Material newMat;
-			if (LoadOBJMtl("detail/models/" + modelName + "/" + materialName, newMat))
-			{
-				materials.push_back(newMat);
-			}
-		}
-		
-		for (Material& material : materials)
-		{
-			for (Texture& tex : material.textureList)
-			{
-				tex.id = LoadTexturePath("detail/models/" + modelName + "/" + tex.name);
-			}
-		}
-
-		file.close();
-	}
-
-	bool LoadOBJMtl(std::string absolutePath, Material& material)
-	{
-		std::fstream materialFile(absolutePath);
-
-		if (!materialFile)
-		{
-			return false;
-		}
-		float x, y, z;
-
-		std::string Line;
-		while (std::getline(materialFile, Line))
-		{
-			std::stringstream lineStream(Line);
-			std::string word;
-			lineStream >> word;
-
-			if (word == "#")
-			{
-				continue;
-			}
-			else if (word == "newmtl")
-			{
-				lineStream >> word;
-				material.name = word;
-			}
-			else if (word == "illum")
-			{
-				lineStream >> x;
-				material.illum = x;
-			}
-			else if (word == "Ns")
-			{
-				lineStream >> x;
-				material.Ns = x;
-			}
-			else if (word == "Ni")
-			{
-				lineStream >> x;
-				material.Ni = x;
-			}
-			else if (word == "d")
-			{
-				lineStream >> x;
-				material.d = x;
-			}
-			else if (word == "Ka")
-			{
-				lineStream >> x >> y >> z;
-				material.Ka = dMath::vec3(x, y, z);
-			}
-			else if (word == "Kd")
-			{
-				lineStream >> x >> y >> z;
-				material.Kd = dMath::vec3(x, y, z);
-			}
-			else if (word == "Ks")
-			{
-				lineStream >> x >> y >> z;
-				material.Ks = dMath::vec3(x, y, z);
-			}
-			else if (word == "Ke")
-			{
-				lineStream >> x >> y >> z;
-				material.Ke = dMath::vec3(x, y, z);
-			}
-			else if (word == "map_Ka" || word == "map_Kd" || word == "map_Ks" || word == "map_Ns" || word == "map_d" || word == "map_bump")
-			{
-				material.textureList.push_back(Texture());
-
-				material.textureList.back().type = word;
-				lineStream >> word;
-				material.textureList.back().name = word;
-			}
-		}
-
-		materialFile.close();
-		return true;
-	}
-
-	// This function only works if the faces have 4 vertices its not a general purpose triangulation algorithm of any kind 
-	// All its doing is just dumb index rearraging 
-	void TriangulateFaces(std::vector<unsigned int>& vertexIndices, std::vector<unsigned int>& uvIndices, std::vector<unsigned int>& normalIndices, FaceType Type)
-	{
-		std::vector<unsigned int> newVertexIndices;
-		std::vector<unsigned int> newUVIndices;
-		std::vector<unsigned int> newNormalIndices;
-
-		// There are 4 loops because i didn't want to assume that every vertex index is accompanied by uv and normal indices as well
-		for (int i = 0; i < (vertexIndices.size() / 4); i++)
-		{
-			int index = i * 4 + 0;
-			int index1 = vertexIndices[index];     int index2 = vertexIndices[index + 1];
-			int index3 = vertexIndices[index + 2]; int index4 = vertexIndices[index + 3];
-			newVertexIndices.push_back(index1); newVertexIndices.push_back(index2); newVertexIndices.push_back(index3);
-			newVertexIndices.push_back(index4); newVertexIndices.push_back(index1); newVertexIndices.push_back(index3);
-		}
-
-		if (Type == VT || Type == VTN)
-		{
-			for (int i = 0; i < (uvIndices.size() / 4); i++)
-			{
-				int index = i * 4 + 0;
-				int index1 = uvIndices[index];     int index2 = uvIndices[index + 1];
-				int index3 = uvIndices[index + 2]; int index4 = uvIndices[index + 3];
-				newUVIndices.push_back(index1); newUVIndices.push_back(index2); newUVIndices.push_back(index3);
-				newUVIndices.push_back(index4); newUVIndices.push_back(index1); newUVIndices.push_back(index3);
-			}
-		}
-
-		if (Type == VN || Type == VTN)
-		{
-			for (int i = 0; i < (normalIndices.size() / 4); i++)
-			{
-				int index = i * 4 + 0;
-				int index1 = normalIndices[index];     int index2 = normalIndices[index + 1];
-				int index3 = normalIndices[index + 2]; int index4 = normalIndices[index + 3];
-				newNormalIndices.push_back(index1); newNormalIndices.push_back(index2); newNormalIndices.push_back(index3);
-				newNormalIndices.push_back(index4); newNormalIndices.push_back(index1); newNormalIndices.push_back(index3);
-			}
-		}
-
-		vertexIndices = newVertexIndices;
-		uvIndices = newUVIndices;
-		normalIndices = newNormalIndices;
-	}
+	
 }

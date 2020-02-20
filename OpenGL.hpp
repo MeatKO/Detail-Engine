@@ -38,8 +38,8 @@ namespace detailEngine
 			if (!glfwInit())
 				pSendMessage(Message(MSG_LOG, std::string("OpenGL Error"), std::string("Failed to initialize GLFW.")));
 
-			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
 			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 			glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 			glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
@@ -75,7 +75,7 @@ namespace detailEngine
 
 			glEnable(GL_BLEND);
 			glEnable(GL_DEPTH_TEST);
-			glEnable(GL_CULL_FACE);
+			//glEnable(GL_CULL_FACE);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			glCullFace(GL_BACK);
 			glEnable(GL_MULTISAMPLE);
@@ -84,7 +84,7 @@ namespace detailEngine
 
 			//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Wireframe
 
-			glfwSwapInterval(0); // VSYNC
+			glfwSwapInterval(1); // VSYNC
 
 			if (glGenVertexArrays == NULL)
 				pSendMessage(Message(MSG_LOG, std::string("OpenGL Error"), std::string("glGenVertexArray returned NULL at initialization.")));
@@ -111,11 +111,16 @@ namespace detailEngine
 			);
 
 			skybox = new Shader("skybox");
-			modelShader = new Shader("lighting");
-			normalShader = new Shader("normal", "normal");
-			skyTexture = new CubemapTex("black");
+			//modelShader = new Shader("lighting");
+			modelShader = new Shader("lighting_array");
+			normalShader = new Shader("normal_b", "normal_b");
+			lightShader = new Shader("light");
+			skyTexture = new CubemapTex("white");
+			//skyTexture = new CubemapTex("detail");
 
-			mdl = new Model("snowgrass", MDL_OBJ);
+			//mdl = new Model("snowgrass");
+			//mdl = new Model("earth");
+			//lamp = new Model("bulb");
 
 			return true;
 		}
@@ -176,32 +181,50 @@ namespace detailEngine
 			glm::mat4 view = glm::mat4(); 
 			glm::mat4 model = glm::mat4();
 
-			//view = glm::mat4(glm::mat3(playerCamera.GetViewMatrix()));
-			//skyTexture->Draw(*skybox, view, projection);
+			view = glm::mat4(glm::mat3(playerCamera.GetViewMatrix()));
+			skyTexture->Draw(*skybox, view, projection);
 
 			view = playerCamera.GetViewMatrix();
-			model = glm::translate(model, glm::vec3(0,0,0));
+			model = glm::translate(model, glm::vec3(0,0,0.5));
 			model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
-
+			
+			//lightPos.x = sin(currentTime) * 30.0f;
+			//lightPos.z = cos(currentTime) * 30.0f;
+			//
 			modelShader->Use();
+			
+			//glGetTextureHandleARB
 
 			glUniformMatrix4fv(glGetUniformLocation(modelShader->Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
 			glUniformMatrix4fv(glGetUniformLocation(modelShader->Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 			glUniformMatrix4fv(glGetUniformLocation(modelShader->Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
 			glUniform3f(glGetUniformLocation(modelShader->Program, "viewPos"), playerCamera.GetPosition().x, playerCamera.GetPosition().y, playerCamera.GetPosition().z);
-			//glUniform3f(glGetUniformLocation(modelShader->Program, "lightPos"), playerCamera.GetPosition().x, playerCamera.GetPosition().y, playerCamera.GetPosition().z);
-
+			glUniform3f(glGetUniformLocation(modelShader->Program, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+			
 			mdl->Draw(modelShader);
-
-			normalShader->Use();
-
-			glUniformMatrix4fv(glGetUniformLocation(normalShader->Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
-			glUniformMatrix4fv(glGetUniformLocation(normalShader->Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-			glUniformMatrix4fv(glGetUniformLocation(normalShader->Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
-			glUniform3f(glGetUniformLocation(normalShader->Program, "viewPos"), playerCamera.GetPosition().x, playerCamera.GetPosition().y, playerCamera.GetPosition().z);
-			//glUniform3f(glGetUniformLocation(modelShader->Program, "lightPos"), playerCamera.GetPosition().x, playerCamera.GetPosition().y, playerCamera.GetPosition().z);
-
-			mdl->Draw(normalShader);
+			
+			//normalShader->Use();
+			//
+			//glUniformMatrix4fv(glGetUniformLocation(normalShader->Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+			//glUniformMatrix4fv(glGetUniformLocation(normalShader->Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+			//glUniformMatrix4fv(glGetUniformLocation(normalShader->Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
+			//glUniform3f(glGetUniformLocation(normalShader->Program, "viewPos"), playerCamera.GetPosition().x, playerCamera.GetPosition().y, playerCamera.GetPosition().z);
+			//glUniform3f(glGetUniformLocation(normalShader->Program, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+			//
+			//mdl->Draw(normalShader);
+			
+			//lightShader->Use();
+			//
+			//model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));
+			//model = glm::translate(model, glm::vec3(lightPos.x, lightPos.y, lightPos.z));
+			//
+			//glUniformMatrix4fv(glGetUniformLocation(lightShader->Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+			//glUniformMatrix4fv(glGetUniformLocation(lightShader->Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+			//glUniformMatrix4fv(glGetUniformLocation(lightShader->Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
+			//glUniform3f(glGetUniformLocation(lightShader->Program, "viewPos"), playerCamera.GetPosition().x, playerCamera.GetPosition().y, playerCamera.GetPosition().z);
+			//glUniform3f(glGetUniformLocation(lightShader->Program, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+			//
+			//lamp->Draw(lightShader);
 
 			glfwSwapBuffers(glWindow);
 		}
@@ -216,8 +239,11 @@ namespace detailEngine
 		Shader* skybox;
 		Shader* modelShader;
 		Shader* normalShader;
+		Shader* lightShader;
 		CubemapTex* skyTexture;
 		Model* mdl;
+		Model* lamp;
 		int a = 0;
+		vec3 lightPos = vec3(1.0f);
 	};
 }
