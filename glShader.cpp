@@ -98,6 +98,7 @@ namespace detailEngine
 			glGetShaderInfoLog(vertex, 512, NULL, infoLog);
 			//Log(u8"Vertex Shader compilation failed!");
 			std::cout << u8"Vertex Shader compilation failed!" << std::endl;
+			std::cout << infoLog << std::endl;
 		}
 
 		fragment = glCreateShader(GL_FRAGMENT_SHADER);
@@ -111,6 +112,7 @@ namespace detailEngine
 			glGetShaderInfoLog(fragment, 512, NULL, infoLog);
 			//Log(u8"Fragment Shader compilation failed!");
 			std::cout << u8"Fragment Shader compilation failed!" << std::endl;
+			std::cout << infoLog << std::endl;
 		}
 
 		this->Program = glCreateProgram();
@@ -133,6 +135,7 @@ namespace detailEngine
 				glGetShaderInfoLog(fragment, 512, NULL, infoLog);
 				//Log(u8"Geometry Shader compilation failed!");
 				std::cout << u8"Geometry Shader compilation failed!" << std::endl;
+				std::cout << infoLog << std::endl;
 			}
 
 			glAttachShader(this->Program, geometry);

@@ -110,6 +110,9 @@ namespace detailEngine
 				}
 			);
 
+			CheckExtension("GL_ARB_gpu_shader5");
+
+			// Things that will later be removed from here when i start actually using ECS : 
 			skybox = new Shader("skybox");
 			//modelShader = new Shader("lighting");
 			modelShader = new Shader("lighting_array");
@@ -117,12 +120,30 @@ namespace detailEngine
 			lightShader = new Shader("light");
 			skyTexture = new CubemapTex("white");
 			//skyTexture = new CubemapTex("detail");
+			//defaultTextureHandle = LoadBindlessTexture("detail/textures/default.png");
+
+			defaultTexture = LoadTexture("detail/textures/default.png");
+
+			defaultTextureHandle = glGetTextureHandleARB(defaultTexture);
+			glMakeTextureHandleResidentARB(defaultTextureHandle);
+
+
+			std::cout << "Version : " << glGetString(GL_VERSION) << std::endl;
+			std::cout << "Bindless location : " << defaultTextureHandle << std::endl;
 
 			//mdl = new Model("snowgrass");
 			mdl = new Model("nanosuit");
 			//lamp = new Model("bulb");
 
 			return true;
+		}
+
+		void CheckExtension(std::string extensionName)
+		{
+			if (!glfwExtensionSupported(extensionName.c_str()))
+			{
+				std::cout << extensionName + " is not supported " << std::endl;
+			}
 		}
 
 		void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode)
@@ -193,14 +214,18 @@ namespace detailEngine
 			//
 			modelShader->Use();
 			
-			//glGetTextureHandleARB
-
+			glProgramUniformHandleui64ARB(modelShader->Program, glGetUniformLocation(modelShader->Program, "textureID"), defaultTextureHandle);
+		    //glUniform1i64ARB(glGetUniformLocation(modelShader->Program, "map"), defaultTextureHandle);
 			glUniformMatrix4fv(glGetUniformLocation(modelShader->Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
 			glUniformMatrix4fv(glGetUniformLocation(modelShader->Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 			glUniformMatrix4fv(glGetUniformLocation(modelShader->Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
 			glUniform3f(glGetUniformLocation(modelShader->Program, "viewPos"), playerCamera.GetPosition().x, playerCamera.GetPosition().y, playerCamera.GetPosition().z);
 			glUniform3f(glGetUniformLocation(modelShader->Program, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
 			
+			//glActiveTexture(GL_TEXTURE0);
+			//glUniform1i(glGetUniformLocation(modelShader->Program, "map"), 0);
+			//glBindTexture(GL_TEXTURE_2D, defaultTexture);
+
 			mdl->Draw(modelShader);
 			
 			//normalShader->Use();
@@ -245,5 +270,7 @@ namespace detailEngine
 		Model* lamp;
 		int a = 0;
 		vec3 lightPos = vec3(1.0f);
+		GLuint64 defaultTextureHandle;
+		int defaultTexture;
 	};
 }

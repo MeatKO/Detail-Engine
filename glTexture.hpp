@@ -55,6 +55,7 @@ namespace detailEngine
 		SOIL_free_image_data(image);
 
 		GLuint64 handle = glGetTextureHandleARB(textureID);
+		glMakeTextureHandleResidentARB(handle);
 		return handle;
 	}
 }

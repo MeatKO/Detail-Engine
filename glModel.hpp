@@ -103,10 +103,10 @@ namespace detailEngine
 			//	glBindTexture(GL_TEXTURE_2D, this->textures[i].id);
 			//}
 
-			for (int i = 0; i < meshes.size(); i++)
-			{
-
-			}
+			//for (int i = 0; i < meshes.size(); i++)
+			//{
+			//
+			//}
 
 			glBindVertexArray(VAO);
 			//glDrawArrays(GL_TRIANGLES, 0, vertices.size());
