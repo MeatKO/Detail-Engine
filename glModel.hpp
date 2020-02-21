@@ -74,12 +74,11 @@ namespace detailEngine
 		{
 			LoadOBJ(name); // Loads materials as well
 			ProcessMeshes();
-			//OptimizeVertices();
 			SetupMesh();
 
 			for (Material mat : materials)
 			{
-				std::cout << mat.name << std::endl;
+				//std::cout << mat.name << std::endl;
 			}
 		}
 
@@ -218,7 +217,7 @@ namespace detailEngine
 			// This doesnt follow the .mtl specification fix it 
 			for (std::string mtlName : materialNames)
 			{
-				std::cout << "Material " << mtlName << std::endl;
+				//std::cout << "Material " << mtlName << std::endl;
 				std::string path = "detail/models/" + name + "/" + mtlName;
 				LoadOBJMtl(path);
 			}
@@ -261,38 +260,6 @@ namespace detailEngine
 					}
 				}
 			}
-		}
-		
-		void OptimizeVertices()
-		{
-			std::vector<Vertex> newVertexVec = vertices;
-			std::vector<unsigned int> newIndexVec = indices;
-
-			int repeats = 1;
-			for (int i = 0; i < newVertexVec.size(); i++)
-			{
-				for (int k = newVertexVec.size() - 1; k > i; k--)
-				{
-					if (newVertexVec[i] == newVertexVec[k])
-					{
-						newVertexVec.erase(newVertexVec.begin() + k);
-					}
-				}
-			}
-
-			for (int i = 0; i < indices.size(); i++)
-			{
-				for (int k = 0; k < newVertexVec.size(); k++)
-				{
-					if (vertices[indices[i]] == newVertexVec[k])
-					{
-						newIndexVec[i] = k;
-					}
-				}
-			}
-
-			vertices = newVertexVec;
-			indices = newIndexVec;
 		}
 
 		void SetupMesh()
