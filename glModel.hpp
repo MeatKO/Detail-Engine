@@ -22,16 +22,8 @@ namespace detailEngine
 
 		bool operator == (Vertex vert)
 		{
-			//if (!(this->meshID == vert.meshID)
-			//	|| !(this->Position.x == vert.Position.x && this->Position.y == vert.Position.y && this->Position.z == vert.Position.z)
-			//	|| !(this->Normal.x == vert.Normal.x && this->Normal.y == vert.Normal.y && this->Normal.z == vert.Normal.z)
-			//	|| !(this->UV.x == vert.UV.x && this->UV.y == vert.UV.y))
-			//	return false;
-			//
-			//return true;
 			if (this->Position.x == vert.Position.x && this->Position.y == vert.Position.y && this->Position.z == vert.Position.z)
 			{
-				//return true;
 				if (this->Normal.x == vert.Normal.x && this->Normal.y == vert.Normal.y && this->Normal.z == vert.Normal.z)
 				{
 					if (this->UV.x == vert.UV.x && this->UV.y == vert.UV.y)
@@ -57,14 +49,93 @@ namespace detailEngine
 		float Ns, Ni, d, illum;
 		vec3 Ka, Kd, Ks, Ke;
 		std::vector<Texture> textureList;
+		void LoadMtlTextures(std::string modelName)
+		{
+			for (Texture& tex : textureList)
+			{
+				if (tex.type == "map_Kd")
+				{
+					std::string path = "detail/models/" + modelName + "/" + tex.name;
+					tex.id = LoadTexture(path);
+				}
+			}
+		}
 	};
 
 	struct Mesh
 	{
+		unsigned int VAO, VBO, EBO;
 		bool soft = true;
+		std::string modelName;
 		std::string name;
-		std::string usedMaterial;
+		std::string usedMaterial = "DEFAULT";
 		std::vector<uint3> faces;
+		
+		std::vector<Vertex> vertices;
+		std::vector<unsigned int> indices;
+
+		void Draw(Shader* shader, std::vector<Material> materials)
+		{
+			Material usedMtl;
+			for (int i = 0; i < materials.size(); i++)
+			{
+				if (usedMaterial == materials[i].name)
+				{
+					usedMtl = materials[i];
+				}
+			}
+
+			for (int i = 0; i < usedMtl.textureList.size(); i++)
+			{
+				glActiveTexture(GL_TEXTURE0 + i);
+				glUniform1i(glGetUniformLocation((shader->Program), usedMtl.textureList[i].name.c_str()), i);
+				glBindTexture(GL_TEXTURE_2D, usedMtl.textureList[i].id);
+			}
+
+			glBindVertexArray(VAO);
+			glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr);
+			glBindVertexArray(0);
+
+			//glActiveTexture(GL_TEXTURE0);
+			//glBindTexture(GL_TEXTURE_2D, 0);
+		}
+		void SetupMesh()
+		{
+			glGenVertexArrays(1, &this->VAO);
+			glGenBuffers(1, &this->VBO);
+			glBindVertexArray(this->VAO);
+			glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
+			glBufferData(GL_ARRAY_BUFFER, this->vertices.size() * sizeof(Vertex), &this->vertices[0], GL_STATIC_DRAW);
+			glGenBuffers(1, &EBO);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
+
+			// Vertex Positions
+			glEnableVertexAttribArray(0);
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Position));
+
+			// Vertex Normals
+			glEnableVertexAttribArray(1);
+			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Normal));
+
+			// Vertex Texture Coordinates
+			glEnableVertexAttribArray(2);
+			glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, UV));
+
+			// vertex tangent
+			glEnableVertexAttribArray(3);
+			glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Tangent));
+
+			// vertex bitangent
+			glEnableVertexAttribArray(4);
+			glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Bitangent));
+
+			// mesh ID
+			glEnableVertexAttribArray(5);
+			glVertexAttribPointer(5, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, meshID));
+
+			glBindVertexArray(0);
+		}
 	};
 
 	class Model
@@ -72,54 +143,28 @@ namespace detailEngine
 	public:
 		Model(std::string name)
 		{
+			modelName = name;
 			LoadOBJ(name); // Loads materials as well
 			ProcessMeshes();
-			SetupMesh();
-
-			for (Material mat : materials)
+			for (int i = 0; i < meshes.size(); i++)
 			{
-				//std::cout << mat.name << std::endl;
+				meshes[i].SetupMesh();
 			}
+			LoadMaterialTextures();
 		}
 
 		void Draw(Shader* shader)
 		{
-			//for (GLuint i = 0; i < this->.size(); i++)
-			//{
-			//	glActiveTexture(GL_TEXTURE0 + i);
-			//
-			//	std::stringstream ss;
-			//	std::string number;
-			//	std::string name = this->textures[i].type;
-			//
-			//	if (name == "texture_diffuse") { ss << diffuseNr++; }
-			//	else if (name == "texture_specular") { ss << specularNr++; }
-			//	else if (name == "texture_normal") { ss << normalNr++; }
-			//	else if (name == "texture_height") { ss << heightNr++; }
-			//
-			//	number = ss.str();
-			//
-			//	glUniform1i(glGetUniformLocation((shader->Program), (name + number).c_str()), i);
-			//	glBindTexture(GL_TEXTURE_2D, this->textures[i].id);
-			//}
-
-			//for (int i = 0; i < meshes.size(); i++)
-			//{
-			//
-			//}
-
-			glBindVertexArray(VAO);
-			//glDrawArrays(GL_TRIANGLES, 0, vertices.size());
-			glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr);
-			glBindVertexArray(0);
-
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, 0);
+			int meshesSize = meshes.size();
+			for (int i = 0; i < meshesSize; i++)
+			{
+				meshes[i].Draw(shader, materials);
+			}
 		}
 
-		void LoadOBJ(std::string name)
+		void LoadOBJ(std::string ModelName)
 		{
-			std::string filePath = "detail/models/" + name + "/" + name + ".obj";
+			std::string filePath = "detail/models/" + ModelName + "/" + ModelName + ".obj";
 			std::ifstream file(filePath);
 
 			if (!file)
@@ -133,6 +178,7 @@ namespace detailEngine
 
 			std::string line;
 			long lineCount = 0;
+			int newMeshCount = 1;
 			while (std::getline(file, line))
 			{
 				std::stringstream lineStream(line);
@@ -152,7 +198,18 @@ namespace detailEngine
 				else if (word == "usemtl")
 				{
 					lineStream >> word;
-					meshes.back().usedMaterial = word;
+					if (meshes.back().usedMaterial == "DEFAULT")
+					{
+						meshes.back().usedMaterial = word;
+					}
+					else
+					{
+						meshes.push_back(Mesh());
+						meshes.back().usedMaterial = word;
+						meshes.back().modelName = modelName;
+						meshes.back().name = "newmesh" + newMeshCount;
+						newMeshCount++;
+					}
 				}
 				else if (word == "s")
 				{
@@ -167,6 +224,7 @@ namespace detailEngine
 					meshes.push_back(Mesh());
 					lineStream >> word; // obj name
 					meshes.back().name = word;
+					meshes.back().modelName = modelName;
 				}
 				else if (word == "v")
 				{
@@ -218,7 +276,7 @@ namespace detailEngine
 			for (std::string mtlName : materialNames)
 			{
 				//std::cout << "Material " << mtlName << std::endl;
-				std::string path = "detail/models/" + name + "/" + mtlName;
+				std::string path = "detail/models/" + ModelName + "/" + mtlName;
 				LoadOBJMtl(path);
 			}
 
@@ -236,7 +294,7 @@ namespace detailEngine
 				int uvSize = loadUVs.size();
 				int normalSize = loadNormals.size();
 
-				vertices.resize(loadVertices.size());
+				meshes[i].vertices.resize(loadVertices.size());
 				// The definition of 'face' might be a bit confusing here, a face here is defined as a  V/T/N pair thats why it was necessary to keep the count
 				// of vertices per face
 				for (uint3 face : meshes[i].faces)
@@ -246,58 +304,29 @@ namespace detailEngine
 					{
 						Vertex newVert;
 						if (vertSize > 0)
+						{
 							newVert.Position = loadVertices[face.x - 1];
+						}
 						if (uvSize > 0)
-							newVert.UV = loadUVs[face.y - 1];
+						{
+							// Inverting the UV coordinates
+							vec2 uv = loadUVs[face.y - 1];
+							newVert.UV = vec2(uv.x, 1.0f - uv.y);
+						}
 						if (normalSize > 0)
+						{
 							newVert.Normal = loadNormals[face.z - 1];
+						}
+							
 						newVert.meshID = i;
 
 						// Sorting the vertices and indices the same way they were in the .obj file
 						// This helps us optimize-out the repeating vertices later
-						vertices[face.x - 1] = newVert;
-						indices.push_back(face.x - 1);
+						meshes[i].vertices[face.x - 1] = newVert;
+						meshes[i].indices.push_back(face.x - 1);
 					}
 				}
 			}
-		}
-
-		void SetupMesh()
-		{
-			glGenVertexArrays(1, &this->VAO);
-			glGenBuffers(1, &this->VBO);
-			glBindVertexArray(this->VAO);
-			glBindBuffer(GL_ARRAY_BUFFER, this->VBO);
-			glBufferData(GL_ARRAY_BUFFER, this->vertices.size() * sizeof(Vertex), &this->vertices[0], GL_STATIC_DRAW);
-			glGenBuffers(1, &EBO);
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-			glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
-
-			// Vertex Positions
-			glEnableVertexAttribArray(0);
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Position));
-
-			// Vertex Normals
-			glEnableVertexAttribArray(1);
-			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Normal));
-
-			// Vertex Texture Coordinates
-			glEnableVertexAttribArray(2);
-			glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, UV));
-
-			// vertex tangent
-			glEnableVertexAttribArray(3);
-			glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Tangent));
-
-			// vertex bitangent
-			glEnableVertexAttribArray(4);
-			glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Bitangent));
-
-			// mesh ID
-			glEnableVertexAttribArray(5);
-			glVertexAttribPointer(5, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, meshID));
-
-			glBindVertexArray(0);
 		}
 
 		bool LoadOBJMtl(std::string absolutePath)
@@ -384,9 +413,28 @@ namespace detailEngine
 			return true;
 		}
 
-		unsigned int VAO, VBO, EBO;
-		std::vector<Vertex> vertices;
-		std::vector<unsigned int> indices;
+		void LoadMaterialTextures()
+		{
+			//std::vector<Texture> textures;
+
+			for (Material& mat : materials)
+			{
+				//or (Texture tex : mat.textureList)
+				//
+				//	std::cout << "texture : " << tex.name << " Type : " << tex.type << std::endl;
+				//	if (tex.type == "map_Kd")
+				//	{
+				//		Texture newTex;
+				//		newTex.name = tex.name;
+				//		newTex.type = tex.type;
+				//		textures.push_back(newTex);
+				//	}
+				//
+				mat.LoadMtlTextures(modelName);
+			}
+		}
+
+		std::string modelName;
 		std::vector<vec3> loadVertices, loadNormals;
 		std::vector<vec2> loadUVs;
 		std::vector<Mesh> meshes;

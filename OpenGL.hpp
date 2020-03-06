@@ -75,7 +75,7 @@ namespace detailEngine
 
 			glEnable(GL_BLEND);
 			glEnable(GL_DEPTH_TEST);
-			//glEnable(GL_CULL_FACE);
+			glEnable(GL_CULL_FACE);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			glCullFace(GL_BACK);
 			glEnable(GL_MULTISAMPLE);
@@ -84,7 +84,7 @@ namespace detailEngine
 
 			//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Wireframe
 
-			glfwSwapInterval(1); // VSYNC
+			glfwSwapInterval(0); // VSYNC
 
 			if (glGenVertexArrays == NULL)
 				pSendMessage(Message(MSG_LOG, std::string("OpenGL Error"), std::string("glGenVertexArray returned NULL at initialization.")));
@@ -120,19 +120,13 @@ namespace detailEngine
 			lightShader = new Shader("light");
 			skyTexture = new CubemapTex("white");
 			//skyTexture = new CubemapTex("detail");
-			//defaultTextureHandle = LoadBindlessTexture("detail/textures/default.png");
-
-			defaultTexture = LoadTexture("detail/textures/default.png");
-
-			defaultTextureHandle = glGetTextureHandleARB(defaultTexture);
-			glMakeTextureHandleResidentARB(defaultTextureHandle);
-
+			
+			defaultTexture = LoadTexture("detail/textures/default2.png", true);
 
 			std::cout << "Version : " << glGetString(GL_VERSION) << std::endl;
-			std::cout << "Bindless location : " << defaultTextureHandle << std::endl;
 
-			//mdl = new Model("snowgrass");
-			mdl = new Model("nanosuit");
+			mdl = new Model("de_inferno");
+			//mdl = new Model("nanosuit");
 			//lamp = new Model("bulb");
 
 			return true;
@@ -207,24 +201,19 @@ namespace detailEngine
 
 			view = playerCamera.GetViewMatrix();
 			model = glm::translate(model, glm::vec3(0,0,0.5));
-			model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
+			//model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
+			model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));
 			
 			//lightPos.x = sin(currentTime) * 30.0f;
 			//lightPos.z = cos(currentTime) * 30.0f;
 			//
 			modelShader->Use();
 			
-			glProgramUniformHandleui64ARB(modelShader->Program, glGetUniformLocation(modelShader->Program, "textureID"), defaultTextureHandle);
-		    //glUniform1i64ARB(glGetUniformLocation(modelShader->Program, "map"), defaultTextureHandle);
 			glUniformMatrix4fv(glGetUniformLocation(modelShader->Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
 			glUniformMatrix4fv(glGetUniformLocation(modelShader->Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 			glUniformMatrix4fv(glGetUniformLocation(modelShader->Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
 			glUniform3f(glGetUniformLocation(modelShader->Program, "viewPos"), playerCamera.GetPosition().x, playerCamera.GetPosition().y, playerCamera.GetPosition().z);
 			glUniform3f(glGetUniformLocation(modelShader->Program, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
-			
-			//glActiveTexture(GL_TEXTURE0);
-			//glUniform1i(glGetUniformLocation(modelShader->Program, "map"), 0);
-			//glBindTexture(GL_TEXTURE_2D, defaultTexture);
 
 			mdl->Draw(modelShader);
 			

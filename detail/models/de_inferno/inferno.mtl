@@ -1,0 +1,516 @@
+# cuwllj
+newmtl material_0
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_0.tga
+
+# sky
+newmtl material_1
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_1.tga
+
+# cuwllk
+newmtl material_2
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_2.tga
+
+# cxdrd
+newmtl material_3
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_3.tga
+
+# cuwllf
+newmtl material_4
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_4.tga
+
+# babtech_wall03
+newmtl material_5
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_5.tga
+
+# pi_roofedge
+newmtl material_6
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_6.tga
+
+# pi_roof
+newmtl material_7
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_7.tga
+
+# eastwood01
+newmtl material_8
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_8.tga
+
+# eastwndwn0c
+newmtl material_9
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_9.tga
+
+# cugroundi
+newmtl material_10
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_10.tga
+
+# -1cstrike_fj2dk
+newmtl material_11
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_11.tga
+
+# eastwndwn1b
+newmtl material_12
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_12.tga
+
+# eastcratesm
+newmtl material_13
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_13.tga
+
+# eastcratelgtp
+newmtl material_14
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_14.tga
+
+# pi_floorwd3
+newmtl material_15
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_15.tga
+
+# cugena
+newmtl material_16
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_16.tga
+
+# cxwoodm
+newmtl material_17
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_17.tga
+
+# eastcratelgtp2
+newmtl material_18
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_18.tga
+
+# cuiceila
+newmtl material_19
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_19.tga
+
+# cxstairse
+newmtl material_20
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_20.tga
+
+# cutrma
+newmtl material_21
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_21.tga
+
+# cuwlla
+newmtl material_22
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_22.tga
+
+# eastwndwntall
+newmtl material_23
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_23.tga
+
+# cudre
+newmtl material_24
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_24.tga
+
+# cuwndc
+newmtl material_25
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_25.tga
+
+# cugrounda
+newmtl material_26
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_26.tga
+
+# eastwndwn0
+newmtl material_27
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_27.tga
+
+# sign4
+newmtl material_28
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_28.tga
+
+# -1cstrike_mr2dr
+newmtl material_29
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_29.tga
+
+# cstrike_we2ribd
+newmtl material_30
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_30.tga
+
+# i_ground4
+newmtl material_31
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_31.tga
+
+# m_step1
+newmtl material_32
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_32.tga
+
+# i_grate1
+newmtl material_33
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_33.tga
+
+# pi_corbel
+newmtl material_34
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_34.tga
+
+# cugenc
+newmtl material_35
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_35.tga
+
+# fifties_cmp3c
+newmtl material_36
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_36.tga
+
+# cxruga
+newmtl material_37
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_37.tga
+
+# cxwllbooksa
+newmtl material_38
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_38.tga
+
+# cstrike_oe2vent
+newmtl material_39
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_39.tga
+
+# out_hay1
+newmtl material_40
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_40.tga
+
+# -1out_w3
+newmtl material_41
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_41.tga
+
+# crete4_flr01
+newmtl material_42
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_42.tga
+
+# cxwlle
+newmtl material_43
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_43.tga
+
+# cuiflrc
+newmtl material_44
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_44.tga
+
+# eastwood02
+newmtl material_45
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_45.tga
+
+# cuiwllf
+newmtl material_46
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_46.tga
+
+# cuwllg
+newmtl material_47
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_47.tga
+
+# c1a1_tnk1
+newmtl material_48
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_48.tga
+
+# cuwlln
+newmtl material_49
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_49.tga
+
+# cuiflre
+newmtl material_50
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_50.tga
+
+# i_ground1
+newmtl material_51
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_51.tga
+
+# cuwndh
+newmtl material_52
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_52.tga
+
+# cudri
+newmtl material_53
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_53.tga
+
+# cxstairsd
+newmtl material_54
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_54.tga
+
+# cuwllb
+newmtl material_55
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_55.tga
+
+# out_grating2
+newmtl material_56
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_56.tga
+
+# cuiwlle
+newmtl material_57
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_57.tga
+
+# i_church2a
+newmtl material_58
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_58.tga
+
+# cuwllo
+newmtl material_59
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_59.tga
+
+# eastwndwn0b
+newmtl material_60
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_60.tga
+
+# wood2
+newmtl material_61
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_61.tga
+
+# glue_plaster1
+newmtl material_62
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_62.tga
+
+# i_trim3
+newmtl material_63
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_63.tga
+
+# cublde
+newmtl material_64
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_64.tga
+
+# eastwdwdj0
+newmtl material_65
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_65.tga
+
+# eastdoor1
+newmtl material_66
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_66.tga
+
+# {blue
+newmtl material_67
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_67.tga
+
+# generic012
+newmtl material_68
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_68.tga
+
+# {cufence
+newmtl material_69
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_69.tga
+
+# {eastline2
+newmtl material_70
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_70.tga
+
+# {woodrail
+newmtl material_71
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_71.tga
+
+# {eastwndwn2
+newmtl material_72
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_72.tga
+
+# {ladder3a
+newmtl material_73
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_73.tga
+
+# {fence
+newmtl material_74
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_74.tga
+
+# {razor2
+newmtl material_75
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_75.tga
+
+# {invisible
+newmtl material_76
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_76.tga
+
+# {out_net1
+newmtl material_77
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_77.tga
+
+# -1cstrike_we4al
+newmtl material_78
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_78.tga
+
+# +0~generic86
+newmtl material_79
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_79.tga
+
+# {vine1
+newmtl material_80
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_80.tga
+
+# m_carpet2
+newmtl material_81
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_81.tga
+
+# i_roughlow1
+newmtl material_82
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_82.tga
+
+# pi_lantern
+newmtl material_83
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_83.tga
+
+# pi_grnmetal
+newmtl material_84
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_84.tga
+
+# aaatrigger
+newmtl material_85
+Kd 1.0000 1.0000 1.0000
+illum 0
+map_Kd inferno_material_85.tga
+
