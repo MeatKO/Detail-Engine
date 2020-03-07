@@ -6,8 +6,15 @@
 
 namespace detailEngine
 {
+	struct Order
+	{
+
+	};
+
 	class AssetManager
 	{
+	public:
+		AssetManager() {}
 
 	};
 }

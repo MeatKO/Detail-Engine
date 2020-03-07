@@ -11,6 +11,7 @@
 #include "OpenGL.hpp"
 #include "Console.hpp"
 #include "FileSystem.hpp"
+#include "DebugSystem.hpp"
 
 using namespace dMath;
 
@@ -50,6 +51,7 @@ namespace detailEngine
 
 				input->Update(currentTime);
 				console->Update(input);
+				debugSystem->Update(input);
 
 				messageLog->sUpdate();
 				console->sUpdate();
@@ -157,6 +159,7 @@ namespace detailEngine
 		OpenGL* renderer = new OpenGL();
 		Console* console = new Console();
 		FileSystem* fileSystem = new FileSystem();
+		DebugSystem* debugSystem = new DebugSystem(entityController);
 		std::vector<std::thread> threadList;
 	};
 }

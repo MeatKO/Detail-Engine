@@ -4,6 +4,7 @@ using namespace detailEngine;
 
 int main()
 {
+	//FreeConsole();
 	Engine engine;
 
 	if (engine.Init())

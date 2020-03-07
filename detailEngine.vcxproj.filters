@@ -89,7 +89,10 @@
     <ClInclude Include="glModel.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="AssetManager.h">
+    <ClInclude Include="DebugSystem.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetManager.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

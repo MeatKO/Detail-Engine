@@ -62,7 +62,7 @@ namespace detailEngine
 		std::any GetValue() { return value; }
 		void SetEntityID(int EntityID) { entityId = EntityID; }
 		int GetEntityID() { return entityId; }
-		void SetType(ComponentType Type) { type = Type;  }
+		void SetType(ComponentType Type) { type = Type; }
 
 		template <typename T>
 		void SetValue(T Value) { value = Value; }
@@ -136,10 +136,10 @@ namespace detailEngine
 
 			if (entity != nullptr)
 			{
-				// Add the component to the entity and add the entity.id to the EntityController components list for that specific type
 				component.SetEntityID(entity->id);
-				entity->components[component.GetType()] = component;
-				components[component.GetType()].push_back(entity->id);
+				entity->components[component.GetType()] = component; // Entity 
+				components[component.GetType()].push_back(component); // Entity Controller
+
 				return true;
 			}
 			else
@@ -153,18 +153,20 @@ namespace detailEngine
 		{
 			std::lock_guard<std::mutex> mut(ecsMutex);
 			Entity* entity = GetEntity(EntityName);
-
+			
 			if (entity != nullptr)
 			{
-				entity->components.erase(entity->components.begin() + Type);
+				entity->components[Type] = defaultComponent;
 				
-				for (unsigned int i = 0; i < components[Type].size(); i++)
-				{
-					if (components[Type][i] == entity->id)
-					{
+				// Reverse loop because if there is more than one component of the same type, not all instances will get erased
+			    for (int i = components[Type].size() - 1; i >= 0; i--)
+			    {
+			    	if (components[Type][i].GetEntityID() == entity->id)
+			    	{
 						components[Type].erase(components[Type].begin() + i);
-					}
-				}
+			    	}
+			    }	
+
 				return true;
 			}
 			else
@@ -178,28 +180,23 @@ namespace detailEngine
 		{
 			std::lock_guard<std::mutex> mut(ecsMutex);
 			Entity* entity = GetEntity(EntityName);
-
+			
 			if (entity != nullptr)
 			{
-				for (int checkedId : components[component.GetType()])
+				for (int i = 0; i < components[component.GetType()].size(); i++)
 				{
-					if (checkedId == entity->id)
+					if (components[component.GetType()][i].GetEntityID() == entity->id)
 					{
-						break;
+						component.SetEntityID(entity->id);
+						entity->components[component.GetType()] = component; // Entity 
+						components[component.GetType()].push_back(component); // Entity Controller
+						return true;
 					}
-
-					pSendMessage(Message(MSG_LOG, std::string("ECS Error"), std::string("Tried to change unexisting component of Entity '" + EntityName + "'.")));
-					return false;
 				}
-				component.SetEntityID(entity->id);
-				entity->components[component.GetType()] = component;
-				return true;
 			}
-			else
-			{
-				pSendMessage(Message(MSG_LOG, std::string("ECS Error"), std::string("Tried to change component of unexisting Entity '" + EntityName + "'.")));
-				return false;
-			}
+
+			pSendMessage(Message(MSG_LOG, std::string("ECS Error"), std::string("Tried to change component of unexisting Entity '" + EntityName + "'.")));
+			return false;
 		}
 
 		Component GetComponent(std::string EntityName, ComponentType Type)
@@ -236,11 +233,22 @@ namespace detailEngine
 			}
 		}
 
+		std::vector<std::vector<Component>> GetAllComponents()
+		{
+			std::lock_guard<std::mutex> mut(ecsMutex);
+			return components;
+		}
+		std::vector<Entity> GetAllEntities()
+		{
+			std::lock_guard<std::mutex> mut(ecsMutex);
+			return entityList;
+		}
+
 	private:
 		std::mutex ecsMutex;
 		int entityGUID = -1;
 		std::vector<Entity> entityList;
-		std::vector<std::vector<int>> components; // Vector used to store entity IDs per Component Type
+		std::vector<std::vector<Component>> components; // The Entity will hold a vector of components and the entity controller will also hold them for direct access
 		Component defaultComponent = Component(CT_DEFAULT, true);
 	};
 

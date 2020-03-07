@@ -118,7 +118,8 @@ namespace detailEngine
 			modelShader = new Shader("lighting_array");
 			normalShader = new Shader("normal_b", "normal_b");
 			lightShader = new Shader("light");
-			skyTexture = new CubemapTex("white");
+			//skyTexture = new CubemapTex("white");
+			skyTexture = new CubemapTex("black");
 			//skyTexture = new CubemapTex("detail");
 			
 			defaultTexture = LoadTexture("detail/textures/default2.png", true);
@@ -205,6 +206,7 @@ namespace detailEngine
 			model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));
 			
 			//lightPos.x = sin(currentTime) * 30.0f;
+			//lightPos.x = 30.0f;
 			//lightPos.z = cos(currentTime) * 30.0f;
 			//
 			modelShader->Use();
@@ -217,15 +219,15 @@ namespace detailEngine
 
 			mdl->Draw(modelShader);
 			
-			//normalShader->Use();
-			//
-			//glUniformMatrix4fv(glGetUniformLocation(normalShader->Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
-			//glUniformMatrix4fv(glGetUniformLocation(normalShader->Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-			//glUniformMatrix4fv(glGetUniformLocation(normalShader->Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
-			//glUniform3f(glGetUniformLocation(normalShader->Program, "viewPos"), playerCamera.GetPosition().x, playerCamera.GetPosition().y, playerCamera.GetPosition().z);
-			//glUniform3f(glGetUniformLocation(normalShader->Program, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
-			//
-			//mdl->Draw(normalShader);
+			normalShader->Use();
+			
+			glUniformMatrix4fv(glGetUniformLocation(normalShader->Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+			glUniformMatrix4fv(glGetUniformLocation(normalShader->Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+			glUniformMatrix4fv(glGetUniformLocation(normalShader->Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
+			glUniform3f(glGetUniformLocation(normalShader->Program, "viewPos"), playerCamera.GetPosition().x, playerCamera.GetPosition().y, playerCamera.GetPosition().z);
+			glUniform3f(glGetUniformLocation(normalShader->Program, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+			
+			mdl->Draw(normalShader);
 			
 			//lightShader->Use();
 			//
