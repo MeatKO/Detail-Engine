@@ -38,6 +38,7 @@ namespace detailEngine
 			{
 				fileSystem->NotifyChannels();
 				fileSystem->sUpdate();
+				debugSystem->Update(input);
 				Sleep(50);
 			}
 		}
@@ -51,7 +52,6 @@ namespace detailEngine
 
 				input->Update(currentTime);
 				console->Update(input);
-				debugSystem->Update(input);
 
 				messageLog->sUpdate();
 				console->sUpdate();
@@ -85,9 +85,6 @@ namespace detailEngine
 			if (threadCount <= THR_LAST)
 				pSendMessage(Message(MSG_LOG, std::string("Engine Info"), std::string("ECS thread count exceeds hardware thread count.")));
 
-			entityController->AddEntity("Entity0");
-			entityController->AddComponent("Entity0", Component(CT_POSITION, vec3(0.0f, 0.0f, 0.0f)));
-
 			threadList.resize(THR_LAST);
 
 			if (!renderer->Init("Window", 1200, 900, input))
@@ -95,6 +92,13 @@ namespace detailEngine
 
 			threadList[THR_OUTSOURCE] = std::move(std::thread(&Engine::UpdateThread, this));
 			threadList[THR_FILESYSTEM] = std::move(std::thread(&Engine::UpdateFileSystem, this));
+
+			//
+			entityController->AddEntity("Entity0");
+			entityController->AddComponent("Entity0", Component(CT_POSITION, vec3(0.0f, 0.0f, 0.0f)));
+			//Model newMdl("de_inferno");
+			//entityController->AddComponent("Entity0", Component(CT_MODEL, newMdl));
+			//
 
 			return true;
 		}

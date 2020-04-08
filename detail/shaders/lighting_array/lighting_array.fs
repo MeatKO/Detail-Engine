@@ -39,7 +39,7 @@ void main()
     spec = pow(max(dot(normal, halfwayDir), 0.0), 32.0);
     //vec3 specular = vec3(0.3) * spec * texture(specularTexture, fs_in.TexCoords).rgb; // assuming bright white light color
     vec3 specular = vec3(0.3) * spec * vec3(0.1); // assuming bright white light color
-    //FragColor = vec4(ambient + diffuse + specular, 1.0f);
-    FragColor = vec4(ambient, 1.0f);
+    FragColor = vec4(ambient + diffuse + specular, 1.0f);
+    //FragColor = vec4(ambient, 1.0f);
 	//FragColor = vec4(fs_in.TexCoords, 1.0f, 1.0f);
 }

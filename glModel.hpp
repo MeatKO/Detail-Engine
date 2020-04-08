@@ -149,14 +149,19 @@ namespace detailEngine
 			for (int i = 0; i < meshes.size(); i++)
 			{
 				meshes[i].SetupMesh();
+				meshes[i].vertices.clear();
+				meshes[i].faces.clear();
 			}
 			LoadMaterialTextures();
+
+			loadVertices.clear();
+			loadUVs.clear();
+			loadNormals.clear();
 		}
 
 		void Draw(Shader* shader)
 		{
-			int meshesSize = meshes.size();
-			for (int i = 0; i < meshesSize; i++)
+			for (int i = 0; i < meshes.size(); i++)
 			{
 				meshes[i].Draw(shader, materials);
 			}

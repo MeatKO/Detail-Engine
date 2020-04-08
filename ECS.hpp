@@ -233,12 +233,12 @@ namespace detailEngine
 			}
 		}
 
-		std::vector<std::vector<Component>> GetAllComponents()
+		std::vector<std::vector<Component>>& GetAllComponents()
 		{
 			std::lock_guard<std::mutex> mut(ecsMutex);
 			return components;
 		}
-		std::vector<Entity> GetAllEntities()
+		std::vector<Entity>& GetAllEntities()
 		{
 			std::lock_guard<std::mutex> mut(ecsMutex);
 			return entityList;

@@ -115,7 +115,8 @@ namespace detailEngine
 			// Things that will later be removed from here when i start actually using ECS : 
 			skybox = new Shader("skybox");
 			//modelShader = new Shader("lighting");
-			modelShader = new Shader("lighting_array");
+			//modelShader = new Shader("lighting_array");
+			modelShader = new Shader("textured");
 			normalShader = new Shader("normal_b", "normal_b");
 			lightShader = new Shader("light");
 			//skyTexture = new CubemapTex("white");
@@ -185,6 +186,11 @@ namespace detailEngine
 
 		void Update(EntityController* entityController, double currentTime, double deltaTime)
 		{
+			// Setting up the ECS stuff
+
+			std::vector<std::vector<Component>>& components = entityController->GetAllComponents();
+			std::vector<Entity>& entities = entityController->GetAllEntities();
+
 			glfwPollEvents();
 
 			playerCamera.ProcessKeyboardInput(input, (float)deltaTime);
@@ -219,15 +225,15 @@ namespace detailEngine
 
 			mdl->Draw(modelShader);
 			
-			normalShader->Use();
-			
-			glUniformMatrix4fv(glGetUniformLocation(normalShader->Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
-			glUniformMatrix4fv(glGetUniformLocation(normalShader->Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-			glUniformMatrix4fv(glGetUniformLocation(normalShader->Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
-			glUniform3f(glGetUniformLocation(normalShader->Program, "viewPos"), playerCamera.GetPosition().x, playerCamera.GetPosition().y, playerCamera.GetPosition().z);
-			glUniform3f(glGetUniformLocation(normalShader->Program, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
-			
-			mdl->Draw(normalShader);
+			//normalShader->Use();
+			//
+			//glUniformMatrix4fv(glGetUniformLocation(normalShader->Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+			//glUniformMatrix4fv(glGetUniformLocation(normalShader->Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+			//glUniformMatrix4fv(glGetUniformLocation(normalShader->Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
+			//glUniform3f(glGetUniformLocation(normalShader->Program, "viewPos"), playerCamera.GetPosition().x, playerCamera.GetPosition().y, playerCamera.GetPosition().z);
+			//glUniform3f(glGetUniformLocation(normalShader->Program, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+			//
+			//mdl->Draw(normalShader);
 			
 			//lightShader->Use();
 			//
