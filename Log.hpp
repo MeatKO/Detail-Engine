@@ -32,7 +32,7 @@ namespace detailEngine
 				std::cout << messageString << std::endl;
 				//messageLog.push_back(messageString);
 			}
-			if (message.GetTopic() == MSG_KEY)
+			else if (message.GetTopic() == MSG_KEY)
 			{
 				std::string messageString = std::any_cast<std::string>(message.GetEvent()) + " : " + std::to_string(std::any_cast<int>(message.GetValue()));
 				std::cout << messageString << std::endl;

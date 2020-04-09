@@ -46,31 +46,56 @@ namespace detailEngine
 		std::vector<Component> components;
 	};
 
+	//class Component
+	//{
+	//public:
+	//	Component() {}
+	//
+	//	template <typename T>
+	//	Component(ComponentType Type, T Value)
+	//	{
+	//		type = Type;
+	//		value = Value;
+	//	}
+	//
+	//	ComponentType GetType() { return type; }
+	//	std::any GetValue() { return value; }
+	//	void SetEntityID(int EntityID) { entityId = EntityID; }
+	//	int GetEntityID() { return entityId; }
+	//	void SetType(ComponentType Type) { type = Type; }
+	//
+	//	template <typename T>
+	//	void SetValue(T Value) { value = Value; }
+	//
+	//private:
+	//	ComponentType type = CT_DEFAULT;
+	//	int entityId = 0;
+	//	std::any value;
+	//};
+
+	// The component will hold an index to an asset
 	class Component
 	{
 	public:
 		Component() {}
 
-		template <typename T>
-		Component(ComponentType Type, T Value)
+		Component(ComponentType Type, int Index)
 		{
 			type = Type;
-			value = Value;
+			index = Index;
 		}
 
 		ComponentType GetType() { return type; }
-		std::any GetValue() { return value; }
+		int GetIndex() { return index; }
 		void SetEntityID(int EntityID) { entityId = EntityID; }
 		int GetEntityID() { return entityId; }
 		void SetType(ComponentType Type) { type = Type; }
-
-		template <typename T>
-		void SetValue(T Value) { value = Value; }
+		void SetValue(int Index) { index = Index; }
 
 	private:
 		ComponentType type = CT_DEFAULT;
 		int entityId = 0;
-		std::any value;
+		int index = -1;
 	};
 
 	class EntityController : public Publisher, public Subscriber

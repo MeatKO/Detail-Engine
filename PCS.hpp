@@ -25,17 +25,19 @@ namespace detailEngine
 
 	enum MessageType
 	{
-		MSG_ANY,     // Used only for filtering messages sent on the Bus.
-		MSG_LOG,     // string, string
-		MSG_KEY,     // string, int
-		MSG_MOUSE,   // string, int
+		MSG_ANY,       // Used only for filtering messages sent on the Bus.
+		MSG_LOG,       // string, string
+		MSG_KEY,       // string, int
+		MSG_MOUSE,     // string, int
 		MSG_RENDER,
 		MSG_AUDIO,
 		MSG_PHYS,
 		MSG_ENTITY,
 		MSG_UI,
 		MSG_ENGINE,
-		MSG_CONSOLE
+		MSG_CONSOLE,
+		MSG_ASSET_QUERY,
+		MSG_ASSET_ORDER
 	};
 
 	class Message

@@ -12,6 +12,7 @@
 #include "Console.hpp"
 #include "FileSystem.hpp"
 #include "DebugSystem.hpp"
+#include "AssetManager.hpp"
 
 using namespace dMath;
 
@@ -38,7 +39,7 @@ namespace detailEngine
 			{
 				fileSystem->NotifyChannels();
 				fileSystem->sUpdate();
-				debugSystem->Update(input);
+				//debugSystem->Update(input);
 				Sleep(50);
 			}
 		}
@@ -95,7 +96,7 @@ namespace detailEngine
 
 			//
 			entityController->AddEntity("Entity0");
-			entityController->AddComponent("Entity0", Component(CT_POSITION, vec3(0.0f, 0.0f, 0.0f)));
+			//entityController->AddComponent("Entity0", Component(CT_POSITION, vec3(0.0f, 0.0f, 0.0f)));
 			//Model newMdl("de_inferno");
 			//entityController->AddComponent("Entity0", Component(CT_MODEL, newMdl));
 			//
@@ -120,6 +121,10 @@ namespace detailEngine
 			this->sUpdate();
 			entityController->sUpdate();
 			renderer->sUpdate();
+
+			// Misc test stuff
+			//assetManager->Update();
+			//assetManager->PlaceOrder(Order("TEST", "TEST", "TEST")); // works
 		}
 
 		bool ShouldClose()
@@ -157,6 +162,7 @@ namespace detailEngine
 		bool shouldClose = false;
 
 		EntityController* entityController = new EntityController();
+		AssetManager* assetManager = new AssetManager();
 		Channel* messageBus = new Channel();
 		Log* messageLog = new Log();
 		Input* input = new Input();
