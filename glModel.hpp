@@ -138,6 +138,7 @@ namespace detailEngine
 		}
 	};
 
+	// you have to just load the vertices and stuff on a different thread and then init the VAO and VBO etc on the OpenGL context thread
 	class Model
 	{
 	public:
@@ -145,6 +146,11 @@ namespace detailEngine
 		{
 			modelName = name;
 			LoadOBJ(name); // Loads materials as well
+		}
+
+		void InitOGLContext()
+		{
+			initialized = true;
 			ProcessMeshes();
 			for (int i = 0; i < meshes.size(); i++)
 			{
@@ -161,6 +167,11 @@ namespace detailEngine
 
 		void Draw(Shader* shader)
 		{
+			if (initialized == false)
+			{
+				std::cout << initialized << std::endl;
+				InitOGLContext();
+			}
 			for (int i = 0; i < meshes.size(); i++)
 			{
 				meshes[i].Draw(shader, materials);
@@ -420,25 +431,26 @@ namespace detailEngine
 
 		void LoadMaterialTextures()
 		{
-			//std::vector<Texture> textures;
+			std::vector<Texture> textures;
 
 			for (Material& mat : materials)
 			{
-				//or (Texture tex : mat.textureList)
-				//
-				//	std::cout << "texture : " << tex.name << " Type : " << tex.type << std::endl;
-				//	if (tex.type == "map_Kd")
-				//	{
-				//		Texture newTex;
-				//		newTex.name = tex.name;
-				//		newTex.type = tex.type;
-				//		textures.push_back(newTex);
-				//	}
-				//
+			    for (Texture tex : mat.textureList)
+				{
+			    	std::cout << "texture : " << tex.name << " Type : " << tex.type << std::endl;
+			    	if (tex.type == "map_Kd")
+			    	{
+			    		Texture newTex;
+			    		newTex.name = tex.name;
+			    		newTex.type = tex.type;
+			    		textures.push_back(newTex);
+			    	}
+				}
 				mat.LoadMtlTextures(modelName);
 			}
 		}
 
+		bool initialized = false;
 		std::string modelName;
 		std::vector<vec3> loadVertices, loadNormals;
 		std::vector<vec2> loadUVs;

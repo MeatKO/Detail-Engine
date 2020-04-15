@@ -3,27 +3,15 @@
 #include "ECS.hpp"
 #include "dMath.hpp"
 #include "glModel.hpp"
-#include "FileSystem.hpp"
 
 namespace detailEngine
 {
-	enum AssetType
-	{
-		ASSET_DEFAULT,
-		ASSET_MODEL_OBJ,
-		ASSET_MODEL_ANIMATION,
-		ASSET_SOUND_WAV,
-		ASSET_SOUND_MP3
-	};
+	class FileSystem;
 	
 	struct Order
 	{
-		Order(std::string Name, std::string PackName, std::string Type)
-		{
-			name = Name;
-			packName = PackName;
-			type = Type;
-		}
+		Order(std::string Name, std::string PackName, std::string Type);
+
 		std::string name;
 		std::string packName;
 		std::string type;
@@ -35,30 +23,23 @@ namespace detailEngine
 		Asset() {}
 
 		template <typename T>
-		Asset(AssetType Type, T Value)
-		{
-			type = Type;
-			data = Value;
-		}
+		Asset(ComponentAssetType Type, std::string Name, T Value);
 
-		AssetType GetType() { return type; }
-		std::any GetValue() { return data; }
-		void SetType(AssetType Type) { type = Type; }
-		bool Exists() { return exists; }
-		void Delete()
-		{
-			assetName = "DELETED";
-			exists = false;
-			data.reset();
-		}
+		std::string GetName();
+		ComponentAssetType GetType();
+		std::any GetValue();
+		void SetType(ComponentAssetType Type);
+		void SetName(std::string Name);
+		bool Exists();
+		void Delete();
 
 		template <typename T>
 		void SetValue(T Value) { data = Value; }
-
+		std::any data;
 	private:
 		std::string assetName;
-		AssetType type = ASSET_DEFAULT;
-		std::any data;
+		ComponentAssetType type = CAT_DEFAULT;
+		
 		bool exists = true;
 	};
 
@@ -66,73 +47,33 @@ namespace detailEngine
 	class AssetManager : public Publisher, public Subscriber
 	{
 	public:
-		AssetManager() 
-		{
-			defaultAsset.Delete();
-		}
+		AssetManager();
 
-		void ExecuteMessage(Message message)
-		{
-			if (message.GetTopic() == MSG_ASSET_ORDER)
-			{
-				if (message.GetValue().type() == typeid(Order))
-				{
-					Order receivedOrder = std::any_cast<Order>(message.GetValue());
-					PlaceOrder(receivedOrder);
-					return;
-				}
-				pSendMessage(Message(MSG_LOG, std::string("Asset Manager Error"), std::string("An Asset Order received on the Bus was in the wrong type format.")));
-			}
-		}
-
-		// Add mutexes later
-		Asset GetAsset(unsigned int id)
-		{
-			if(id < assetList.size())
-				return assetList[id];
-
-			return defaultAsset;
-		}
-
-		void PlaceOrder(Order newOrder)
-		{
-			std::lock_guard<std::mutex> mut(orderLock);
-			orderList[orderBuffer].push_back(newOrder);
-		}
-
-		void Update()
-		{
-			AssetSwapBuffers();
-			for (Order& order : orderList[!orderBuffer])
-			{
-				ExecuteOrder(order);
-			}
-			messageBuffer[!orderBuffer].clear();
-		}
+		Asset GetAsset(unsigned int id);
+		Asset& RefAsset(unsigned int id);
+		std::vector<Asset> GetAllAssets();
+		void DeleteAsset(unsigned int id);
+		void PlaceOrder(Order newOrder);
+		void Update(FileSystem* fileSystem);
+		void ExecuteMessage(Message message);
+		bool AssetExists(std::string assetName);
+		int GetAssetID(std::string assetName);
 
 	private:
+
 		// Double buffering 
 		std::vector<Order> orderList[2];
 		bool orderBuffer = 0;
 
 		std::vector<Asset> assetList;
 		Asset defaultAsset;
+
 		std::mutex orderLock;
+		std::mutex assetLock;
 
-		void AssetSwapBuffers()
-		{
-			std::lock_guard<std::mutex> mut(orderLock);
-			orderBuffer = !orderBuffer;
-		}
-
+		void AssetSwapBuffers();
 		// 66
-		void ExecuteOrder(Order order)
-		{
-			// works !
-			if (order.name == "TEST")
-			{
-				//std::cout << "TEST ORDER RECEIVED\n";
-			}
-		}
+		void ExecuteOrder(Order order, FileSystem* fileSystem);
+		void AddAssets(std::vector<Asset> assets);
 	};
 }
