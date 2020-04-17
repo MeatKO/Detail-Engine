@@ -17,57 +17,66 @@ namespace detailEngine
 
 		return CAT_DEFAULT;
 	}
-	void FileSystem::PlaceOrder(Order newOrder)
+	
+	void FileSystem::Update(EntityController* entityController, AssetManager* assetManager)
 	{
-		std::lock_guard<std::mutex> mut(orderLock);
-		orderList[orderBuffer].push_back(newOrder);
+		ExecuteAllRequests();
 	}
-	void FileSystem::ExecuteMessage(Message message) {}
-	void FileSystem::ExecuteOrder(Order order, AssetManager* assetManager)
+
+	void FileSystem::RequestAsset(Asset asset)
 	{
-		ComponentAssetType Type = StringToCAT(order.type);
-		if (Type == CAT_DEFAULT)
+		std::lock_guard<std::mutex> mut(requestMutex);
+		requestedAssets[!requestBuffer].push_back(asset);
+	}
+
+	std::vector<Asset> FileSystem::CollectAssets()
+	{
+		std::lock_guard<std::mutex> mut(deliverMutex);
+
+		std::vector<Asset> vectorCopy = deliveredAssets;
+		deliveredAssets.clear();
+
+		return vectorCopy;
+	}
+
+	void FileSystem::ExecuteAllRequests()
+	{
+		SwapRequestBuffers();
+		for (Asset& asset : requestedAssets[requestBuffer])
 		{
-			pSendMessage(Message(MSG_LOG, std::string("FileSystem Error"), std::string("Invalid string to component type conversion for type '" + order.type + "' !")));
-			return;
+			ExecuteRequest(asset);
+			DeliverAsset(asset);
 		}
-	    Asset newAsset;
-		newAsset.SetType(Type);
-		newAsset.SetName(order.name);
-		if (order.packName == "models")
+		requestedAssets[requestBuffer].clear();
+	}
+
+	void FileSystem::ExecuteRequest(Asset& asset)
+	{
+		ComponentAssetType Type = StringToCAT(asset.fileType);
+
+		asset.assetType = Type;
+
+		if (Type == CAT_MODEL)
 		{
-			// OpenGL context isnt on this thread... fix it
-			Model newModel(order.name);
-			newAsset.SetValue(newModel);
-			newAsset.SetType(Type);
+			Model newMdl(asset.name);
+			asset.data = newMdl;
 		}
-		
-		CompleteAsset(newAsset);
 	}
-	void FileSystem::Update(AssetManager* assetManager)
+
+	void FileSystem::ExecuteMessage(Message message)
 	{
-		AssetSwapBuffers();
-		for (Order& order : orderList[!orderBuffer])
-		{
-			ExecuteOrder(order, assetManager);
-		}
-		orderList[!orderBuffer].clear();
 	}
-	void FileSystem::CompleteAsset(Asset asset) // Adding a completed asset to the list
+
+	void FileSystem::DeliverAsset(Asset asset)
 	{
-		std::lock_guard<std::mutex> mut(assetLock);
-		completedAssetList.push_back(asset);
+		std::lock_guard<std::mutex> mut(deliverMutex);
+		deliveredAssets.push_back(asset);
 	}
-	std::vector<Asset> FileSystem::RetreiveCompletedAssets()
+
+	void FileSystem::SwapRequestBuffers()
 	{
-		std::lock_guard<std::mutex> mut(assetLock);
-		std::vector<Asset> completedAssets = completedAssetList;
-		completedAssetList.clear();
-		return completedAssets;
+		std::lock_guard<std::mutex> mut(requestMutex);
+		requestBuffer = !requestBuffer;
 	}
-	void FileSystem::AssetSwapBuffers()
-	{
-		std::lock_guard<std::mutex> mut(orderLock);
-		orderBuffer = !orderBuffer;
-	}
+
 }

@@ -36,8 +36,7 @@ namespace detailEngine
 		MSG_UI,
 		MSG_ENGINE,
 		MSG_CONSOLE,
-		MSG_ASSET_QUERY,
-		MSG_ASSET_ORDER
+		MSG_ASSET
 	};
 
 	class Message

@@ -230,19 +230,32 @@ namespace detailEngine
 	void EntityController::EnableEntity(std::string EntityName)
 	{
 		std::lock_guard<std::mutex> mut(ecsMutex);
-		if (!AddComponent(EntityName, Component(CAT_DISABLED, "DISABLED", "DISABLED")))
+		Entity* entity = GetEntity(EntityName);
+
+		if (entity != nullptr)
 		{
-			pSendMessage(Message(MSG_LOG, std::string("ECS Error"), std::string("Couldn't Enable Entity '" + EntityName + "'.")));
+			entity->components[CAT_DISABLED] = defaultComponent;
+		}
+		else
+		{
+			pSendMessage(Message(MSG_LOG, std::string("ECS Error"), std::string("Tried to disable an unexisting Entity '" + EntityName + "'.")));
 		}
 	}
 
 	void EntityController::DisableEntity(std::string EntityName)
 	{
 		std::lock_guard<std::mutex> mut(ecsMutex);
-		if (!RemoveComponent(EntityName, CAT_DISABLED))
+		Entity* entity = GetEntity(EntityName);
+
+		if (entity != nullptr)
 		{
-			pSendMessage(Message(MSG_LOG, std::string("ECS Error"), std::string("Couldn't Disable Entity '" + EntityName + "'.")));
+			entity->components[CAT_DISABLED] = Component(CAT_DISABLED, "DISABLED", "DISABLED");
 		}
+		else
+		{
+			pSendMessage(Message(MSG_LOG, std::string("ECS Error"), std::string("Tried to disable an unexisting Entity '" + EntityName + "'.")));
+		}
+		
 	}
 
 	std::vector<Entity>& EntityController::GetAllEntities()
@@ -265,7 +278,7 @@ namespace detailEngine
 					if (AssetID >= 0)
 					{
 						Entity* entity = GetEntity(queuedComponents[i][k].GetEntityID());
-
+		
 						if (entity)
 						{
 							queuedComponents[i][k].SetIndex(AssetID);

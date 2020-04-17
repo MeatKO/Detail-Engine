@@ -82,7 +82,6 @@ namespace detailEngine
 		Component GetComponent(std::string EntityName, ComponentAssetType Type);
 		void EnableEntity(std::string EntityName);
 		void DisableEntity(std::string EntityName);
-		//std::vector<std::vector<Component>>& GetAllComponents();
 		std::vector<Entity>& GetAllEntities();
 		void Update(AssetManager* assetManager);
 
@@ -90,7 +89,6 @@ namespace detailEngine
 		std::mutex ecsMutex;
 		int entityGUID = -1;
 		std::vector<Entity> entityList;
-		//std::vector<std::vector<Component>> components; // The Entity will hold a vector of components and the entity controller will also hold them for direct access
 		std::vector<std::vector<Component>> queuedComponents; // Components that are linked to an asset that is not yet loaded 
 		Component defaultComponent = Component(CAT_DEFAULT, "DEFAULT", "DEFAULT");
 	};

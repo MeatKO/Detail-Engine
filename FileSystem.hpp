@@ -12,41 +12,33 @@
 
 namespace detailEngine
 {
-	class AssetManager;
-	struct Order;
-	class Model;
-	class Asset;
-
 	long int UnixTimestamp();
 
 	ComponentAssetType StringToCAT(std::string type);
 
-	class File
-	{
-	};
-
-	class Pack
-	{
-	};
+	class Asset;
+	class AssetManager;
 
 	class FileSystem : public Publisher, public Subscriber
 	{
 	public:
-		void PlaceOrder(Order newOrder);
-		void ExecuteMessage(Message message);
-		void ExecuteOrder(Order order, AssetManager* assetManager);
-		void Update(AssetManager* assetManager);
-		void CompleteAsset(Asset asset);
-		std::vector<Asset> RetreiveCompletedAssets();
-		
+		FileSystem() {}
+
+		void Update(EntityController* entityController, AssetManager* assetManager);
+		void RequestAsset(Asset asset);
+		std::vector<Asset> CollectAssets();
+
 	private:
-		std::vector<Order> orderList[2];
-		bool orderBuffer = 0;
-		std::mutex orderLock;
+		void ExecuteAllRequests();
+		void ExecuteRequest(Asset& asset);
+		void ExecuteMessage(Message message);
+		void DeliverAsset(Asset asset);
 
-		std::vector<Asset> completedAssetList;
-		std::mutex assetLock;
-
-		void AssetSwapBuffers();
+		std::mutex requestMutex;
+		std::mutex deliverMutex;
+		void SwapRequestBuffers();
+		std::vector<Asset> deliveredAssets;
+		std::vector<Asset> requestedAssets[2];
+		bool requestBuffer = true;
 	};
 }

@@ -8,72 +8,40 @@ namespace detailEngine
 {
 	class FileSystem;
 	
-	struct Order
-	{
-		Order(std::string Name, std::string PackName, std::string Type);
-
-		std::string name;
-		std::string packName;
-		std::string type;
-	};
-	
 	class Asset
 	{
 	public:
-		Asset() {}
+		Asset(std::string Name, std::string Location, std::string FileType);
 
-		template <typename T>
-		Asset(ComponentAssetType Type, std::string Name, T Value);
-
-		std::string GetName();
-		ComponentAssetType GetType();
-		std::any GetValue();
-		void SetType(ComponentAssetType Type);
-		void SetName(std::string Name);
-		bool Exists();
-		void Delete();
-
-		template <typename T>
-		void SetValue(T Value) { data = Value; }
+		std::string name;
+		std::string location;
+		std::string fileType;
+		ComponentAssetType assetType;
+		bool deleted = false;
 		std::any data;
-	private:
-		std::string assetName;
-		ComponentAssetType type = CAT_DEFAULT;
-		
-		bool exists = true;
 	};
 
-	// If an Asset gets deleted it still occupies a slot in the assetList but its data will be cleared
 	class AssetManager : public Publisher, public Subscriber
 	{
 	public:
 		AssetManager();
-
-		Asset GetAsset(unsigned int id);
-		Asset& RefAsset(unsigned int id);
-		std::vector<Asset> GetAllAssets();
-		void DeleteAsset(unsigned int id);
-		void PlaceOrder(Order newOrder);
-		void Update(FileSystem* fileSystem);
-		void ExecuteMessage(Message message);
+		void RequestAsset(Asset asset);
+		void Update(EntityController* entityController, FileSystem* fileSystem);
 		bool AssetExists(std::string assetName);
+		Asset& RefAsset(std::string assetName);
+		Asset& RefAsset(int assetID);
+		std::vector<Asset> GetAllAssets();
 		int GetAssetID(std::string assetName);
 
-	private:
-
-		// Double buffering 
-		std::vector<Order> orderList[2];
-		bool orderBuffer = 0;
-
+	//private:
+		void ExecuteRequests(FileSystem* fileSystem);
+		void ExecuteMessage(Message message);
+		std::mutex assetMutex;
+		std::mutex requestMutex;
+		void AddAsset(Asset asset);
+		void SwapRequestBuffers();
 		std::vector<Asset> assetList;
-		Asset defaultAsset;
-
-		std::mutex orderLock;
-		std::mutex assetLock;
-
-		void AssetSwapBuffers();
-		// 66
-		void ExecuteOrder(Order order, FileSystem* fileSystem);
-		void AddAssets(std::vector<Asset> assets);
+		std::vector<Asset> requestedAssets[2];
+		bool requestBuffer = true;
 	};
 }

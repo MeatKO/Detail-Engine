@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Input.hpp"
+#include "ECS.hpp"
 #include <GLFW/glfw3.h>
 
 namespace detailEngine
@@ -10,7 +11,7 @@ namespace detailEngine
 	public:
 		Console() {}
 
-		void Update(Input* input)
+		void Update(Input* input, EntityController* entityController)
 		{
 			if (input->CheckCombination(256))
 			{
@@ -34,6 +35,10 @@ namespace detailEngine
 				//{
 					pSendMessage(Message(MSG_CONSOLE, std::string("QUIT"), true));
 				//}
+			}
+			if (input->CheckCombination(69))
+			{
+				pSendMessage(Message(MSG_ASSET, std::string("Engine Error"), Asset("de_inferno", "models", "obj")));
 			}
 		}
 	};

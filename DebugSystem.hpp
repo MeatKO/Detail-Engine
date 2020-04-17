@@ -21,14 +21,15 @@ namespace detailEngine
 				std::vector<Entity>& entities = entityController->GetAllEntities();
 				std::vector<Asset> assets = assetManager->GetAllAssets();
 				
-				//for (Asset asset : assets)
-				//{
-				//	std::cout << asset.GetName() << std::endl;
-				//}
-				//for (Entity entity : entities)
-				//{
-				//	std::cout << entity.components[CAT_MODEL].GetName() << std::endl;
-				//}
+				system("CLS");
+				for (Asset asset : assets)
+				{
+					std::cout << "Asset  :  " << asset.name << std::endl;
+				}
+				for (Entity entity : entities)
+				{
+					std::cout << "Entity :  " << entity.name << std::endl;
+				}
 
 				//if (input->IsPressed(GLFW_KEY_T))
 				//{

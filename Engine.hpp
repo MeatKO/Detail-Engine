@@ -44,7 +44,7 @@ namespace detailEngine
 			{
 				fileSystem->NotifyChannels();
 				fileSystem->sUpdate();
-				fileSystem->Update(assetManager);
+				fileSystem->Update(entityController, assetManager);
 				debugSystem->Update(input, entityController, assetManager);
 
 				Sleep(50);
@@ -60,8 +60,8 @@ namespace detailEngine
 				assetManager->NotifyChannels();
 
 				input->Update(currentTime);
-				console->Update(input);
-				assetManager->Update(fileSystem);
+				console->Update(input, entityController);
+				assetManager->Update(entityController, fileSystem);
 
 				messageLog->sUpdate();
 				console->sUpdate();
@@ -91,7 +91,7 @@ namespace detailEngine
 			this->AddType(MSG_CONSOLE);
 			messageLog->AddType(MSG_LOG);
 			messageLog->AddType(MSG_KEY);
-			assetManager->AddType(MSG_ASSET_ORDER);
+			assetManager->AddType(MSG_ASSET);
 
 			threadCount = std::thread::hardware_concurrency();
 
@@ -119,8 +119,10 @@ namespace detailEngine
 			entityController->AddEntity("Skyboxes");
 
 			entityController->AddEntity("Map");
-			pSendMessage(Message(MSG_ASSET_ORDER, std::string("Engine Error"), Order("de_inferno", "models", "obj")));
+			//pSendMessage(Message(MSG_ASSET_ORDER, std::string("Engine Error"), Order("de_inferno", "models", "obj")));
+			//pSendMessage(Message(MSG_ASSET_ORDER, std::string("Engine Error"), Order("0", "models", "obj")));
 			entityController->AddComponent("Map", Component(CAT_MODEL, "MapModel", "de_inferno"));
+			//entityController->AddComponent("Map", Component(CAT_MODEL, "MapModel", "0"));
 
 			return true;
 		}

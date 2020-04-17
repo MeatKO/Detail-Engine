@@ -3,140 +3,124 @@
 
 namespace detailEngine
 {
-	Order::Order(std::string Name, std::string PackName, std::string Type)
+	Asset::Asset(std::string Name, std::string Location, std::string FileType)
 	{
 		name = Name;
-		packName = PackName;
-		type = Type;
+		location = Location;
+		fileType = FileType;
 	}
 
-	template<typename T>
-	Asset::Asset(ComponentAssetType Type, std::string Name, T Value)
-	{
-		type = Type;
-		data = Value;
-		assetName = Name;
-	}
-	std::string Asset::GetName() { return assetName; }
-	ComponentAssetType Asset::GetType() { return type; }
-	std::any Asset::GetValue() { return data; }
-	void Asset::SetType(ComponentAssetType Type) { type = Type; }
-	void Asset::SetName(std::string Name){ assetName = Name; }
-	bool Asset::Exists() { return exists; }
-	void Asset::Delete()
-	{
-		assetName = "DELETED";
-		exists = false;
-		data.reset();
-	}
 
-	// Asset Manager
-	AssetManager::AssetManager()
+	AssetManager::AssetManager() {}
+	void AssetManager::RequestAsset(Asset asset)
 	{
-		defaultAsset.Delete();
-	}
-	void AssetManager::ExecuteMessage(Message message)
-	{
-		if (message.GetTopic() == MSG_ASSET_ORDER)
+		if (!AssetExists(asset.name))
 		{
-			
-			if (message.GetValue().type() == typeid(Order))
+			std::lock_guard<std::mutex> mut(requestMutex);
+			requestedAssets[!requestBuffer].push_back(asset);
+		}
+		else
+		{
+			// err tried to request duplicate asset
+		}
+	}
+	void AssetManager::Update(EntityController* entityController, FileSystem* fileSystem)
+	{
+		ExecuteRequests(fileSystem);
+
+		std::vector<Asset> receivedAssets = fileSystem->CollectAssets();
+		for (Asset& asset : receivedAssets)
+		{
+			if (!AssetExists(asset.name))
 			{
-				//std::lock_guard<std::mutex> mut(orderLock);
-				Order receivedOrder = std::any_cast<Order>(message.GetValue());
-				PlaceOrder(receivedOrder);
-				return;
+				AddAsset(asset);
 			}
-			pSendMessage(Message(MSG_LOG, std::string("Asset Manager Error"), std::string("An Asset Order received on the Bus was in the wrong type format.")));
 		}
 	}
 	bool AssetManager::AssetExists(std::string assetName)
 	{
-		std::vector<Asset> assets = GetAllAssets();
-		for (Asset asset : assets)
+		std::lock_guard<std::mutex> mut(assetMutex);
+		for (Asset& asset : assetList)
 		{
-			if (asset.GetName() == assetName)
+			if (asset.name == assetName)
 				return true;
 		}
 		return false;
 	}
-	int AssetManager::GetAssetID(std::string assetName)
+	Asset& AssetManager::RefAsset(std::string assetName)
 	{
-		for (int i = 0; i < assetList.size(); i++)
+		std::lock_guard<std::mutex> mut(assetMutex);
+		for (Asset& asset : assetList)
 		{
-			if (assetName == assetList[i].GetName())
-				return i;
+			if (asset.name == assetName)
+				return asset;
 		}
-		return -1;
+		// print error not found
 	}
-	Asset AssetManager::GetAsset(unsigned int id)
+	Asset& AssetManager::RefAsset(int assetID)
 	{
-		std::lock_guard<std::mutex> mut(assetLock);
-		if (id < assetList.size())
-			return assetList[id];
-
-		return defaultAsset;
-	}
-	Asset& AssetManager::RefAsset(unsigned int id)
-	{
-		std::lock_guard<std::mutex> mut(assetLock);
-		if (id < assetList.size())
-			return assetList[id];
-
-		return defaultAsset;
+		if (assetID >= 0 && assetID < assetList.size())
+		{
+			std::lock_guard<std::mutex> mut(assetMutex);
+			return assetList[assetID];
+		}
+		// print error invalid index
 	}
 	std::vector<Asset> AssetManager::GetAllAssets()
 	{
-		std::lock_guard<std::mutex> mut(assetLock);
 		return assetList;
 	}
-	void AssetManager::DeleteAsset(unsigned int id)
+	int AssetManager::GetAssetID(std::string assetName)
 	{
-		std::lock_guard<std::mutex> mut(assetLock);
-		if (id < assetList.size())
-			assetList[id].Delete();
-	}
-	void AssetManager::PlaceOrder(Order newOrder)
-	{
-		std::lock_guard<std::mutex> mut(orderLock);
-		orderList[orderBuffer].push_back(newOrder);
-	}
-	void AssetManager::Update(FileSystem* fileSystem)
-	{
-		if (!fileSystem)
+		std::lock_guard<std::mutex> mut(assetMutex);
+		for (int i = 0; i < assetList.size(); i++)
 		{
-			pSendMessage(Message(MSG_LOG, std::string("Asset Manager Error"), std::string("fileSystem* is null.")));
-			return;
+			if (assetName == assetList[i].name)
+			{
+				return i;
+			}
 		}
-
-		AssetSwapBuffers();
-		for (Order order : orderList[!orderBuffer])
+		return -1;
+	}
+	void AssetManager::ExecuteRequests(FileSystem* fileSystem)
+	{
+		SwapRequestBuffers();
+		for (Asset& asset : requestedAssets[requestBuffer])
 		{
-			ExecuteOrder(order, fileSystem);
+			fileSystem->RequestAsset(asset);
+			// offload to filesystem
 		}
-		orderList[!orderBuffer].clear();
-
-		std::vector<Asset> receivedAssets = fileSystem->RetreiveCompletedAssets();
-		if (receivedAssets.size() > 0)
+		requestedAssets[requestBuffer].clear();
+		
+	}
+	void AssetManager::ExecuteMessage(Message message)
+	{
+		if (message.GetTopic() == MSG_ASSET)
 		{
-			AddAssets(receivedAssets);
+			if (message.GetValue().type() == typeid(Asset))
+			{
+				RequestAsset(std::any_cast<Asset>(message.GetValue()));
+			}
+			else
+			{
+				// error
+			}
 		}
 	}
-	void AssetManager::AssetSwapBuffers()
+	void AssetManager::AddAsset(Asset asset)
 	{
-		std::lock_guard<std::mutex> mut(orderLock);
-		orderBuffer = !orderBuffer;
-	}
-	void AssetManager::ExecuteOrder(Order order, FileSystem* fileSystem)
-	{
-		fileSystem->PlaceOrder(order);
-	}
-	void AssetManager::AddAssets(std::vector<Asset> assets)
-	{
-		std::lock_guard<std::mutex> mut(assetLock);
-		for (Asset asset : assets)
+		if (!AssetExists(asset.name))
 		{
+			std::lock_guard<std::mutex> mut(assetMutex);
 			assetList.push_back(asset);
 		}
+		else
+		{
+			// err tried to add duplicate asset
+		}
+	}
+	void AssetManager::SwapRequestBuffers()
+	{
+		requestBuffer = !requestBuffer;
 	}
 }

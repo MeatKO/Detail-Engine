@@ -107,7 +107,7 @@ namespace detailEngine
 				[](GLFWwindow* window, double xPos, double yPos) -> void
 				{
 					OpenGL* myClass = (OpenGL*)glfwGetWindowUserPointer(window);
-					myClass->MouseCallback(window,(float)xPos, (float)yPos);
+					myClass->MouseCallback(window, (float)xPos, (float)yPos);
 				}
 			);
 
@@ -120,10 +120,10 @@ namespace detailEngine
 			modelShader = new Shader("textured");
 			normalShader = new Shader("normal_b", "normal_b");
 			lightShader = new Shader("light");
-			skyTexture = new CubemapTex("white");
+			//skyTexture = new CubemapTex("white");
 			//skyTexture = new CubemapTex("black");
-			//skyTexture = new CubemapTex("detail");
-			
+			skyTexture = new CubemapTex("detail");
+
 			//defaultTexture = LoadTexture("detail/textures/default2.png", true);
 
 			std::cout << "Version : " << glGetString(GL_VERSION) << std::endl;
@@ -131,7 +131,7 @@ namespace detailEngine
 			//mdl = new Model("de_inferno");
 			//mdl = new Model("nanosuit");
 			//lamp = new Model("bulb");
-			mdl = new Model("de_inferno");
+			//mdl = new Model("de_inferno");
 
 			return true;
 		}
@@ -197,7 +197,7 @@ namespace detailEngine
 			playerCamera.ProcessKeyboardInput(input, (float)deltaTime);
 
 			glfwPollEvents();
-			
+
 			glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 			glClearColor(0.1f, 0.1f, 0.8f, 1.0f);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -213,32 +213,35 @@ namespace detailEngine
 			model = glm::translate(model, glm::vec3(0, 0, 0.5));
 			//model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
 			model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));
+			//model = glm::scale(model, glm::vec3(10.0f, 10.0f, 10.0f));
 
 			for (Entity& entity : entities)
 			{
-				
-				Asset& asset = assetManager->RefAsset(entity.components[CAT_MODEL].GetIndex());
-
-				if (asset.GetType() != CAT_DEFAULT)
+				if (entity.components[CAT_DISABLED].GetType() != CAT_DISABLED)
 				{
-					Model mdl = std::any_cast<Model>(asset.GetValue());
-					if (!mdl.initialized)
-					{
-						Model procMdl = std::any_cast<Model>(asset.GetValue());
-						procMdl.InitOGLContext();
-						asset.SetValue(procMdl);
-					}
-					else
-					{
-						modelShader->Use();
+					Asset& asset = assetManager->RefAsset(entity.components[CAT_MODEL].GetIndex());
 
-						glUniformMatrix4fv(glGetUniformLocation(modelShader->Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
-						glUniformMatrix4fv(glGetUniformLocation(modelShader->Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-						glUniformMatrix4fv(glGetUniformLocation(modelShader->Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
-						glUniform3f(glGetUniformLocation(modelShader->Program, "viewPos"), playerCamera.GetPosition().x, playerCamera.GetPosition().y, playerCamera.GetPosition().z);
-						glUniform3f(glGetUniformLocation(modelShader->Program, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+					if (asset.assetType != CAT_DEFAULT)
+					{
+						Model mdl = std::any_cast<Model>(asset.data);
+						if (!mdl.initialized)
+						{
+							Model procMdl = std::any_cast<Model>(asset.data);
+							procMdl.InitOGLContext();
+							asset.data = procMdl;
+						}
+						else
+						{
+							modelShader->Use();
 
-						mdl.Draw(modelShader);
+							glUniformMatrix4fv(glGetUniformLocation(modelShader->Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+							glUniformMatrix4fv(glGetUniformLocation(modelShader->Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+							glUniformMatrix4fv(glGetUniformLocation(modelShader->Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
+							glUniform3f(glGetUniformLocation(modelShader->Program, "viewPos"), playerCamera.GetPosition().x, playerCamera.GetPosition().y, playerCamera.GetPosition().z);
+							glUniform3f(glGetUniformLocation(modelShader->Program, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+
+							mdl.Draw(modelShader);
+						}
 					}
 				}
 			}
@@ -255,7 +258,7 @@ namespace detailEngine
 
 		Camera playerCamera = Camera(glm::vec3(0.0f, 0.0f, 0.0f));
 		Shader* skybox;
-		Model* mdl;
+		//Model* mdl;
 		Shader* modelShader;
 		Shader* normalShader;
 		Shader* lightShader;
