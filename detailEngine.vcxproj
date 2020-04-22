@@ -188,6 +188,8 @@
     <ClInclude Include="Log.hpp" />
     <ClInclude Include="OpenGL.hpp" />
     <ClInclude Include="PCS.hpp" />
+    <ClInclude Include="Phy7ics.hpp" />
+    <ClInclude Include="Transformation.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

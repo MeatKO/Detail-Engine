@@ -142,6 +142,7 @@ namespace detailEngine
 	class Model
 	{
 	public:
+		Model() {}
 		Model(std::string name)
 		{
 			modelName = name;
@@ -152,8 +153,14 @@ namespace detailEngine
 		{
 			initialized = true;
 			ProcessMeshes();
+
 			for (int i = 0; i < meshes.size(); i++)
 			{
+				//for (Vertex& vertex : meshes[i].vertices)
+				//{
+				//	std::cout << "POS : " << vertex.Position << "    -    UV : " << vertex.UV << std::endl;
+				//}
+
 				meshes[i].SetupMesh();
 				meshes[i].vertices.clear();
 				meshes[i].faces.clear();
@@ -169,7 +176,6 @@ namespace detailEngine
 		{
 			if (initialized == false)
 			{
-				std::cout << initialized << std::endl;
 				InitOGLContext();
 			}
 			for (int i = 0; i < meshes.size(); i++)
@@ -328,6 +334,7 @@ namespace detailEngine
 							// Inverting the UV coordinates
 							vec2 uv = loadUVs[face.y - 1];
 							newVert.UV = vec2(uv.x, 1.0f - uv.y);
+							//newVert.UV = vec2(uv.x, uv.y);
 						}
 						if (normalSize > 0)
 						{

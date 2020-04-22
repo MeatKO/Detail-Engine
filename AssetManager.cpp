@@ -16,8 +16,15 @@ namespace detailEngine
 	{
 		if (!AssetExists(asset.name))
 		{
-			std::lock_guard<std::mutex> mut(requestMutex);
-			requestedAssets[!requestBuffer].push_back(asset);
+			//if (asset.fileType == "AABB")
+			//{
+			//	AddAsset(asset);
+			//}
+			//else
+			//{
+				std::lock_guard<std::mutex> mut(requestMutex);
+				requestedAssets[!requestBuffer].push_back(asset);
+			//}
 		}
 		else
 		{
@@ -56,6 +63,7 @@ namespace detailEngine
 				return asset;
 		}
 		// print error not found
+		return defaultAsset;
 	}
 	Asset& AssetManager::RefAsset(int assetID)
 	{
@@ -65,6 +73,26 @@ namespace detailEngine
 			return assetList[assetID];
 		}
 		// print error invalid index
+		return defaultAsset;
+	}
+	Asset AssetManager::GetAsset(std::string assetName)
+	{
+		std::lock_guard<std::mutex> mut(assetMutex);
+		for (Asset& asset : assetList)
+		{
+			if (asset.name == assetName)
+				return asset;
+		}
+		return defaultAsset;
+	}
+	Asset AssetManager::GetAsset(int assetID)
+	{
+		if (assetID >= 0 && assetID < assetList.size())
+		{
+			std::lock_guard<std::mutex> mut(assetMutex);
+			return assetList[assetID];
+		}
+		return defaultAsset;
 	}
 	std::vector<Asset> AssetManager::GetAllAssets()
 	{
@@ -81,6 +109,14 @@ namespace detailEngine
 			}
 		}
 		return -1;
+	}
+	void AssetManager::UpdateAsset(int AssetID, Asset newAsset)
+	{
+		std::lock_guard<std::mutex> mut(assetMutex);
+		if (AssetID >= 0 && AssetID < assetList.size())
+		{
+			assetList[AssetID] = newAsset;
+		}
 	}
 	void AssetManager::ExecuteRequests(FileSystem* fileSystem)
 	{

@@ -18,18 +18,18 @@ namespace detailEngine
 			if (entityController != nullptr)
 			{
 				//std::vector<std::vector<Component>>& components = entityController->GetAllComponents();
-				std::vector<Entity>& entities = entityController->GetAllEntities();
+				std::vector<Entity> entities = entityController->GetAllEntities();
 				std::vector<Asset> assets = assetManager->GetAllAssets();
 				
-				system("CLS");
-				for (Asset asset : assets)
-				{
-					std::cout << "Asset  :  " << asset.name << std::endl;
-				}
-				for (Entity entity : entities)
-				{
-					std::cout << "Entity :  " << entity.name << std::endl;
-				}
+				//system("CLS");
+				//for (Asset asset : assets)
+				//{
+				//	std::cout << "Asset  :  " << asset.name << std::endl;
+				//}
+				//for (Entity entity : entities)
+				//{
+				//	std::cout << "Entity :  " << entity.name << std::endl;
+				//}
 
 				//if (input->IsPressed(GLFW_KEY_T))
 				//{
@@ -74,8 +74,6 @@ namespace detailEngine
 				return "Default";
 			if (Type == CAT_DISABLED)
 				return "Disabled";
-			if (Type == CAT_POSITION)
-				return "Position";
 			if (Type == CAT_SHADER)
 				return "Shader";
 			if (Type == CAT_MODEL)

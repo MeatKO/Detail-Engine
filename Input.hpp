@@ -45,6 +45,10 @@ namespace detailEngine
 				keyList[KeyID].isPressed = false;
 			}
 		}
+		bool IsCapsOn()
+		{
+			return capsLock;
+		}
 		bool IsPressed(int KeyID)
 		{
 			if (KeyID >= 0 && KeyID <= 1024)
@@ -72,6 +76,17 @@ namespace detailEngine
 		}
 		void Update(double CurrentTime)
 		{
+			bool shift = (GetKeyState(VK_SHIFT) & 0x0100);
+
+			if (shift ^ (!GetKeyState(VK_CAPITAL) & 0x0001))
+			{
+				capsLock = true;
+			}
+			else
+			{
+				capsLock = false;
+			}
+
 			for (int loopKey = 1; loopKey <= 1024; loopKey++)
 			{
 				//int capitalOffset = 0;
@@ -138,6 +153,7 @@ namespace detailEngine
 		}
 
 		double holdDeltaTime = 1.0f; // in seconds
+		bool capsLock = false;
 		std::vector<Key> keyList;
 	};
 }

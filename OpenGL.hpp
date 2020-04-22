@@ -16,6 +16,8 @@
 #include "glShader.hpp"
 #include "glCamera.hpp"
 #include "glCubemap.hpp"
+#include "Phy7ics.hpp"
+#include "Transformation.hpp"
 
 namespace detailEngine
 {
@@ -120,9 +122,9 @@ namespace detailEngine
 			modelShader = new Shader("textured");
 			normalShader = new Shader("normal_b", "normal_b");
 			lightShader = new Shader("light");
-			//skyTexture = new CubemapTex("white");
-			//skyTexture = new CubemapTex("black");
-			skyTexture = new CubemapTex("detail");
+			//kyTexture = new CubemapTex("white");
+			skyTexture = new CubemapTex("frozen");
+			//skyTexture = new CubemapTex("detail");
 
 			//defaultTexture = LoadTexture("detail/textures/default2.png", true);
 
@@ -189,49 +191,67 @@ namespace detailEngine
 		void Update(EntityController* entityController, AssetManager* assetManager, double currentTime, double deltaTime)
 		{
 			// Setting up the ECS stuff
-
-			//std::vector<std::vector<Component>>& components = entityController->GetAllComponents();
-			std::vector<Entity>& entities = entityController->GetAllEntities();
-			//std::vector<Asset> assets = assetManager->GetAllAssets();
-
+			std::vector<Entity> entities = entityController->GetAllEntities();
+			std::vector<Asset> assets = assetManager->GetAllAssets();
+			
 			playerCamera.ProcessKeyboardInput(input, (float)deltaTime);
-
+			
 			glfwPollEvents();
-
+			
 			glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 			glClearColor(0.1f, 0.1f, 0.8f, 1.0f);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+			
 			glm::mat4 projection = glm::perspective(playerCamera.GetZoom(), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.01f, 1000.0f);
-			glm::mat4 view = glm::mat4();
-			glm::mat4 model = glm::mat4();
-
+			glm::mat4 view = glm::mat4(1);
+			glm::mat4 model = glm::mat4(1);
+			
 			view = glm::mat4(glm::mat3(playerCamera.GetViewMatrix()));
 			skyTexture->Draw(*skybox, view, projection);
-
+			
 			view = playerCamera.GetViewMatrix();
-			model = glm::translate(model, glm::vec3(0, 0, 0.5));
-			//model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
-			model = glm::scale(model, glm::vec3(0.1f, 0.1f, 0.1f));
-			//model = glm::scale(model, glm::vec3(10.0f, 10.0f, 10.0f));
+
+
+			Transformation transform;
 
 			for (Entity& entity : entities)
 			{
 				if (entity.components[CAT_DISABLED].GetType() != CAT_DISABLED)
 				{
-					Asset& asset = assetManager->RefAsset(entity.components[CAT_MODEL].GetIndex());
-
-					if (asset.assetType != CAT_DEFAULT)
+					if (entity.components[CAT_TRANSFORM].GetType() != CAT_DEFAULT)
 					{
-						Model mdl = std::any_cast<Model>(asset.data);
-						if (!mdl.initialized)
+						Asset transformAsset = assetManager->GetAsset(entity.components[CAT_TRANSFORM].GetIndex());
+						if (transformAsset.data.type() == typeid(Transformation))
 						{
-							Model procMdl = std::any_cast<Model>(asset.data);
-							procMdl.InitOGLContext();
-							asset.data = procMdl;
+							transform = std::any_cast<Transformation>(transformAsset.data);
 						}
 						else
 						{
+							// error wtf ??
+							pSendMessage(Message(MSG_LOG, std::string("OpenGL Error"), std::string("The Transformation component for entity '" + entity.name + "' is not of type Transformation.")));
+						}
+					}
+
+					Asset asset = assetManager->GetAsset(entity.components[CAT_MODEL].GetIndex());
+
+					model = glm::translate(model, glm::vec3(transform.translation.x, transform.translation.y, transform.translation.z));
+					model = glm::scale(model, glm::vec3(transform.scale.x, transform.scale.y, transform.scale.z));
+					
+					if (asset.assetType != CAT_DEFAULT)
+					{
+						if (asset.data.type() == typeid(Model))
+						{
+							Model mdl = std::any_cast<Model>(asset.data);
+							if (!mdl.initialized)
+							{
+								Model procMdl = std::any_cast<Model>(asset.data);
+								procMdl.InitOGLContext();
+								asset.data = procMdl;
+								assetManager->UpdateAsset(entity.components[CAT_MODEL].GetIndex(), asset);
+
+								continue;
+							}
+
 							modelShader->Use();
 
 							glUniformMatrix4fv(glGetUniformLocation(modelShader->Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
@@ -241,6 +261,24 @@ namespace detailEngine
 							glUniform3f(glGetUniformLocation(modelShader->Program, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
 
 							mdl.Draw(modelShader);
+						}
+						else if (asset.data.type() == typeid(AABB))
+						{
+							AABB drawnAABB = std::any_cast<AABB>(asset.data);
+
+							if (drawnAABB.VAO == 0 && drawnAABB.VBO == 0 && drawnAABB.EBO == 0)
+							{
+								glGenVertexArrays(1, &drawnAABB.VAO);
+								glGenBuffers(1, &drawnAABB.VBO);
+								glGenBuffers(1, &drawnAABB.EBO);
+								glBindVertexArray(drawnAABB.VAO);
+								glBindBuffer(GL_ARRAY_BUFFER, drawnAABB.VBO);
+								glBufferData(GL_ARRAY_BUFFER, sizeof(drawnAABB.lines), drawnAABB.lines, GL_STATIC_DRAW);
+
+								glEnableVertexAttribArray(0);
+								glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (GLvoid*)0);
+								glBindVertexArray(0);
+							}
 						}
 					}
 				}

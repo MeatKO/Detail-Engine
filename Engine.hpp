@@ -18,6 +18,7 @@
 #include "FileSystem.hpp"
 #include "DebugSystem.hpp"
 #include "AssetManager.hpp"
+#include "Transformation.hpp"
 
 using namespace dMath;
 
@@ -91,6 +92,7 @@ namespace detailEngine
 			this->AddType(MSG_CONSOLE);
 			messageLog->AddType(MSG_LOG);
 			messageLog->AddType(MSG_KEY);
+			console->AddType(MSG_KEY);
 			assetManager->AddType(MSG_ASSET);
 
 			threadCount = std::thread::hardware_concurrency();
@@ -118,11 +120,14 @@ namespace detailEngine
 			entityController->AddEntity("Shaders");
 			entityController->AddEntity("Skyboxes");
 
+			//entityController->AddEntity("Plane");
 			entityController->AddEntity("Map");
-			//pSendMessage(Message(MSG_ASSET_ORDER, std::string("Engine Error"), Order("de_inferno", "models", "obj")));
-			//pSendMessage(Message(MSG_ASSET_ORDER, std::string("Engine Error"), Order("0", "models", "obj")));
-			entityController->AddComponent("Map", Component(CAT_MODEL, "MapModel", "de_inferno"));
-			//entityController->AddComponent("Map", Component(CAT_MODEL, "MapModel", "0"));
+
+			//pSendMessage(Message(MSG_ASSET, std::string("Asset Load"), Asset("snowgrass", "models", "obj")));
+			pSendMessage(Message(MSG_ASSET, std::string("Asset Load"), Asset("de_inferno", "models", "obj")));
+			
+			//entityController->AddComponent("Plane", Component(CAT_MODEL, "PlaneModel", "snowgrass"));
+			entityController->AddComponent("Map", Component(CAT_MODEL, "PlaneModel", "de_inferno"));
 
 			return true;
 		}

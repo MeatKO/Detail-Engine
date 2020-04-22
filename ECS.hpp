@@ -20,11 +20,12 @@ namespace detailEngine
 	enum ComponentAssetType
 	{
 		CAT_DEFAULT,
-		CAT_DISABLED, 
-		CAT_POSITION,
+		CAT_DISABLED,
 		CAT_SHADER,
 		CAT_MODEL,
 		CAT_CAMERA,
+		CAT_AABB,
+		CAT_TRANSFORM,
 		CAT_LAST
 	};
 
@@ -43,7 +44,6 @@ namespace detailEngine
 	public:
 		Component() {}
 		Component(ComponentAssetType Type, std::string ComponentName, std::string AssetName);
-
 		
 		ComponentAssetType GetType();
 		int GetEntityID();
@@ -77,12 +77,12 @@ namespace detailEngine
 		bool EntityExists(std::string EntityName);
 		bool AddComponent(std::string EntityName, Component component);
 		bool AddComponent(int EntityID, Component component);
-		bool RemoveComponent(std::string EntityName, ComponentAssetType Type);
-		bool ChangeComponent(std::string EntityName, Component component);
+		bool RemoveComponent(std::string EntityName, ComponentAssetType Type, std::string ComponentName);
+		//bool ChangeComponent(std::string EntityName, Component component, std::string ComponentName);
 		Component GetComponent(std::string EntityName, ComponentAssetType Type);
 		void EnableEntity(std::string EntityName);
 		void DisableEntity(std::string EntityName);
-		std::vector<Entity>& GetAllEntities();
+		std::vector<Entity> GetAllEntities();
 		void Update(AssetManager* assetManager);
 
 	private:
@@ -91,6 +91,7 @@ namespace detailEngine
 		std::vector<Entity> entityList;
 		std::vector<std::vector<Component>> queuedComponents; // Components that are linked to an asset that is not yet loaded 
 		Component defaultComponent = Component(CAT_DEFAULT, "DEFAULT", "DEFAULT");
+		Component disabledComponent = Component(CAT_DISABLED, "DISABLED", "DISABLED");
 	};
 
 }

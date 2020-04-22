@@ -170,7 +170,7 @@ namespace detailEngine
 		}
 	}
 
-	bool EntityController::RemoveComponent(std::string EntityName, ComponentAssetType Type)
+	bool EntityController::RemoveComponent(std::string EntityName, ComponentAssetType Type, std::string ComponentName)
 	{
 		std::lock_guard<std::mutex> mut(ecsMutex);
 		Entity* entity = GetEntity(EntityName);
@@ -188,28 +188,28 @@ namespace detailEngine
 		}
 	}
 
-	bool EntityController::ChangeComponent(std::string EntityName, Component component)
-	{
-		std::lock_guard<std::mutex> mut(ecsMutex);
-		Entity* entity = GetEntity(EntityName);
-
-		if (entity != nullptr)
-		{
-			//for (int i = 0; i < components[component.GetType()].size(); i++)
-			//{
-			//	if (components[component.GetType()][i].GetEntityID() == entity->id)
-			//	{
-			//		component.SetEntityID(entity->id);
-			//		entity->components[component.GetType()] = component; // Entity 
-			//		components[component.GetType()].push_back(component); // Entity Controller
-			//		return true;
-			//	}
-			//}
-		}
-
-		pSendMessage(Message(MSG_LOG, std::string("ECS Error"), std::string("Tried to change component of unexisting Entity '" + EntityName + "'.")));
-		return false;
-	}
+	//bool EntityController::ChangeComponent(std::string EntityName, Component component)
+	//{
+	//	std::lock_guard<std::mutex> mut(ecsMutex);
+	//	Entity* entity = GetEntity(EntityName);
+	//
+	//	if (entity != nullptr)
+	//	{
+	//		//for (int i = 0; i < components[component.GetType()].size(); i++)
+	//		//{
+	//		//	if (components[component.GetType()][i].GetEntityID() == entity->id)
+	//		//	{
+	//		//		component.SetEntityID(entity->id);
+	//		//		entity->components[component.GetType()] = component; // Entity 
+	//		//		components[component.GetType()].push_back(component); // Entity Controller
+	//		//		return true;
+	//		//	}
+	//		//}
+	//	}
+	//
+	//	pSendMessage(Message(MSG_LOG, std::string("ECS Error"), std::string("Tried to change component of unexisting Entity '" + EntityName + "'.")));
+	//	return false;
+	//}
 
 	Component EntityController::GetComponent(std::string EntityName, ComponentAssetType Type)
 	{
@@ -249,7 +249,7 @@ namespace detailEngine
 
 		if (entity != nullptr)
 		{
-			entity->components[CAT_DISABLED] = Component(CAT_DISABLED, "DISABLED", "DISABLED");
+			entity->components[CAT_DISABLED] = disabledComponent;
 		}
 		else
 		{
@@ -258,7 +258,7 @@ namespace detailEngine
 		
 	}
 
-	std::vector<Entity>& EntityController::GetAllEntities()
+	std::vector<Entity> EntityController::GetAllEntities()
 	{
 		std::lock_guard<std::mutex> mut(ecsMutex);
 		return entityList;

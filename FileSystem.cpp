@@ -15,6 +15,9 @@ namespace detailEngine
 		if (type == "obj")
 			return CAT_MODEL;
 
+		if (type == "aabb")
+			return CAT_AABB;
+
 		return CAT_DEFAULT;
 	}
 	
