@@ -120,7 +120,6 @@ namespace detailEngine
 			entityController->AddEntity("Shaders");
 			entityController->AddEntity("Skyboxes");
 
-			//entityController->AddEntity("Plane");
 			entityController->AddEntity("Map");
 
 			//pSendMessage(Message(MSG_ASSET, std::string("Asset Load"), Asset("snowgrass", "models", "obj")));
