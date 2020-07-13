@@ -12,10 +12,10 @@
 
 namespace detailEngine
 {
-	class CubemapEnv
+	class CubemapEnvDynamic
 	{
 	public:
-		CubemapEnv(glm::vec3 cameraPosition, unsigned int WIDTH, unsigned int HEIGHT);
+		CubemapEnvDynamic(glm::vec3 cameraPosition, unsigned int WIDTH, unsigned int HEIGHT);
 
 		unsigned int SHADOW_WIDTH, SHADOW_HEIGHT;
 		unsigned int cubemapFBO;
@@ -32,6 +32,12 @@ namespace detailEngine
 		void Start();
 		void End();
 		void Update();
+	};
+
+	class CubemapEnvStatic
+	{
+	public:
+		CubemapEnvStatic();
 	};
 
 	class CubemapTex

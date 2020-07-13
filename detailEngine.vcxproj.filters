@@ -116,5 +116,11 @@
     <ClInclude Include="Transformation.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Scene.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="glLights.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

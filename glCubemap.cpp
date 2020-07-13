@@ -2,7 +2,7 @@
 
 namespace detailEngine
 {
-	CubemapEnv::CubemapEnv(glm::vec3 cameraPosition, unsigned int WIDTH, unsigned int HEIGHT)
+	CubemapEnvDynamic::CubemapEnvDynamic(glm::vec3 cameraPosition, unsigned int WIDTH, unsigned int HEIGHT)
 	{
 		position = cameraPosition;
 		SHADOW_WIDTH = WIDTH;
@@ -11,7 +11,7 @@ namespace detailEngine
 		Init();
 	}
 
-	void CubemapEnv::Init()
+	void CubemapEnvDynamic::Init()
 	{
 		glGenFramebuffers(1, &cubemapFBO);
 		glGenTextures(1, &cubemapTextureId);
@@ -42,7 +42,7 @@ namespace detailEngine
 
 		Update();
 	}
-	void CubemapEnv::Start()
+	void CubemapEnvDynamic::Start()
 	{
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
@@ -50,11 +50,11 @@ namespace detailEngine
 		glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
-	void CubemapEnv::End()
+	void CubemapEnvDynamic::End()
 	{
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
-	void CubemapEnv::Update()
+	void CubemapEnvDynamic::Update()
 	{
 		viewTransforms.clear();
 		viewTransforms.push_back(viewProj * glm::lookAt(position, position + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
@@ -181,5 +181,8 @@ namespace detailEngine
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
 		return textureID;
+	}
+	CubemapEnvStatic::CubemapEnvStatic()
+	{
 	}
 }

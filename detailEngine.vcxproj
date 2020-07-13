@@ -181,6 +181,7 @@
     <ClInclude Include="FileSystem.hpp" />
     <ClInclude Include="glCamera.hpp" />
     <ClInclude Include="glCubemap.hpp" />
+    <ClInclude Include="glLights.hpp" />
     <ClInclude Include="glModel.hpp" />
     <ClInclude Include="glShader.hpp" />
     <ClInclude Include="glTexture.hpp" />
@@ -189,6 +190,7 @@
     <ClInclude Include="OpenGL.hpp" />
     <ClInclude Include="PCS.hpp" />
     <ClInclude Include="Phy7ics.hpp" />
+    <ClInclude Include="Scene.hpp" />
     <ClInclude Include="Transformation.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

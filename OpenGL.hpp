@@ -42,7 +42,7 @@ namespace detailEngine
 				pSendMessage(Message(MSG_LOG, std::string("OpenGL Error"), std::string("Failed to initialize GLFW.")));
 
 			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
 			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 			glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 			glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
@@ -114,6 +114,7 @@ namespace detailEngine
 			);
 
 			CheckExtension("GL_ARB_gpu_shader5");
+			CheckExtension("GL_ARB_multi_draw_indirect");
 
 			// Things that will later be removed from here when i start actually using ECS : 
 			skybox = new Shader("skybox");
@@ -142,7 +143,11 @@ namespace detailEngine
 		{
 			if (!glfwExtensionSupported(extensionName.c_str()))
 			{
-				std::cout << extensionName + " is not supported " << std::endl;
+				std::cout << extensionName + " is NOT supported " << std::endl;
+			}
+			else
+			{
+				std::cout << extensionName + " is supported " << std::endl;
 			}
 		}
 
@@ -235,7 +240,8 @@ namespace detailEngine
 					Asset asset = assetManager->GetAsset(entity.components[CAT_MODEL].GetIndex());
 
 					model = glm::translate(model, glm::vec3(transform.translation.x, transform.translation.y, transform.translation.z));
-					model = glm::scale(model, glm::vec3(transform.scale.x, transform.scale.y, transform.scale.z));
+					//model = glm::scale(model, glm::vec3(transform.scale.x, transform.scale.y, transform.scale.z));
+					model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
 					
 					if (asset.assetType != CAT_DEFAULT)
 					{
