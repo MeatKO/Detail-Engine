@@ -116,5 +116,8 @@
     <ClInclude Include="glLights.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="glModel2.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -123,23 +123,13 @@ namespace detailEngine
 
 			// Things that will later be removed from here when i start actually using ECS : 
 			skybox = new Shader("skybox");
-			//modelShader = new Shader("lighting");
-			//modelShader = new Shader("lighting_array");
-			modelShader = new Shader("textured");
+			//modelShader = new Shader("textured");
+			modelShader = new Shader("lighting_array");
 			normalShader = new Shader("normal_b", "normal_b");
 			lightShader = new Shader("light");
-			//kyTexture = new CubemapTex("white");
-			skyTexture = new CubemapTex("frozen");
-			//skyTexture = new CubemapTex("detail");
-
-			//defaultTexture = LoadTexture("detail/textures/default2.png", true);
+			skyTexture = new CubemapTex("detail");
 
 			std::cout << "Version : " << glGetString(GL_VERSION) << std::endl;
-
-			//mdl = new Model("de_inferno");
-			//mdl = new Model("nanosuit");
-			//lamp = new Model("bulb");
-			//mdl = new Model("de_inferno");
 
 			return true;
 		}
@@ -194,8 +184,6 @@ namespace detailEngine
 
 			playerCamera.ProcessMouseMovement(xOffset, yOffset);
 
-			//mouse->pSendMessage(Message(MSG_MOUSE, "MOVE"));
-			//mouse->pSendMessage(KeyMessage("RELEASE", to_string(key)));
 		}
 
 		void Update(EntityController* entityController, AssetManager* assetManager, double currentTime, double deltaTime)
@@ -307,7 +295,6 @@ namespace detailEngine
 
 		Camera playerCamera = Camera(glm::vec3(0.0f, 0.0f, 0.0f));
 		Shader* skybox;
-		//Model* mdl;
 		Shader* modelShader;
 		Shader* normalShader;
 		Shader* lightShader;

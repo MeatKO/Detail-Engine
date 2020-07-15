@@ -182,6 +182,7 @@
     <ClInclude Include="glCubemap.hpp" />
     <ClInclude Include="glLights.hpp" />
     <ClInclude Include="glModel.hpp" />
+    <ClInclude Include="glModel2.hpp" />
     <ClInclude Include="glShader.hpp" />
     <ClInclude Include="glTexture.hpp" />
     <ClInclude Include="Input.hpp" />

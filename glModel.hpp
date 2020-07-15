@@ -352,6 +352,10 @@ namespace detailEngine
 						meshes[i].vertices[face.x - 1] = newVert;
 						meshes[i].indices.push_back(face.x - 1);
 					}
+					else
+					{
+						std::cout << "Dropped face" << std::endl;
+					}
 				}
 			}
 		}

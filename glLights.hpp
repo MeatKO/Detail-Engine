@@ -1,6 +1,6 @@
 #pragma once
 
-#include "dMath.hpp"
+using namespace glm;
 
 namespace detailEngine
 {
@@ -13,7 +13,7 @@ namespace detailEngine
 		}
 
 		int id;
-		dMath::vec3 position;
-		dMath::vec3 color;
+		vec3 position;
+		vec3 color;
 	};
 }
