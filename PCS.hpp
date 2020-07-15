@@ -23,10 +23,12 @@ namespace detailEngine
 
 	enum MessageType
 	{
-		MSG_ANY,       // Used only for filtering messages sent on the Bus.
-		MSG_LOG,       // string, string
-		MSG_KEY,       // string, int
-		MSG_MOUSE,     // string, int
+		MSG_ANY,            // Used only for filtering messages sent on the Bus.
+		MSG_LOG,            // string, string
+		MSG_ERROR_MESSAGE,  // OK option only 
+		MSG_MESSAGE_BOX,    // OK option only (there is no hwnd window so message box result cannot be obtained
+		MSG_KEY,            // string, int
+		MSG_MOUSE,          // string, int
 		MSG_RENDER,
 		MSG_AUDIO,
 		MSG_PHYS,

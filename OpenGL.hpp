@@ -11,6 +11,7 @@
 #include "ECS.hpp"
 #include "AssetManager.hpp"
 #include "Input.hpp"
+#include "Log.hpp"
 
 #include "glModel.hpp"
 #include "glShader.hpp"
@@ -28,7 +29,7 @@ namespace detailEngine
 
 		double time = 0.0f;
 
-		bool Init(std::string WindowName, int windowSizeX, int windowSizeY, Input* inputPtr)
+		bool Init(std::string WindowName, int windowSizeX, int windowSizeY, Input* inputPtr, int majorVersion, int minorVersion)
 		{
 			input = inputPtr;
 			if (!input)
@@ -41,8 +42,8 @@ namespace detailEngine
 			if (!glfwInit())
 				pSendMessage(Message(MSG_LOG, std::string("OpenGL Error"), std::string("Failed to initialize GLFW.")));
 
-			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, majorVersion);
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, minorVersion);
 			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 			glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 			glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
@@ -59,7 +60,9 @@ namespace detailEngine
 
 			if (!glWindow)
 			{
-				pSendMessage(Message(MSG_LOG, std::string("OpenGL Error"), std::string("Failed to create GLFW window.")));
+				pSendMessage(Message(MSG_ERROR_MESSAGE, std::string("OpenGL Error"),
+					std::string("Failed to create GLFW window. \n OpenGL Version" + std::to_string(majorVersion) + "." + std::to_string(minorVersion) + " Might not be supported.")));
+
 				glfwTerminate();
 				return false;
 			}
@@ -71,7 +74,9 @@ namespace detailEngine
 
 			if (glewInit() != GLEW_OK)
 			{
-				pSendMessage(Message(MSG_LOG, std::string("OpenGL Error"), std::string("Failed to initialize GLEW.")));
+				pSendMessage(Message(MSG_ERROR_MESSAGE, std::string("OpenGL Error"),
+					std::string("Failed to Initialize GLEW. \n OpenGL Version" + std::to_string(majorVersion) + "." + std::to_string(minorVersion) + " Might not be supported.")));
+
 				glfwTerminate();
 				return false;
 			}

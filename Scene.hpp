@@ -29,13 +29,13 @@ namespace detailEngine
 		}
 
 		std::string name = "unnamed";
+		std::string skybox = "detail"; // asset name 
 
 		std::vector<std::string> entityList;
 		std::vector<std::string> shadersList;
 		std::vector<Light> lightsList;
 		std::vector<CubemapEnvDynamic> dynamicCubemapList; // add positions later ?
 		std::vector<CubemapEnvStatic> staticCubemapList;
-		CubemapTex skybox = CubemapTex("detail");
 		Camera camera = Camera();
 	};
 
@@ -50,17 +50,23 @@ namespace detailEngine
 			sceneList.push_back(Scene(sceneName));
 		}
 
-		void RemoveScene()
+		void RemoveScene(std::string sceneName)
 		{
-
+			for (int i = 0; i < sceneList.size(); i++)
+			{
+				if (sceneList[i].name == sceneName)
+				{
+					sceneList.erase(sceneList.begin() + i);
+				}
+			}
 		}
 
 		void ExecuteMessage(Message message)
 		{
-			if (message.GetTopic() == MSG_LOG)
-			{
-				
-			}
+			//if (message.GetTopic() == MSG_SCENE)
+			//{
+			//	
+			//}
 		}
 
 		void Update()

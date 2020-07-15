@@ -3,7 +3,6 @@
 #include <vector>
 #include <GL/glew.h>
 
-#include "Log.hpp"
 #include "GLM/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"

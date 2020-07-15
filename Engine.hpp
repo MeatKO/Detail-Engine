@@ -76,6 +76,7 @@ namespace detailEngine
 			input->Publish(messageBus);
 			console->Publish(messageBus);
 			entityController->Publish(messageBus);
+			renderer->Publish(messageBus);
 			fileSystem->Publish(messageBus);
 			assetManager->Publish(messageBus);
 
@@ -83,6 +84,7 @@ namespace detailEngine
 			messageLog->Subscribe(messageBus);
 			console->Subscribe(messageBus);
 			entityController->Subscribe(messageBus);
+			renderer->Subscribe(messageBus);
 			fileSystem->Subscribe(messageBus);
 			assetManager->Subscribe(messageBus);
 
@@ -90,6 +92,8 @@ namespace detailEngine
 			this->AddType(MSG_CONSOLE);
 			messageLog->AddType(MSG_LOG);
 			messageLog->AddType(MSG_KEY);
+			messageLog->AddType(MSG_ERROR_MESSAGE);
+			messageLog->AddType(MSG_MESSAGE_BOX);
 			console->AddType(MSG_KEY);
 			assetManager->AddType(MSG_ASSET);
 
@@ -102,29 +106,21 @@ namespace detailEngine
 
 			threadList.resize(THR_LAST);
 
-			if (!renderer->Init("Window", 1200, 900, input))
+			if (!renderer->Init("Window", 1200, 900, input, 4, 5))
 				pSendMessage(Message(MSG_LOG, std::string("Engine Error"), std::string("Renderer initialization failed.")));
 
 			threadList[THR_OUTSOURCE] = std::move(std::thread(&Engine::UpdateThread, this));
 			threadList[THR_FILESYSTEM] = std::move(std::thread(&Engine::UpdateFileSystem, this));
 
-			//
-			//entityController->AddEntity("Entity0");
-			//entityController->AddComponent("Entity0", Component(CT_POSITION, vec3(0.0f, 0.0f, 0.0f)));
-			//Model newMdl("de_inferno");
-			//entityController->AddComponent("Entity0", Component(CT_MODEL, newMdl));
-			//
-
-			entityController->AddEntity("Shaders");
-			entityController->AddEntity("Skyboxes");
 
 			entityController->AddEntity("Map");
+			entityController->AddEntity("Plane");
 
-			//pSendMessage(Message(MSG_ASSET, std::string("Asset Load"), Asset("snowgrass", "models", "obj")));
-			pSendMessage(Message(MSG_ASSET, std::string("Asset Load"), Asset("de_inferno", "models", "obj")));
+			pSendMessage(Message(MSG_ASSET, std::string("Asset Load"), Asset("plane", "models", "obj")));
+			//pSendMessage(Message(MSG_ASSET, std::string("Asset Load"), Asset("de_inferno", "models", "obj")));
 			
-			//entityController->AddComponent("Plane", Component(CAT_MODEL, "PlaneModel", "snowgrass"));
-			entityController->AddComponent("Map", Component(CAT_MODEL, "PlaneModel", "de_inferno"));
+			entityController->AddComponent("Plane", Component(CAT_MODEL, "PlaneModel", "plane"));
+			//entityController->AddComponent("Map", Component(CAT_MODEL, "PlaneModel", "de_inferno"));
 
 			return true;
 		}
@@ -138,6 +134,7 @@ namespace detailEngine
 
 			this->NotifyChannels();
 			entityController->NotifyChannels();
+			renderer->NotifyChannels();
 			
 			messageBus->NotifySubs();
 			
