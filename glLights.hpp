@@ -7,11 +7,12 @@ namespace detailEngine
 	class Light
 	{
 	public:
-		Light()
+		Light(int ID)
 		{
-
+			id = ID;
 		}
 
+		int id;
 		dMath::vec3 position;
 		dMath::vec3 color;
 	};

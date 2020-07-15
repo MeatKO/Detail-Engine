@@ -1,23 +1,27 @@
 #pragma once
 
-#include "dMath.hpp"
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
+#include "glm/gtc/quaternion.hpp"
+
 #include "glTexture.hpp"
 #include "glShader.hpp"
 #include <fstream>
 #include <sstream>
 #include <string>
 
-using namespace dMath;
+using namespace glm;
 
 namespace detailEngine
 {
 	struct Vertex
 	{
-		dMath::vec3 Position;
-		dMath::vec3 Normal;
-		dMath::vec2 UV;
-		dMath::vec3 Tangent;
-		dMath::vec3 Bitangent;
+		vec3 Position;
+		vec3 Normal;
+		vec2 UV;
+		vec3 Tangent;
+		vec3 Bitangent;
 		float meshID;
 
 		bool operator == (Vertex vert)
@@ -69,7 +73,7 @@ namespace detailEngine
 		std::string modelName;
 		std::string name;
 		std::string usedMaterial = "DEFAULT";
-		std::vector<uint3> faces;
+		std::vector<uvec3> faces;
 		
 		std::vector<Vertex> vertices;
 		std::vector<unsigned int> indices;
@@ -269,7 +273,7 @@ namespace detailEngine
 					{
 						// Initializing this to be 1,1,1 in case a parameter is missing while loading
 						// If one of the face components is missing then its index will be 0 and the face wont pass the check later in ProcessMeshes()
-						uint3 face(1);
+						uvec3 face(1);
 						// Making sure i wont read nonsense if the model doesnt include UVs or normals
 						if (sscanf(word.c_str(), "%u/%u/%u ", &face.x, &face.y, &face.z) != 3) // Normal model containing vertex uv and normal
 						{
@@ -319,7 +323,7 @@ namespace detailEngine
 				meshes[i].vertices.resize(loadVertices.size());
 				// The definition of 'face' might be a bit confusing here, a face here is defined as a  V/T/N pair thats why it was necessary to keep the count
 				// of vertices per face
-				for (uint3 face : meshes[i].faces)
+				for (uvec3 face : meshes[i].faces)
 				{
 					// Making sure we wont read elements with negative index... and not read empty vectors as well
 					if (face.x > 0 && face.y > 0 && face.z > 0)
@@ -405,22 +409,22 @@ namespace detailEngine
 				else if (word == "Ka")
 				{
 					lineStream >> x >> y >> z;
-					materials.back().Ka = dMath::vec3(x, y, z);
+					materials.back().Ka = vec3(x, y, z);
 				}
 				else if (word == "Kd")
 				{
 					lineStream >> x >> y >> z;
-					materials.back().Kd = dMath::vec3(x, y, z);
+					materials.back().Kd = vec3(x, y, z);
 				}
 				else if (word == "Ks")
 				{
 					lineStream >> x >> y >> z;
-					materials.back().Ks = dMath::vec3(x, y, z);
+					materials.back().Ks = vec3(x, y, z);
 				}
 				else if (word == "Ke")
 				{
 					lineStream >> x >> y >> z;
-					materials.back().Ke = dMath::vec3(x, y, z);
+					materials.back().Ke = vec3(x, y, z);
 				}
 				else if (word == "map_Ka" || word == "map_Kd" || word == "map_Ks" || word == "map_Ns" || word == "map_d" || word == "map_bump")
 				{

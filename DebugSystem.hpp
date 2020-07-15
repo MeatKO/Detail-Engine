@@ -3,7 +3,6 @@
 #include "ECS.hpp"
 #include "AssetManager.hpp"
 
-#include "dMath.hpp"
 #include <GLFW/glfw3.h>
 
 namespace detailEngine

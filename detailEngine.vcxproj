@@ -157,7 +157,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AssetManager.cpp" />
-    <ClCompile Include="dMath.cpp" />
     <ClCompile Include="ECS.cpp" />
     <ClCompile Include="FileSystem.cpp" />
     <ClCompile Include="glCamera.cpp" />
@@ -176,7 +175,6 @@
     <ClInclude Include="AssetManager.hpp" />
     <ClInclude Include="Console.hpp" />
     <ClInclude Include="DebugSystem.hpp" />
-    <ClInclude Include="dMath.hpp" />
     <ClInclude Include="ECS.hpp" />
     <ClInclude Include="Engine.hpp" />
     <ClInclude Include="FileSystem.hpp" />

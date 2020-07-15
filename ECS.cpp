@@ -54,7 +54,7 @@ namespace detailEngine
 	// Entity Controller
 	EntityController::EntityController()
 	{
-		AddEntity("DEFAULT");
+		AddEntity("DEFAULT"); // if you remove this make sure to make the default GUID number to 0 instead of -1
 		queuedComponents.resize(CAT_LAST); // Make components size the same as the number of Component Types
 	}
 

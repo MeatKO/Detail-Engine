@@ -20,8 +20,6 @@
 #include "AssetManager.hpp"
 #include "Transformation.hpp"
 
-using namespace dMath;
-
 namespace detailEngine
 {
 	enum SystemThread

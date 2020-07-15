@@ -14,8 +14,6 @@
 #include <mutex>
 #include <shared_mutex>
 
-#include "dMath.hpp"
-
 namespace detailEngine
 {
 	class Message;
@@ -36,7 +34,8 @@ namespace detailEngine
 		MSG_UI,
 		MSG_ENGINE,
 		MSG_CONSOLE,
-		MSG_ASSET
+		MSG_ASSET,
+		MSG_SCENE
 	};
 
 	class Message

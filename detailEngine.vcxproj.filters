@@ -21,9 +21,6 @@
     <ClCompile Include="PCS.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="dMath.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="glCamera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -81,9 +78,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Console.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="dMath.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="glCamera.hpp">
