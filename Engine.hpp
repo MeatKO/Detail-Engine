@@ -116,11 +116,11 @@ namespace detailEngine
 			entityController->AddEntity("Map");
 			entityController->AddEntity("Plane");
 
-			pSendMessage(Message(MSG_ASSET, std::string("Asset Load"), Asset("pyramid", "models", "obj")));
-			//pSendMessage(Message(MSG_ASSET, std::string("Asset Load"), Asset("de_inferno", "models", "obj")));
+			//pSendMessage(Message(MSG_ASSET, std::string("Asset Load"), Asset("0", "models", "obj")));
+			pSendMessage(Message(MSG_ASSET, std::string("Asset Load"), Asset("de_inferno", "models", "obj")));
 			
-			entityController->AddComponent("Plane", Component(CAT_MODEL, "PlaneModel", "pyramid"));
-			//entityController->AddComponent("Map", Component(CAT_MODEL, "PlaneModel", "de_inferno"));
+			//entityController->AddComponent("Plane", Component(CAT_MODEL, "PlaneModel", "0"));
+			entityController->AddComponent("Map", Component(CAT_MODEL, "PlaneModel", "de_inferno"));
 
 			return true;
 		}

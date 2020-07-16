@@ -10,36 +10,55 @@ namespace detailEngine
 		long int now = static_cast<long int> (t);
 		return now;
 	}
-	ComponentAssetType StringToCAT(std::string type)
+
+	bool PathExists(std::string path) // requires a sanitized path
 	{
-		if (type == "obj")
-			return CAT_MODEL;
+		struct stat info;
 
-		if (type == "aabb")
-			return CAT_AABB;
+		int statRC = stat(path.c_str(), &info);
+		if (statRC != 0)
+		{
+			if (errno == ENOENT) { return 0; } // something along the path does not exist
+			if (errno == ENOTDIR) { return 0; } // something in path prefix is not a dir
+			return false;
+		}
 
-		return CAT_DEFAULT;
+		return (info.st_mode & S_IFDIR) ? true : false;
 	}
-	
+
+	FileSystem::FileSystem()
+	{
+		Debug();
+	}
+
 	void FileSystem::Update(EntityController* entityController, AssetManager* assetManager)
 	{
-		ExecuteAllRequests();
+		//ExecuteAllRequests();
 	}
 
-	void FileSystem::RequestAsset(Asset asset)
+	bool FileSystem::IsLoaded(std::string filename)
 	{
-		std::lock_guard<std::mutex> mut(requestMutex);
-		requestedAssets[!requestBuffer].push_back(asset);
+		std::lock_guard<std::mutex> mut(fileioMutex);
+
+		for (File& file : files)
+		{
+			if (file.GetName() == filename)
+				return true;
+		}
+
+		return false;
 	}
 
-	std::vector<Asset> FileSystem::CollectAssets()
+	void FileSystem::Debug()
 	{
-		std::lock_guard<std::mutex> mut(deliverMutex);
+		//LoadFile("detail/models/snowgrass/snowgrass.obj");
+		//if (files.size() > 0)
+		//{
+		//	files.back().Dump();
+		//}
 
-		std::vector<Asset> vectorCopy = deliveredAssets;
-		deliveredAssets.clear();
-
-		return vectorCopy;
+		//DirGetAllFileNames("detail/models/de_inferno");
+		LoadDir("detail/models/snowgrass/");
 	}
 
 	void FileSystem::LoadFile(std::string path) // loads a single file into the file list
@@ -47,23 +66,65 @@ namespace detailEngine
 		// Lock the file list - try not to make deadlocks ok ? bye
 		// push back a file to the vector
 		// open the requested file and then access fileList.back() and add the opened file content to the <File> container
-		std::lock_guard<std::mutex> mut(fileioMutex);
+		//std::lock_guard<std::mutex> mut(fileioMutex);
 
-		files.push_back(File(UnixTimestamp()));
+		std::string newPath = GetSanitizedPath(path);
+		std::string fullFileName = GetPathFullFilename(path);
+		std::string fileName = GetPathFileName(path);
+		std::string fileType = GetPathFileType(path);
+
+		std::ifstream FILE(newPath);
+
+		if (!FILE.fail())
+		{
+			files.push_back(File(UnixTimestamp()));
+			files.back().Data() << FILE.rdbuf();
+			files.back().SetName(fileName);
+			files.back().SetType(fileType);
+
+			FILE.close();
+		}
+		else
+		{
+			pSendMessage(Message(MSG_LOG, std::string("FileSystem Error"), std::string("File '" + fullFileName + "' cannot be accessed."))); // error file doesnt exist
+		}
 	}
 
 	void FileSystem::LoadDir(std::string path) // loads all the file from a specific directory in the file list
 	{
-		std::lock_guard<std::mutex> mut(fileioMutex);
+		//std::lock_guard<std::mutex> mut(fileioMutex);
 
-	}
+		std::string newPath = GetSanitizedPath(path);
 
-	std::vector<std::string> FileSystem::DirGetAllFileNamesAbsolute(std::string path)
-	{
-		std::lock_guard<std::mutex> mut(fileioMutex);
 		std::vector<std::string> fileNames;
 
+		fileNames = DirGetAllFileNames(newPath);
 
+		for (std::string& name : fileNames)
+		{
+			std::cout << name << std::endl;
+			LoadFile(name);
+		}
+
+		for (File& file : files)
+		{
+			std::cout << file.GetName() << file.GetType() << std::endl;
+		}
+	}
+
+	std::vector<std::string> FileSystem::DirGetAllFileNames(std::string path)
+	{
+		//std::lock_guard<std::mutex> mut(fileioMutex);
+
+		std::vector<std::string> fileNames;
+
+		std::string newPath = GetSanitizedPath(path);
+
+		if (PathExists(newPath))
+		{
+			for (auto& entry : fs::directory_iterator(newPath)) // crashes on invalid path or smth
+				fileNames.push_back(entry.path().string());
+		}
 
 		return fileNames;
 	}
@@ -117,10 +178,15 @@ namespace detailEngine
 
 		std::string out = "";
 
-		for (std::string& str : words)
+		for (int i = 0; i < words.size() - 1; ++i)
 		{
-			out += str + "/";
+			if (words[i] == "" || words[i] == " ")
+				continue;
+
+			out += words[i] + "\\";
 		}
+
+		out += words.back();
 
 		return out;
 	}
@@ -153,45 +219,4 @@ namespace detailEngine
 		return out;
 
 	}
-
-	void FileSystem::ExecuteAllRequests()
-	{
-		SwapRequestBuffers();
-		for (Asset& asset : requestedAssets[requestBuffer])
-		{
-			ExecuteRequest(asset);
-			DeliverAsset(asset);
-		}
-		requestedAssets[requestBuffer].clear();
-	}
-
-	void FileSystem::ExecuteRequest(Asset& asset)
-	{
-		ComponentAssetType Type = StringToCAT(asset.fileType);
-
-		asset.assetType = Type;
-
-		if (Type == CAT_MODEL)
-		{
-			Model newMdl(asset.name);
-			asset.data = newMdl;
-		}
-	}
-
-	void FileSystem::ExecuteMessage(Message message)
-	{
-	}
-
-	void FileSystem::DeliverAsset(Asset asset)
-	{
-		std::lock_guard<std::mutex> mut(deliverMutex);
-		deliveredAssets.push_back(asset);
-	}
-
-	void FileSystem::SwapRequestBuffers()
-	{
-		std::lock_guard<std::mutex> mut(requestMutex);
-		requestBuffer = !requestBuffer;
-	}
-
 }

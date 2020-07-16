@@ -33,16 +33,16 @@ namespace detailEngine
 	}
 	void AssetManager::Update(EntityController* entityController, FileSystem* fileSystem)
 	{
-		ExecuteRequests(fileSystem);
-
-		std::vector<Asset> receivedAssets = fileSystem->CollectAssets();
-		for (Asset& asset : receivedAssets)
-		{
-			if (!AssetExists(asset.name))
-			{
-				AddAsset(asset);
-			}
-		}
+		//ExecuteRequests(fileSystem);
+		//
+		//std::vector<Asset> receivedAssets = fileSystem->CollectAssets();
+		//for (Asset& asset : receivedAssets)
+		//{
+		//	if (!AssetExists(asset.name))
+		//	{
+		//		AddAsset(asset);
+		//	}
+		//}
 	}
 	bool AssetManager::AssetExists(std::string assetName)
 	{
@@ -123,7 +123,7 @@ namespace detailEngine
 		SwapRequestBuffers();
 		for (Asset& asset : requestedAssets[requestBuffer])
 		{
-			fileSystem->RequestAsset(asset);
+			//fileSystem->RequestAsset(asset);
 			// offload to filesystem
 		}
 		requestedAssets[requestBuffer].clear();

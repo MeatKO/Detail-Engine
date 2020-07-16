@@ -6,13 +6,20 @@
 #include <string>
 #include <algorithm>
 #include <filesystem>
+#include <iterator>
 #include <bitset>
 #include <ctime>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include "ECS.hpp"
+
+namespace fs = std::filesystem;
 
 namespace detailEngine
 {
 	long int UnixTimestamp();
+
+	bool PathExists(std::string path);
 
 	ComponentAssetType StringToCAT(std::string type);
 
@@ -25,34 +32,34 @@ namespace detailEngine
 	public:
 		File(long int currentTime) : creationTime(currentTime) {}
 
-		void SetName(std::string Name)
-		{
-			name = Name;
-		}
+		void SetName(std::string Name) { name = Name; }
 
-		void Fill(std::ifstream& file)
-		{
-			contents.clear();
-			contents << file.rdbuf();
-		}
+		std::string GetName(){return name;}
 
-		void Append(std::ifstream& file)
-		{
-			contents << file.rdbuf();
-		}
+		void SetType(std::string Type) { type = Type; }
 
-		void Erase()
-		{
-			contents.clear();
-		}
+		std::string GetType(){return type;}
 
-		std::stringstream& Data()
+		void Fill(std::ifstream& file) { contents.clear(); contents << file.rdbuf(); }
+
+		void Append(std::ifstream& file) { contents << file.rdbuf(); }
+
+		void Erase() { contents.clear(); }
+
+		std::stringstream& Data() { return contents; }
+
+		void Dump()
 		{
-			return contents;
+			std::string word;
+			while (getline(contents, word))
+			{
+				std::cout << word;
+			}
 		}
 
 	private:
 		std::string name = "unnamed";
+		std::string type = "unnamed";
 		std::stringstream contents; // makes a lot of sense to be private i know...
 		long int creationTime = 0;
 	};
@@ -60,38 +67,23 @@ namespace detailEngine
 	class FileSystem : public Publisher, public Subscriber
 	{
 	public:
-		FileSystem() {}
+		FileSystem();
 
 		void Update(EntityController* entityController, AssetManager* assetManager);
-		void RequestAsset(Asset asset);
-		std::vector<Asset> CollectAssets();
+		bool IsLoaded(std::string filename);
+		void Debug();
 
 	private:
 		void LoadFile(std::string path);
 		void LoadDir(std::string path); // Loads all the files from a directory
-		std::vector<std::string> DirGetAllFileNamesAbsolute(std::string path);
+		std::vector<std::string> DirGetAllFileNames(std::string path);
 		std::string GetPathFileName(std::string path); // returns the file name ONLY
 		std::string GetPathFileType(std::string path); // returns the file type ONLY
 		std::string GetPathFullFilename(std::string path); // returns the file name and its type
 		std::string GetSanitizedPath(std::string path); // Gets SanitizePath() output and assembles it with / in between the words;
 		std::vector<std::string> SanitizePath(std::string path); // splits the path into words
 
-		// All of the code below is garbage
-		void ExecuteAllRequests();
-		void ExecuteRequest(Asset& asset);
-		void ExecuteMessage(Message message);
-		void DeliverAsset(Asset asset);
-
 		std::vector<File> files;
-
-
-		// All of the code below belongs in a cemetery 
-		std::mutex requestMutex;
-		std::mutex deliverMutex;
 		std::mutex fileioMutex;
-		void SwapRequestBuffers();
-		std::vector<Asset> deliveredAssets;
-		std::vector<Asset> requestedAssets[2];
-		bool requestBuffer = true;
 	};
 }
