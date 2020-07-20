@@ -17,11 +17,18 @@ namespace fs = std::filesystem;
 
 namespace detailEngine
 {
+	enum FileOpenMode
+	{
+		OPEN_TEXT,
+		OPEN_BINARY,
+		OPEN_UNSUPPORTED
+	};
+
 	long int UnixTimestamp();
 
 	bool PathExists(std::string path);
 
-	ComponentAssetType StringToCAT(std::string type);
+	FileOpenMode TypeToMode(std::string fileType);
 
 	class Asset;
 	class AssetManager;
@@ -47,6 +54,12 @@ namespace detailEngine
 		void Erase() { contents.clear(); }
 
 		std::stringstream& Data() { return contents; }
+
+		int GetSize() // in bytes
+		{
+			//return contents.gcount() * 8; // doesnt work for whatever reason
+			return contents.rdbuf()->str().size();
+		}
 
 		void Dump()
 		{

@@ -26,6 +26,17 @@ namespace detailEngine
 		return (info.st_mode & S_IFDIR) ? true : false;
 	}
 
+	FileOpenMode TypeToMode(std::string fileType)
+	{
+		if (fileType == ".obj" || fileType == ".mtl")
+			return OPEN_TEXT;
+
+		if (fileType == ".png" || fileType == ".tga")
+			return OPEN_BINARY;
+
+		return OPEN_UNSUPPORTED;
+	}
+
 	FileSystem::FileSystem()
 	{
 		Debug();
@@ -59,6 +70,12 @@ namespace detailEngine
 
 		//DirGetAllFileNames("detail/models/de_inferno");
 		LoadDir("detail/models/snowgrass/");
+
+		for (File& file : files)
+		{
+			std::cout << "Name : " << file.GetName() << " Type : " << file.GetType() << " Size : " << file.GetSize() << " Bytes \n";
+			//file.Dump();
+		}
 	}
 
 	void FileSystem::LoadFile(std::string path) // loads a single file into the file list
@@ -73,12 +90,22 @@ namespace detailEngine
 		std::string fileName = GetPathFileName(path);
 		std::string fileType = GetPathFileType(path);
 
-		std::ifstream FILE(newPath);
+		std::ifstream FILE;
+
+		if (TypeToMode(fileType) == OPEN_BINARY)
+		{
+			FILE = std::ifstream(newPath, std::ios::binary);
+		}
+		else
+		{
+			FILE = std::ifstream(newPath);
+		}
 
 		if (!FILE.fail())
 		{
 			files.push_back(File(UnixTimestamp()));
-			files.back().Data() << FILE.rdbuf();
+			//files.back().Data() << FILE.rdbuf();
+			files.back().Fill(FILE);
 			files.back().SetName(fileName);
 			files.back().SetType(fileType);
 
