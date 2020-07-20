@@ -2,6 +2,10 @@
 
 namespace detailEngine
 {
+	OpenGL::OpenGL()
+	{
+	}
+
 	bool OpenGL::Init(std::string WindowName, int windowSizeX, int windowSizeY, Input* inputPtr, int majorVersion, int minorVersion)
 	{
 		input = inputPtr;

@@ -33,30 +33,15 @@ namespace detailEngine
 		};
 	};
 
-	float PointDistance(vec3 pointOne, vec3 pointTwo)
-	{
-		vec3 product = pointTwo - pointOne;
-		float xDist = product.x;
-		float yDist = product.y;
-		float zDist = product.z;
+	float PointDistance(vec3 pointOne, vec3 pointTwo);
 
-		return sqrt((xDist * xDist) + (yDist * yDist) + (zDist * zDist));
-	}
-
-	bool AABBCollision(AABB* boxOne, AABB* boxTwo, vec3 posOne, vec3 posTwo)
-	{
-
-		return false;
-	}
+	bool AABBCollision(AABB* boxOne, AABB* boxTwo, vec3 posOne, vec3 posTwo);
 
 	class Phy7ics : public Publisher, public Subscriber
 	{
 	public:
 		Phy7ics() {}
-		void Update(EntityController* entityController, AssetManager* assetManager, double currentTime, double deltaTime)
-		{
-
-		}
+		void Update(EntityController* entityController, AssetManager* assetManager, double currentTime, double deltaTime);
 
 	private:
 		float gravityForce = 0.0005f;

@@ -25,7 +25,7 @@ namespace detailEngine
 	class OpenGL : public Publisher, public Subscriber
 	{
 	public:
-		OpenGL() {}
+		OpenGL();
 
 		double time = 0.0f;
 
