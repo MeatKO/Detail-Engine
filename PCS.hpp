@@ -37,6 +37,7 @@ namespace detailEngine
 		MSG_ENGINE,
 		MSG_CONSOLE,
 		MSG_ASSET,
+		MSG_FILE,
 		MSG_SCENE
 	};
 

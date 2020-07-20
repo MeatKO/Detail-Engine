@@ -115,11 +115,11 @@ namespace detailEngine
 
 			entityController->AddEntity("Map");
 			entityController->AddEntity("Plane");
-
-			//pSendMessage(Message(MSG_ASSET, std::string("Asset Load"), Asset("0", "models", "obj")));
-			pSendMessage(Message(MSG_ASSET, std::string("Asset Load"), Asset("de_inferno", "models", "obj")));
 			
-			//entityController->AddComponent("Plane", Component(CAT_MODEL, "PlaneModel", "0"));
+			// asset name, file folder, file type
+			pSendMessage(Message(MSG_ASSET, std::string("LOAD"), Asset("de_inferno", "models", "obj")));
+			
+			// component type, component name ( not important ), asset name ( very important ) 
 			entityController->AddComponent("Map", Component(CAT_MODEL, "PlaneModel", "de_inferno"));
 
 			return true;

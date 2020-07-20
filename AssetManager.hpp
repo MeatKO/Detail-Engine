@@ -1,5 +1,7 @@
 #pragma once
 
+// This needs a complete rewrite and its 1:30 AM 
+
 #include "ECS.hpp"
 #include "glModel.hpp"
 
@@ -36,15 +38,15 @@ namespace detailEngine
 		void UpdateAsset(int AssetID, Asset newAsset);
 
 	private:
-		void ExecuteRequests(FileSystem* fileSystem);
-		void ExecuteMessage(Message message);
+		//void ExecuteRequests(FileSystem* fileSystem);
+		//void ExecuteMessage(Message message);
 		std::mutex assetMutex;
-		std::mutex requestMutex;
-		void AddAsset(Asset asset);
-		void SwapRequestBuffers();
+		//std::mutex requestMutex;
+		//void AddAsset(Asset asset);
+		//void SwapRequestBuffers();
 		std::vector<Asset> assetList;
-		std::vector<Asset> requestedAssets[2];
-		bool requestBuffer = true;
+		//std::vector<Asset> requestedAssets[2];
+		//bool requestBuffer = true;
 
 		Asset defaultAsset = Asset("DEFAULT", "DEFAULT", "DEFAULT");
 	};
