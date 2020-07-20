@@ -39,42 +39,27 @@ namespace detailEngine
 	public:
 		File(long int currentTime) : creationTime(currentTime) {}
 
-		void SetName(std::string Name) { name = Name; }
-
-		std::string GetName(){return name;}
-
-		void SetType(std::string Type) { type = Type; }
-
-		std::string GetType(){return type;}
-
-		void Fill(std::ifstream& file) { contents.clear(); contents << file.rdbuf(); }
-
-		void Append(std::ifstream& file) { contents << file.rdbuf(); }
-
-		void Erase() { contents.clear(); }
-
-		std::stringstream& Data() { return contents; }
-
-		int GetSize() // in bytes
-		{
-			//return contents.gcount() * 8; // doesnt work for whatever reason
-			return contents.rdbuf()->str().size();
-		}
-
-		void Dump()
-		{
-			std::string word;
-			while (getline(contents, word))
-			{
-				std::cout << word;
-			}
-		}
+		void SetName(std::string Name);
+		std::string GetName();
+		void SetType(std::string Type);
+		std::string GetType();
+		void SetMode(FileOpenMode Mode);
+		FileOpenMode GetMode();
+		void Fill(std::ifstream& file);
+		void Append(std::ifstream& file);
+		void Erase();
+		std::stringstream& Data();
+		long int GetCreationTime();
+		int GetSize(); // in bytes
+		void Dump();
+		void PrintInfo();
 
 	private:
 		std::string name = "unnamed";
 		std::string type = "unnamed";
 		std::stringstream contents; // makes a lot of sense to be private i know...
 		long int creationTime = 0;
+		FileOpenMode mode = OPEN_UNSUPPORTED; // default
 	};
 
 	class FileSystem : public Publisher, public Subscriber
@@ -93,7 +78,7 @@ namespace detailEngine
 		std::string GetPathFileName(std::string path); // returns the file name ONLY
 		std::string GetPathFileType(std::string path); // returns the file type ONLY
 		std::string GetPathFullFilename(std::string path); // returns the file name and its type
-		std::string GetSanitizedPath(std::string path); // Gets SanitizePath() output and assembles it with / in between the words;
+		std::string GetSanitizedPath(std::string path); // Gets SanitizePath() output and assembles it with \ in between the words;
 		std::vector<std::string> SanitizePath(std::string path); // splits the path into words
 
 		std::vector<File> files;

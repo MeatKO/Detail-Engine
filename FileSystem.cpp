@@ -62,41 +62,37 @@ namespace detailEngine
 
 	void FileSystem::Debug()
 	{
-		//LoadFile("detail/models/snowgrass/snowgrass.obj");
-		//if (files.size() > 0)
-		//{
-		//	files.back().Dump();
-		//}
-
-		//DirGetAllFileNames("detail/models/de_inferno");
-		LoadDir("detail/models/snowgrass/");
+		LoadDir("/detail/models/snowgrass");
 
 		for (File& file : files)
 		{
-			std::cout << "Name : " << file.GetName() << " Type : " << file.GetType() << " Size : " << file.GetSize() << " Bytes \n";
-			//file.Dump();
+			file.PrintInfo();
 		}
 	}
 
 	void FileSystem::LoadFile(std::string path) // loads a single file into the file list
 	{
-		// Lock the file list - try not to make deadlocks ok ? bye
-		// push back a file to the vector
-		// open the requested file and then access fileList.back() and add the opened file content to the <File> container
-		//std::lock_guard<std::mutex> mut(fileioMutex);
-
 		std::string newPath = GetSanitizedPath(path);
 		std::string fullFileName = GetPathFullFilename(path);
 		std::string fileName = GetPathFileName(path);
 		std::string fileType = GetPathFileType(path);
+		FileOpenMode mode = TypeToMode(fileType);
 
 		std::ifstream FILE;
 
-		if (TypeToMode(fileType) == OPEN_BINARY)
+		if (mode == OPEN_UNSUPPORTED)
+		{
+			// error unsupported file type
+			pSendMessage(Message(MSG_LOG, std::string("FileSystem Error"), std::string("File Type '" + fileType + "' is not supported.")));
+
+			return;
+		}
+
+		if (mode == OPEN_BINARY)
 		{
 			FILE = std::ifstream(newPath, std::ios::binary);
 		}
-		else
+		else if(mode == OPEN_TEXT)
 		{
 			FILE = std::ifstream(newPath);
 		}
@@ -104,23 +100,22 @@ namespace detailEngine
 		if (!FILE.fail())
 		{
 			files.push_back(File(UnixTimestamp()));
-			//files.back().Data() << FILE.rdbuf();
 			files.back().Fill(FILE);
 			files.back().SetName(fileName);
 			files.back().SetType(fileType);
+			files.back().SetMode(mode);
 
 			FILE.close();
 		}
 		else
 		{
-			pSendMessage(Message(MSG_LOG, std::string("FileSystem Error"), std::string("File '" + fullFileName + "' cannot be accessed."))); // error file doesnt exist
+			// error file doesnt exist
+			pSendMessage(Message(MSG_LOG, std::string("FileSystem Error"), std::string("File '" + fullFileName + "' cannot be accessed.")));
 		}
 	}
 
 	void FileSystem::LoadDir(std::string path) // loads all the file from a specific directory in the file list
 	{
-		//std::lock_guard<std::mutex> mut(fileioMutex);
-
 		std::string newPath = GetSanitizedPath(path);
 
 		std::vector<std::string> fileNames;
@@ -133,16 +128,14 @@ namespace detailEngine
 			LoadFile(name);
 		}
 
-		for (File& file : files)
-		{
-			std::cout << file.GetName() << file.GetType() << std::endl;
-		}
+		//for (File& file : files)
+		//{
+		//	std::cout << file.GetName() << file.GetType() << std::endl;
+		//}
 	}
 
 	std::vector<std::string> FileSystem::DirGetAllFileNames(std::string path)
 	{
-		//std::lock_guard<std::mutex> mut(fileioMutex);
-
 		std::vector<std::string> fileNames;
 
 		std::string newPath = GetSanitizedPath(path);
@@ -245,5 +238,30 @@ namespace detailEngine
 
 		return out;
 
+	}
+	void File::SetName(std::string Name) { name = Name; }
+	std::string File::GetName() { return name; }
+	void File::SetType(std::string Type) { type = Type; }
+	std::string File::GetType() { return type; }
+	void File::SetMode(FileOpenMode Mode) { mode = Mode; }
+	FileOpenMode File::GetMode() { return mode; }
+	void File::Fill(std::ifstream& file) { contents.clear(); contents << file.rdbuf(); }
+	void File::Append(std::ifstream& file) { contents << file.rdbuf(); }
+	void File::Erase() { contents.clear(); }
+	std::stringstream& File::Data() { return contents; }
+	long int File::GetCreationTime() { return creationTime; }
+	int File::GetSize() { return contents.rdbuf()->str().size(); }
+	void File::Dump()
+	{
+		std::string word;
+		while (getline(contents, word))
+		{
+			std::cout << word;
+		}
+	}
+	void File::PrintInfo()
+	{
+		std::cout << "Name : '" << GetName() << "' Type : '" << GetType() << "' Size : " << GetSize() << " (Bytes), Binary : " << GetMode() << "\n";
+		std::cout << "Created at : " << GetCreationTime() << "\n";
 	}
 }

@@ -145,6 +145,7 @@ namespace detailEngine
 			entityController->sUpdate();
 			renderer->sUpdate();
 			
+			//std::cout << currentTime << "\n";
 		}
 
 		bool ShouldClose()

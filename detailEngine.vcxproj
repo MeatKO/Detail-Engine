@@ -161,9 +161,11 @@
     <ClCompile Include="FileSystem.cpp" />
     <ClCompile Include="glCamera.cpp" />
     <ClCompile Include="glCubemap.cpp" />
+    <ClCompile Include="glModel.cpp" />
     <ClCompile Include="glShader.cpp" />
     <ClCompile Include="glTexture.cpp" />
     <ClCompile Include="Log.cpp" />
+    <ClCompile Include="OpenGL.cpp" />
     <ClCompile Include="PCS.cpp" />
     <ClCompile Include="SOIL2\etc1_utils.c" />
     <ClCompile Include="SOIL2\image_DXT.c" />
@@ -182,7 +184,6 @@
     <ClInclude Include="glCubemap.hpp" />
     <ClInclude Include="glLights.hpp" />
     <ClInclude Include="glModel.hpp" />
-    <ClInclude Include="glModel2.hpp" />
     <ClInclude Include="glShader.hpp" />
     <ClInclude Include="glTexture.hpp" />
     <ClInclude Include="Input.hpp" />
