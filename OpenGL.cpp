@@ -104,7 +104,8 @@ namespace detailEngine
 		modelShader = new Shader("lighting_array");
 		normalShader = new Shader("normal_b", "normal_b");
 		lightShader = new Shader("light");
-		skyTexture = new CubemapTex("detail");
+		//skyTexture = new CubemapTex("detail");
+		skyTexture = new CubemapTex("frozen");
 
 		std::cout << "Version : " << glGetString(GL_VERSION) << std::endl;
 
@@ -270,10 +271,13 @@ namespace detailEngine
 		// todo : use model2.hpp
 		// write the function
 
+		std::cout << "OGL : processed model " << model.modelName << "\n";
+
 		model.init = true;
 
 		for (Mesh& mesh : model.meshes)
 		{
+			std::cout << "mesh \n";
 			glGenVertexArrays(1, &mesh.VAO);
 			glGenBuffers(1, &mesh.VBO);
 			glBindVertexArray(mesh.VAO);
@@ -312,6 +316,8 @@ namespace detailEngine
 	}
 	void OpenGL::DrawObj(Shader* shader, Model& model)
 	{
+		//std::cout << "drawing " << model.modelName << "\n";
+
 		for (Mesh& mesh : model.meshes)
 		{
 			glBindVertexArray(mesh.VAO);

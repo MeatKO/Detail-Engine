@@ -28,10 +28,10 @@ namespace detailEngine
 
 	FileOpenMode TypeToMode(std::string fileType)
 	{
-		if (fileType == ".obj" || fileType == ".mtl")
+		if (fileType == "obj" || fileType == "mtl")
 			return OPEN_TEXT;
 
-		if (fileType == ".png" || fileType == ".tga")
+		if (fileType == "png" || fileType == "tga" || fileType == "jpg" || fileType == "jpeg")
 			return OPEN_BINARY;
 
 		return OPEN_UNSUPPORTED;
@@ -39,12 +39,30 @@ namespace detailEngine
 
 	FileSystem::FileSystem()
 	{
-		Debug();
+		//Debug();
 	}
 
 	void FileSystem::Update(EntityController* entityController, AssetManager* assetManager)
 	{
+		//Debug();
 		//ExecuteAllRequests();
+
+		// moved the loading stuff to the execute message function since its non blocking and i dont want to make 200 buffers for temporary strings and what not
+		// also this function kind of has no purpose anymore
+		// i like how the filesystem has its own thread
+	}
+
+	void FileSystem::ExecuteMessage(Message message)
+	{
+		if (message.GetTopic() == MSG_LOAD_DIR)
+		{
+			
+			std::string path = std::any_cast<std::string>(message.GetEvent());
+
+			std::string newPath = GetPathNoFile(path);
+
+			LoadDir(newPath); // if this fails idk lol
+		}
 	}
 
 	bool FileSystem::IsLoaded(std::string filename)
@@ -62,21 +80,79 @@ namespace detailEngine
 
 	void FileSystem::Debug()
 	{
-		LoadDir("detail/models/snowgrass/");
-
+		//LoadDir("detail/models/snowgrass/");
+		
 		for (File& file : files)
 		{
 			file.PrintInfo();
 		}
+
+		//for (File& file : files)
+		//{
+		//	file.Erase();
+		//}
+	}
+
+	// The asset manager kept the file types without a .
+	File* FileSystem::GetFile(std::string fileName, std::string fileType)
+	{
+		std::lock_guard<std::mutex> mut(fileioMutex);
+
+		for (int i = 0; i < files.size(); ++i)
+		{
+			if ((files[i].GetName() == fileName) && (files[i].GetType() == fileType))
+			{
+				return &files[i];
+			}
+		}
+
+		return nullptr;
+	}
+
+	void FileSystem::LoadOBJModel(std::string path)
+	{
+		std::string newPath = GetPathNoFile(path);
+
+		LoadDir(newPath);
+	}
+
+	bool FileSystem::FileExists(std::string fileName, std::string fileType)
+	{
+		std::lock_guard<std::mutex> mut(fileioMutex);
+
+		for (File& file : files)
+		{
+			if ((file.GetName() == fileName) && (file.GetType() == fileType))
+				return true;
+		}
+
+		return false;
 	}
 
 	void FileSystem::LoadFile(std::string path) // loads a single file into the file list
 	{
+		std::lock_guard<std::mutex> mut(fileioMutex);
+
 		std::string newPath = GetSanitizedPath(path);
 		std::string fullFileName = GetPathFullFilename(path);
 		std::string fileName = GetPathFileName(path);
 		std::string fileType = GetPathFileType(path);
 		FileOpenMode mode = TypeToMode(fileType);
+
+		bool fileExists = false;
+
+		for (File& file : files)
+		{
+			if ((file.GetName() == fileName) && (file.GetType() == fileType))
+				fileExists = true;
+		}
+
+		// cant use the function because of deadlocks...
+		if (fileExists)
+		{
+			pSendMessage(Message(MSG_LOG, std::string("FileSystem Warning"), std::string("Trying to reload file '" + fileName + "." + fileType + "'.")));
+			return;
+		}
 
 		std::ifstream FILE;
 
@@ -124,7 +200,7 @@ namespace detailEngine
 
 		for (std::string& name : fileNames)
 		{
-			std::cout << name << std::endl;
+			//::cout << name << std::endl;
 			LoadFile(name);
 		}
 	}
@@ -172,7 +248,10 @@ namespace detailEngine
 		for (int i = 0; i < fileName.size(); ++i)
 		{
 			if (fileName[i] == '.')
+			{
 				begin = true;
+				continue; // dont actually count the dot as part of the type
+			}
 
 			if (begin)
 			{
@@ -269,6 +348,31 @@ namespace detailEngine
 		return true;
 	}
 
+	// expects a path that contains a file name and type !
+	std::string FileSystem::GetPathNoFile(std::string path)
+	{
+		std::vector<std::string> words = SanitizePath(path);
+
+		std::string out = "";
+
+		for (int i = 0; i < words.size() - 1; ++i)
+		{
+			if (words[i] == "" || words[i] == " ")
+				continue;
+
+			out += words[i] + "\\";
+		}
+
+		// if the last element doesnt contain a . then push it in the vector
+		// if it contains a . its most likely a file so dont push it
+		if (!words.back().find('.'))
+		{
+			out += words.back();
+		}
+
+		return out;
+	}
+
 	void File::SetName(std::string Name) { name = Name; }
 	std::string File::GetName() { return name; }
 	void File::SetType(std::string Type) { type = Type; }
@@ -277,7 +381,7 @@ namespace detailEngine
 	FileOpenMode File::GetMode() { return mode; }
 	void File::Fill(std::ifstream& file) { contents.clear(); contents << file.rdbuf(); }
 	void File::Append(std::ifstream& file) { contents << file.rdbuf(); }
-	void File::Erase() { contents.clear(); }
+	void File::Erase() { contents.clear(); name = "deleted"; type = "deleted"; }
 	std::stringstream& File::Data() { return contents; }
 	long int File::GetCreationTime() { return creationTime; }
 	int File::GetSize() { return contents.rdbuf()->str().size(); }

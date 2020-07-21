@@ -19,6 +19,7 @@ namespace detailEngine
 		std::string fileType;
 		ComponentAssetType assetType;
 		bool deleted = false;
+		bool processed = false;
 		std::any data;
 	};
 
@@ -38,15 +39,13 @@ namespace detailEngine
 		void UpdateAsset(int AssetID, Asset newAsset);
 
 	private:
-		//void ExecuteRequests(FileSystem* fileSystem);
-		//void ExecuteMessage(Message message);
+		void ExecuteMessage(Message message);
 		std::mutex assetMutex;
-		//std::mutex requestMutex;
-		//void AddAsset(Asset asset);
-		//void SwapRequestBuffers();
+		void AddAsset(Asset asset);
 		std::vector<Asset> assetList;
-		//std::vector<Asset> requestedAssets[2];
-		//bool requestBuffer = true;
+
+		void ProcessAsset(Asset& asset, FileSystem* fileSystem);
+		void ProcessObjAsset(Asset& asset, FileSystem* fileSystem);
 
 		Asset defaultAsset = Asset("DEFAULT", "DEFAULT", "DEFAULT");
 	};

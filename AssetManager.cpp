@@ -14,35 +14,16 @@ namespace detailEngine
 	AssetManager::AssetManager() {}
 	void AssetManager::RequestAsset(Asset asset)
 	{
-		//if (!AssetExists(asset.name))
-		//{
-		//	//if (asset.fileType == "AABB")
-		//	//{
-		//	//	AddAsset(asset);
-		//	//}
-		//	//else
-		//	//{
-		//		std::lock_guard<std::mutex> mut(requestMutex);
-		//		requestedAssets[!requestBuffer].push_back(asset);
-		//	//}
-		//}
-		//else
-		//{
-		//	// err tried to request duplicate asset
-		//}
+
 	}
+
 	void AssetManager::Update(EntityController* entityController, FileSystem* fileSystem)
 	{
-		//ExecuteRequests(fileSystem);
-		//
-		//std::vector<Asset> receivedAssets = fileSystem->CollectAssets();
-		//for (Asset& asset : receivedAssets)
-		//{
-		//	if (!AssetExists(asset.name))
-		//	{
-		//		AddAsset(asset);
-		//	}
-		//}
+		for (Asset& asset : assetList)
+		{
+			if (!asset.processed)
+				ProcessAsset(asset, fileSystem);
+		}
 	}
 
 	bool AssetManager::AssetExists(std::string assetName)
@@ -120,45 +101,62 @@ namespace detailEngine
 			assetList[AssetID] = newAsset;
 		}
 	}
-	//void AssetManager::ExecuteRequests(FileSystem* fileSystem)
-	//{
-	//	SwapRequestBuffers();
-	//	for (Asset& asset : requestedAssets[requestBuffer])
-	//	{
-	//		//fileSystem->RequestAsset(asset);
-	//		// offload to filesystem
-	//	}
-	//	requestedAssets[requestBuffer].clear();
-	//	
-	//}
-	//void AssetManager::ExecuteMessage(Message message)
-	//{
-	//	if (message.GetTopic() == MSG_ASSET)
-	//	{
-	//		if (message.GetValue().type() == typeid(Asset))
-	//		{
-	//			RequestAsset(std::any_cast<Asset>(message.GetValue()));
-	//		}
-	//		else
-	//		{
-	//			// error
-	//		}
-	//	}
-	//}
-	//void AssetManager::AddAsset(Asset asset)
-	//{
-	//	if (!AssetExists(asset.name))
-	//	{
-	//		std::lock_guard<std::mutex> mut(assetMutex);
-	//		assetList.push_back(asset);
-	//	}
-	//	else
-	//	{
-	//		// err tried to add duplicate asset
-	//	}
-	//}
-	//void AssetManager::SwapRequestBuffers()
-	//{
-	//	requestBuffer = !requestBuffer;
-	//}
+
+	void AssetManager::ExecuteMessage(Message message)
+	{
+		if (message.GetTopic() == MSG_ASSET)
+		{
+			if (message.GetValue().type() == typeid(Asset))
+			{
+				if (std::any_cast<std::string>(message.GetEvent()) == "ADD")
+				{
+					AddAsset(std::any_cast<Asset>(message.GetValue()));
+				}
+			}
+			else
+			{
+				// error
+			}
+		}
+	}
+
+	void AssetManager::AddAsset(Asset asset)
+	{
+		if (!AssetExists(asset.name))
+		{
+			std::lock_guard<std::mutex> mut(assetMutex);
+			assetList.push_back(asset);
+		}
+		else
+		{
+			// err tried to add duplicate asset
+		}
+	}
+
+	void AssetManager::ProcessAsset(Asset& asset, FileSystem* fileSystem)
+	{
+		if (asset.fileType == "obj")
+		{
+			ProcessObjAsset(asset, fileSystem);
+		}
+			
+	}
+
+	void AssetManager::ProcessObjAsset(Asset& asset, FileSystem* fileSystem)
+	{
+		asset.assetType = CAT_MODEL;
+		File* file = fileSystem->GetFile(asset.name, asset.fileType);
+
+		if (file)
+		{
+			Model mdl = Model(asset.name, MDL_OBJ);
+			loadObj(file->Data(), mdl);
+			asset.data = mdl;
+			asset.processed = true;
+
+			//std::cout << file->Data().rdbuf() << "\n";
+
+			std::cout << "processed\n";
+		}
+	}
 }

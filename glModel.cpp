@@ -34,7 +34,7 @@ namespace detailEngine
 		vtn.data[2] = std::stoi(facePairs[2]);
 	}
 
-	std::vector<Mesh> loadObj(std::stringstream& file, Model& model)
+	void loadObj(std::stringstream& file, Model& model)
 	{
 		std::string line;
 		std::string word;

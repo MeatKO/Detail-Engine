@@ -68,10 +68,17 @@ namespace detailEngine
 		FileSystem();
 
 		void Update(EntityController* entityController, AssetManager* assetManager);
+		void ExecuteMessage(Message message);
+
 		bool IsLoaded(std::string filename);
 		void Debug();
 
+		File* GetFile(std::string fileName, std::string fileType);
+
+		void LoadOBJModel(std::string path); // must contain the file name and stuff as well
+
 	private:
+		bool FileExists(std::string fileName, std::string fileType);
 		void LoadFile(std::string path);
 		void LoadDir(std::string path); // Loads all the files from a directory
 		std::vector<std::string> DirGetAllFileNames(std::string path);
@@ -81,6 +88,7 @@ namespace detailEngine
 		std::string GetSanitizedPath(std::string path); // Gets SanitizePath() output and assembles it with \ in between the words;
 		std::vector<std::string> SanitizePath(std::string path); // splits the path into words
 		bool StringContainsOnly(std::string input, char character);
+		std::string GetPathNoFile(std::string path); // receives a path to a file and gives a path to the directory
 
 		std::vector<File> files;
 		std::mutex fileioMutex;

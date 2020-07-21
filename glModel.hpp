@@ -100,6 +100,6 @@ namespace detailEngine
 
 	};
 
-	std::vector<Mesh> loadObj(std::stringstream& file, Model& model);
+	void loadObj(std::stringstream& file, Model& model);
 	void ProcessObj(Model& model);
 }

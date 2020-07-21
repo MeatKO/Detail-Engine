@@ -112,6 +112,7 @@ namespace detailEngine
 			assetManager->AddType(MSG_ASSET);
 			profiler->AddType(MSG_PROFILER);
 			profiler->AddType(MSG_PROFILER_ADD);
+			fileSystem->AddType(MSG_LOAD_DIR);
 
 			threadCount = std::thread::hardware_concurrency();
 
@@ -133,7 +134,11 @@ namespace detailEngine
 			entityController->AddEntity("Plane");
 			
 			// asset name, file folder, file type
-			pSendMessage(Message(MSG_ASSET, std::string("LOAD"), Asset("de_inferno", "models", "obj")));
+			//pSendMessage(Message(MSG_ASSET, std::string("LOAD"), Asset("de_inferno", "models", "obj")));
+
+			pSendMessage(Message(MSG_LOAD_DIR, std::string("detail/models/de_inferno/de_inferno.obj"), int(0)));
+
+			pSendMessage(Message(MSG_ASSET, std::string("ADD"), Asset("de_inferno", "models", "obj")));
 			
 			// component type, component name ( not important ), asset name ( very important ) 
 			entityController->AddComponent("Map", Component(CAT_MODEL, "PlaneModel", "de_inferno"));

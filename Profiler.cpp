@@ -57,14 +57,14 @@ namespace detailEngine
 	{
 		std::lock_guard<std::mutex> mut(recordMutex);
 
-		system("CLS");
-
-		for (ProfileRecord& record : records)
-		{
-			std::cout << "Profile Name : '" << record.name << "'  Avg. Time : " << record.microseconds / record.updates
-				<< "us  Last Time : " << record.lastTime << "us  Min. Time : " << record.minTime << "us  Max. Time : " << record.maxTime << "us\n";
-		
-		}
+		//system("CLS");
+		//
+		//for (ProfileRecord& record : records)
+		//{
+		//	std::cout << "Profile Name : '" << record.name << "'  Avg. Time : " << record.microseconds / record.updates
+		//		<< "us  Last Time : " << record.lastTime << "us  Min. Time : " << record.minTime << "us  Max. Time : " << record.maxTime << "us\n";
+		//
+		//}
 	}
 
 	void Profiler::AddProfile(std::string name)
