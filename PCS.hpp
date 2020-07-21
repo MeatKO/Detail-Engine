@@ -38,6 +38,8 @@ namespace detailEngine
 		MSG_CONSOLE,
 		MSG_ASSET,
 		MSG_FILE,
+		MSG_PROFILER_ADD,   // string, string (not needed)
+		MSG_PROFILER,       // string, double
 		MSG_SCENE
 	};
 

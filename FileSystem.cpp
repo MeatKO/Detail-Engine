@@ -1,4 +1,4 @@
-#include "FileSystem.hpp"
+﻿#include "FileSystem.hpp"
 #include "AssetManager.hpp"
 #include "glModel.hpp"
 
@@ -62,7 +62,7 @@ namespace detailEngine
 
 	void FileSystem::Debug()
 	{
-		LoadDir("/detail/models/snowgrass");
+		LoadDir("detail/models/snowgrass/");
 
 		for (File& file : files)
 		{
@@ -127,11 +127,6 @@ namespace detailEngine
 			std::cout << name << std::endl;
 			LoadFile(name);
 		}
-
-		//for (File& file : files)
-		//{
-		//	std::cout << file.GetName() << file.GetType() << std::endl;
-		//}
 	}
 
 	std::vector<std::string> FileSystem::DirGetAllFileNames(std::string path)
@@ -211,6 +206,8 @@ namespace detailEngine
 		return out;
 	}
 
+	// Works only with ASCII characters < 127
+	// No ? * | < > : "
 	std::vector<std::string> FileSystem::SanitizePath(std::string path)
 	{
 		std::vector<std::string> out;
@@ -227,18 +224,51 @@ namespace detailEngine
 			{
 				if (reset)
 				{
-					out.push_back(filter);
+					// if the path isnt something like "           " 
+					// must be idiot proof since i will be working with it
+					if (!StringContainsOnly(filter, ' '))
+					{
+						out.push_back(filter);
+					}
+
 					filter = "";
 					reset = false;
 				}
-				filter += path[i];
+
+				// the first char in a dir cannot be an empty space
+				if (!(filter.size() == 0 && path[i] == ' '))
+				{
+					if (path[i] > 0 && path[i] < 127)
+					{
+						if (!(path[i] == '?' || path[i] == '*' || path[i] == '|' || path[i] == '<' || path[i] == '>' || path[i] == ':' || path[i] == '"'))
+						{
+							filter += path[i];
+						}
+					}
+				}
 			}
 		}
-		out.push_back(filter);
+
+		if (!StringContainsOnly(filter, ' '))
+		{
+			out.push_back(filter);
+		}
 
 		return out;
 
 	}
+
+	bool FileSystem::StringContainsOnly(std::string input, char character)
+	{
+		for (int i = 0; i < input.size(); ++i)
+		{
+			if (input[i] != character)
+				return false;
+		}
+
+		return true;
+	}
+
 	void File::SetName(std::string Name) { name = Name; }
 	std::string File::GetName() { return name; }
 	void File::SetType(std::string Type) { type = Type; }

@@ -11,10 +11,11 @@
 #include <time.h>
 
 #include "ECS.hpp"
-#include "Input.hpp"
 #include "Log.hpp"
+#include "Input.hpp"
 #include "OpenGL.hpp"
 #include "Console.hpp"
+#include "Profiler.hpp"
 #include "FileSystem.hpp"
 #include "DebugSystem.hpp"
 #include "AssetManager.hpp"
@@ -79,6 +80,8 @@ namespace detailEngine
 			renderer->Publish(messageBus);
 			fileSystem->Publish(messageBus);
 			assetManager->Publish(messageBus);
+			profiler->Publish(messageBus);
+			timer->Publish(messageBus);
 
 			this->Subscribe(messageBus);
 			messageLog->Subscribe(messageBus);
@@ -87,15 +90,15 @@ namespace detailEngine
 			renderer->Subscribe(messageBus);
 			fileSystem->Subscribe(messageBus);
 			assetManager->Subscribe(messageBus);
+			profiler->Subscribe(messageBus);
 
 			this->AddType(MSG_ENGINE);
 			this->AddType(MSG_CONSOLE);
-			messageLog->AddType(MSG_LOG);
-			messageLog->AddType(MSG_KEY);
-			messageLog->AddType(MSG_ERROR_MESSAGE);
-			messageLog->AddType(MSG_MESSAGE_BOX);
+			messageLog->AddType(MSG_ANY);
 			console->AddType(MSG_KEY);
 			assetManager->AddType(MSG_ASSET);
+			profiler->AddType(MSG_PROFILER);
+			profiler->AddType(MSG_PROFILER_ADD);
 
 			threadCount = std::thread::hardware_concurrency();
 
@@ -122,11 +125,14 @@ namespace detailEngine
 			// component type, component name ( not important ), asset name ( very important ) 
 			entityController->AddComponent("Map", Component(CAT_MODEL, "PlaneModel", "de_inferno"));
 
+			//profiler->AddProfile("Engine");
+
 			return true;
 		}
 
 		void Update()
 		{
+			timer->StartTime("Engine", currentTime);
 			lastTime = currentTime;
 			currentTime = (double)clock() / CLOCKS_PER_SEC;
 			deltaTime = currentTime - lastTime;
@@ -135,16 +141,22 @@ namespace detailEngine
 			this->NotifyChannels();
 			entityController->NotifyChannels();
 			renderer->NotifyChannels();
+			profiler->NotifyChannels();
+			timer->NotifyChannels();
 			
 			messageBus->NotifySubs();
 			
 			renderer->Update(entityController, assetManager, currentTime, deltaTime);
 			entityController->Update(assetManager);
+			profiler->Update();
 
 			this->sUpdate();
 			entityController->sUpdate();
 			renderer->sUpdate();
+			profiler->sUpdate();
 			
+			timer->EndTime("Engine", currentTime);
+			//profiler->UpdateProfile("Engine", deltaTime * 1000000);
 			//std::cout << currentTime << "\n";
 		}
 
@@ -192,5 +204,7 @@ namespace detailEngine
 		OpenGL* renderer = new OpenGL();
 		Console* console = new Console();
 		DebugSystem* debugSystem = new DebugSystem();
+		Profiler* profiler = new Profiler();
+		ProfileTimer* timer = new ProfileTimer();
 	};
 }

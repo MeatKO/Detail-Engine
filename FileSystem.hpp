@@ -80,6 +80,7 @@ namespace detailEngine
 		std::string GetPathFullFilename(std::string path); // returns the file name and its type
 		std::string GetSanitizedPath(std::string path); // Gets SanitizePath() output and assembles it with \ in between the words;
 		std::vector<std::string> SanitizePath(std::string path); // splits the path into words
+		bool StringContainsOnly(std::string input, char character);
 
 		std::vector<File> files;
 		std::mutex fileioMutex;
