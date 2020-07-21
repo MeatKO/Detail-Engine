@@ -55,6 +55,10 @@ namespace detailEngine
 
 	void Profiler::PrintInfo()
 	{
+		std::lock_guard<std::mutex> mut(recordMutex);
+
+		system("CLS");
+
 		for (ProfileRecord& record : records)
 		{
 			std::cout << "Profile Name : '" << record.name << "'  Avg. Time : " << record.microseconds / record.updates
@@ -74,8 +78,9 @@ namespace detailEngine
 	// Timer stuff
 	// In case of memory leak you probably havent 
 	// dont forget to notify channels
-	void ProfileTimer::StartTime(std::string recordName, double currentTime)
+	void ProfileTimer::StartTime(std::string recordName)
 	{
+		double currentTime = (double)clock() / CLOCKS_PER_SEC;
 		TimerRecord* record = GetRecord(recordName);
 
 		if (record)
@@ -89,8 +94,10 @@ namespace detailEngine
 		}
 	}
 
-	void ProfileTimer::EndTime(std::string recordName, double currentTime)
+	void ProfileTimer::EndTime(std::string recordName)
 	{
+		double currentTime = (double)clock() / CLOCKS_PER_SEC;
+
 		for (TimerRecord& rec : records)
 		{
 			if (rec.name == recordName)

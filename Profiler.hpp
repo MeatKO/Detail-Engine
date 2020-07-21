@@ -65,8 +65,8 @@ namespace detailEngine
 	public:
 		ProfileTimer() {}
 
-		void StartTime(std::string recordName, double currentTime); // will automatically add a new profile with the name... cant have duplicate names
-		void EndTime(std::string recordName, double currentTime); // will delete the record once it has been ended
+		void StartTime(std::string recordName); // will automatically add a new profile with the name... cant have duplicate names
+		void EndTime(std::string recordName); // will delete the record once it has been ended
 		TimerRecord* GetRecord(std::string recordName);
 
 	private:

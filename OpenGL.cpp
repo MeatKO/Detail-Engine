@@ -69,7 +69,7 @@ namespace detailEngine
 
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Wireframe
 
-		glfwSwapInterval(1); // VSYNC
+		glfwSwapInterval(0); // VSYNC
 
 		if (glGenVertexArrays == NULL)
 			pSendMessage(Message(MSG_LOG, std::string("OpenGL Error"), std::string("glGenVertexArray returned NULL at initialization.")));

@@ -40,6 +40,8 @@ namespace detailEngine
 
 		void UpdateFileSystem()
 		{
+			timer->StartTime("FileSystem Loop");
+
 			while (threadWork)
 			{
 				fileSystem->NotifyChannels();
@@ -49,30 +51,41 @@ namespace detailEngine
 
 				Sleep(50);
 			}
+
+			timer->EndTime("FileSystem Loop");
 		}
 
 		void UpdateThread()
 		{
+			timer->StartTime("Update Thread");
+
 			while (threadWork)
 			{
 				input->NotifyChannels();
 				console->NotifyChannels();
 				assetManager->NotifyChannels();
+				profiler->NotifyChannels();
 
 				input->Update(currentTime);
 				console->Update(input, entityController);
 				assetManager->Update(entityController, fileSystem);
+				profiler->Update();
 
 				messageLog->sUpdate();
 				console->sUpdate();
 				assetManager->sUpdate();
+				profiler->sUpdate();
 
 				Sleep(10);
 			}
+
+			timer->EndTime("Update Thread");
 		}
 
 		bool Init()
 		{
+			timer->StartTime("Engine Init");
+
 			this->Publish(messageBus);
 			input->Publish(messageBus);
 			console->Publish(messageBus);
@@ -127,12 +140,15 @@ namespace detailEngine
 
 			//profiler->AddProfile("Engine");
 
+			timer->EndTime("Engine Init");
+
 			return true;
 		}
 
 		void Update()
 		{
-			timer->StartTime("Engine", currentTime);
+			timer->StartTime("Engine Loop");
+
 			lastTime = currentTime;
 			currentTime = (double)clock() / CLOCKS_PER_SEC;
 			deltaTime = currentTime - lastTime;
@@ -141,21 +157,21 @@ namespace detailEngine
 			this->NotifyChannels();
 			entityController->NotifyChannels();
 			renderer->NotifyChannels();
-			profiler->NotifyChannels();
 			timer->NotifyChannels();
 			
 			messageBus->NotifySubs();
 			
 			renderer->Update(entityController, assetManager, currentTime, deltaTime);
 			entityController->Update(assetManager);
-			profiler->Update();
 
 			this->sUpdate();
 			entityController->sUpdate();
+
+			timer->StartTime("Rendering");
 			renderer->sUpdate();
-			profiler->sUpdate();
+			timer->EndTime("Rendering");
 			
-			timer->EndTime("Engine", currentTime);
+			timer->EndTime("Engine Loop");
 			//profiler->UpdateProfile("Engine", deltaTime * 1000000);
 			//std::cout << currentTime << "\n";
 		}
