@@ -12,10 +12,10 @@ namespace detailEngine
 	class Asset
 	{
 	public:
-		Asset(std::string Name, std::string Location, std::string FileType);
+		Asset(std::string Name, std::string FileName, std::string FileType);
 
 		std::string name;
-		std::string location;
+		std::string fileName;
 		std::string fileType;
 		ComponentAssetType assetType;
 		bool deleted = false;
@@ -46,6 +46,7 @@ namespace detailEngine
 
 		void ProcessAsset(Asset& asset, FileSystem* fileSystem);
 		void ProcessObjAsset(Asset& asset, FileSystem* fileSystem);
+		void ProcessObjTextures(Asset& asset, FileSystem* fileSystem);
 
 		Asset defaultAsset = Asset("DEFAULT", "DEFAULT", "DEFAULT");
 	};

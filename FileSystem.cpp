@@ -116,6 +116,41 @@ namespace detailEngine
 		LoadDir(newPath);
 	}
 
+	void FileSystem::LoadTextureFile(std::string path)
+	{
+		std::string newPath = GetSanitizedPath(path);
+		std::string fileName = GetPathFileName(path);
+		std::string fileType = GetPathFileType(path);
+
+		bool fileExists = false;
+
+		for (File& file : files)
+		{
+			if ((file.GetName() == fileName) && (file.GetType() == fileType))
+				fileExists = true;
+		}
+
+		// cant use the function because of deadlocks...
+		if (fileExists)
+		{
+			pSendMessage(Message(MSG_LOG, std::string("FileSystem Warning"), std::string("Trying to reload file '" + fileName + "." + fileType + "'.")));
+			return;
+		}
+
+		int width, height;
+		unsigned char* data = TextureImage(newPath, width, height);
+		std::string dataString(reinterpret_cast<char*>(data)); // should work ??
+
+		files.push_back(File(UnixTimestamp()));
+		files.back().Fill(dataString);
+		files.back().SetName(fileName);
+		files.back().SetType(fileType);
+		files.back().SetMode(OPEN_BINARY);
+
+		DeleteTextureImage(data); // not needed anymore
+
+	}
+
 	bool FileSystem::FileExists(std::string fileName, std::string fileType)
 	{
 		std::lock_guard<std::mutex> mut(fileioMutex);
@@ -138,6 +173,12 @@ namespace detailEngine
 		std::string fileName = GetPathFileName(path);
 		std::string fileType = GetPathFileType(path);
 		FileOpenMode mode = TypeToMode(fileType);
+
+		if (fileType == "png" || fileType == "tga" || fileType == "jpg" || fileType == "jpeg")
+		{
+			LoadTextureFile(path);
+			return;
+		}
 
 		bool fileExists = false;
 
@@ -380,6 +421,7 @@ namespace detailEngine
 	void File::SetMode(FileOpenMode Mode) { mode = Mode; }
 	FileOpenMode File::GetMode() { return mode; }
 	void File::Fill(std::ifstream& file) { contents.clear(); contents << file.rdbuf(); }
+	void File::Fill(std::string& string) { contents.clear(); contents << string; }
 	void File::Append(std::ifstream& file) { contents << file.rdbuf(); }
 	void File::Erase() { contents.clear(); name = "deleted"; type = "deleted"; }
 	std::stringstream& File::Data() { return contents; }

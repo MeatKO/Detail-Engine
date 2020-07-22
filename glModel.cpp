@@ -106,7 +106,7 @@ namespace detailEngine
 					vertex.Normal = model.loadedNormals[face.vtn[i].data[2] - 1];
 
 					mesh.vertices.push_back(vertex);
-					mesh.indices.push_back(face.vtn[i].data[0]); // using the vertex index as index should be good enough
+					mesh.indices.push_back(face.vtn[i].data[0]); // incorrect way of indexing...
 				}
 			}
 		}

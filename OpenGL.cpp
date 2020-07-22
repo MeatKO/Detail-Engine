@@ -209,8 +209,9 @@ namespace detailEngine
 
 				Asset asset = assetManager->GetAsset(entity.components[CAT_MODEL].GetIndex());
 
-				model = glm::translate(model, glm::vec3(transform.translation.x, transform.translation.y, transform.translation.z));
+				//model = glm::translate(model, glm::vec3(transform.translation.x, transform.translation.y, transform.translation.z));
 				//model = glm::scale(model, glm::vec3(transform.scale.x, transform.scale.y, transform.scale.z));
+				model = glm::translate(model, glm::vec3(1.0f, 1.0f, 1.0f));
 				model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
 
 				if (asset.assetType != CAT_DEFAULT)
@@ -321,7 +322,8 @@ namespace detailEngine
 		for (Mesh& mesh : model.meshes)
 		{
 			glBindVertexArray(mesh.VAO);
-			glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, nullptr);
+			//glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, nullptr);
+			glDrawArrays(GL_TRIANGLES, 0, mesh.vertices.size());
 			glBindVertexArray(0);
 		}
 	}

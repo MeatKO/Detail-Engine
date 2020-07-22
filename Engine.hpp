@@ -133,17 +133,13 @@ namespace detailEngine
 			entityController->AddEntity("Map");
 			entityController->AddEntity("Plane");
 			
-			// asset name, file folder, file type
-			//pSendMessage(Message(MSG_ASSET, std::string("LOAD"), Asset("de_inferno", "models", "obj")));
+			std::string testModel = "de_inferno";
 
-			pSendMessage(Message(MSG_LOAD_DIR, std::string("detail/models/de_inferno/de_inferno.obj"), int(0)));
+			pSendMessage(Message(MSG_LOAD_DIR, std::string("detail/models/" + testModel + "/" + testModel + ".obj"), int(0)));
 
-			pSendMessage(Message(MSG_ASSET, std::string("ADD"), Asset("de_inferno", "models", "obj")));
+			pSendMessage(Message(MSG_ASSET, std::string("ADD"), Asset(testModel, "models", "obj")));
 			
-			// component type, component name ( not important ), asset name ( very important ) 
-			entityController->AddComponent("Map", Component(CAT_MODEL, "PlaneModel", "de_inferno"));
-
-			//profiler->AddProfile("Engine");
+			entityController->AddComponent("Map", Component(CAT_MODEL, "PlaneModel", testModel));
 
 			timer->EndTime("Engine Init");
 

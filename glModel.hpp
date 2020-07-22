@@ -45,6 +45,13 @@ namespace detailEngine
 		vec2 UV;
 	};
 
+	struct Texture
+	{
+		int id = -1;
+		std::string data = "";
+		bool init = false;
+	};
+
 	// The material holds only the texture name, the texture can be found in the asset manager
 	struct Material
 	{

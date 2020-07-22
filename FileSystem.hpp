@@ -12,6 +12,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include "ECS.hpp"
+#include "glTexture.hpp"
 
 namespace fs = std::filesystem;
 
@@ -46,6 +47,7 @@ namespace detailEngine
 		void SetMode(FileOpenMode Mode);
 		FileOpenMode GetMode();
 		void Fill(std::ifstream& file);
+		void Fill(std::string& string);
 		void Append(std::ifstream& file);
 		void Erase();
 		std::stringstream& Data();
@@ -76,6 +78,7 @@ namespace detailEngine
 		File* GetFile(std::string fileName, std::string fileType);
 
 		void LoadOBJModel(std::string path); // must contain the file name and stuff as well
+		void LoadTextureFile(std::string path);
 
 	private:
 		bool FileExists(std::string fileName, std::string fileType);

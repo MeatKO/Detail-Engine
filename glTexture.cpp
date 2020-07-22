@@ -53,4 +53,16 @@ namespace detailEngine
 
 		return handle;
 	}
+	unsigned char* TextureImage(std::string path, int& width, int& height)
+	{
+		unsigned char* image = SOIL_load_image(path.c_str(), &width, &height, 0, SOIL_LOAD_RGBA);
+		return image;
+	}
+	void DeleteTextureImage(unsigned char* image)
+	{
+		if (image)
+		{
+			SOIL_free_image_data(image);
+		}
+	}
 }

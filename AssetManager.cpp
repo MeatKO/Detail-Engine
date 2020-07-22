@@ -3,10 +3,10 @@
 
 namespace detailEngine
 {
-	Asset::Asset(std::string Name, std::string Location, std::string FileType)
+	Asset::Asset(std::string Name, std::string FileName, std::string FileType)
 	{
 		name = Name;
-		location = Location;
+		fileName = FileName;
 		fileType = FileType;
 	}
 
@@ -151,6 +151,9 @@ namespace detailEngine
 		{
 			Model mdl = Model(asset.name, MDL_OBJ);
 			loadObj(file->Data(), mdl);
+
+			ProcessObj(mdl);
+
 			asset.data = mdl;
 			asset.processed = true;
 
@@ -158,5 +161,10 @@ namespace detailEngine
 
 			std::cout << "processed\n";
 		}
+	}
+	void AssetManager::ProcessObjTextures(Asset& asset, FileSystem* fileSystem)
+	{
+		Model mdl = std::any_cast<Model>(asset.data);
+
 	}
 }
