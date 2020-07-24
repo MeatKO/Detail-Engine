@@ -3,12 +3,14 @@
 // This needs a complete rewrite and its 1:30 AM 
 
 #include "ECS.hpp"
-#include "glModel.hpp"
+#include "OpenGL.hpp"
 
 namespace detailEngine
 {
 	class FileSystem;
-	
+	class OpenGL;
+	class Model;
+
 	class Asset
 	{
 	public:
@@ -38,15 +40,20 @@ namespace detailEngine
 		int GetAssetID(std::string assetName);
 		void UpdateAsset(int AssetID, Asset newAsset);
 
+		// Will be ran on the same thread as the renderer to use opengl functions without context switching between threads
+		// The functions inside the renderer dont need mutexes because they will run on its thread, but the function here need it
+		void ProcessAssets(OpenGL* renderer, FileSystem* fileSystem);
+
 	private:
 		void ExecuteMessage(Message message);
 		std::mutex assetMutex;
 		void AddAsset(Asset asset);
 		std::vector<Asset> assetList;
+		std::queue<Asset> unfinishedAssetList;
 
-		void ProcessAsset(Asset& asset, FileSystem* fileSystem);
-		void ProcessObjAsset(Asset& asset, FileSystem* fileSystem);
-		void ProcessObjTextures(Asset& asset, FileSystem* fileSystem);
+		void CompleteAsset(Asset& asset);
+		void ProcessAsset(Asset& asset, OpenGL* renderer, FileSystem* fileSystem);
+		void ProcessObjAsset(Asset& asset, OpenGL* renderer, FileSystem* fileSystem);
 
 		Asset defaultAsset = Asset("DEFAULT", "DEFAULT", "DEFAULT");
 	};

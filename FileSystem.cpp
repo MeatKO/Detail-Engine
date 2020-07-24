@@ -109,6 +109,26 @@ namespace detailEngine
 		return nullptr;
 	}
 
+	File* FileSystem::GetFile(std::string fileNameType)
+	{
+		std::string fileName, fileType;
+
+		SplitFileNameType(fileNameType, fileName, fileType);
+
+		std::lock_guard<std::mutex> mut(fileioMutex);
+
+		for (int i = 0; i < files.size(); ++i)
+		{
+			if ((files[i].GetName() == fileName) && (files[i].GetType() == fileType))
+			{
+				return &files[i];
+			}
+		}
+
+		return nullptr;
+	}
+
+	// Nothing special just loads all other files in the same directory
 	void FileSystem::LoadOBJModel(std::string path)
 	{
 		std::string newPath = GetPathNoFile(path);
@@ -146,6 +166,9 @@ namespace detailEngine
 		files.back().SetName(fileName);
 		files.back().SetType(fileType);
 		files.back().SetMode(OPEN_BINARY);
+
+		files.back().aux[0] = width;
+		files.back().aux[1] = height;
 
 		DeleteTextureImage(data); // not needed anymore
 
@@ -412,6 +435,30 @@ namespace detailEngine
 		}
 
 		return out;
+	}
+
+	void FileSystem::SplitFileNameType(std::string fileNamePath, std::string& file, std::string& type)
+	{
+		bool dot = false;
+
+		for (int i = 0; i < fileNamePath.size(); ++i)
+		{
+			if (dot)
+			{
+				type += fileNamePath[i];
+			}
+			else
+			{
+				if (fileNamePath[i] == '.')
+				{
+					dot = true;
+				}
+				else
+				{
+					file += fileNamePath[i];
+				}
+			}
+		}
 	}
 
 	void File::SetName(std::string Name) { name = Name; }

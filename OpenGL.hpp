@@ -14,6 +14,7 @@
 #include "Log.hpp"
 
 #include "glModel.hpp"
+#include "glTexture.hpp"
 #include "glShader.hpp"
 #include "glCamera.hpp"
 #include "glCubemap.hpp"
@@ -22,6 +23,10 @@
 
 namespace detailEngine
 {
+	class Model;
+	class Mesh;
+	class Material;
+
 	class OpenGL : public Publisher, public Subscriber
 	{
 	public:
@@ -41,9 +46,15 @@ namespace detailEngine
 
 		void ProcessObjModel(Model& model);
 
-		void DrawObj(Shader* shader, Model& model);
+		void DrawObj(Model& model);
+
+		void DrawMesh(Mesh& mesh, Material& mat);
+
+		int GenerateTexture(std::string data, int width, int height);
 
 	private:
+		std::mutex contextLock;
+
 		Input* input = nullptr;
 		int SCREEN_WIDTH = 1200, SCREEN_HEIGHT = 900;
 		float mouseLastX = 0.0f, mouseLastY = 0.0f;

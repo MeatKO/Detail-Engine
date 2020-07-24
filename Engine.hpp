@@ -40,27 +40,27 @@ namespace detailEngine
 
 		void UpdateFileSystem()
 		{
-			timer->StartTime("FileSystem Loop");
-
 			while (threadWork)
 			{
+				timer->StartTime("FileSystem Loop");
+
 				fileSystem->NotifyChannels();
 				fileSystem->sUpdate();
 				fileSystem->Update(entityController, assetManager);
 				debugSystem->Update(input, entityController, assetManager);
 
 				Sleep(50);
-			}
 
-			timer->EndTime("FileSystem Loop");
+				timer->EndTime("FileSystem Loop");
+			}
 		}
 
 		void UpdateThread()
 		{
-			timer->StartTime("Update Thread");
-
 			while (threadWork)
 			{
+				timer->StartTime("Update Thread");
+
 				input->NotifyChannels();
 				console->NotifyChannels();
 				assetManager->NotifyChannels();
@@ -77,9 +77,11 @@ namespace detailEngine
 				profiler->sUpdate();
 
 				Sleep(10);
+
+				timer->EndTime("Update Thread");
 			}
 
-			timer->EndTime("Update Thread");
+			
 		}
 
 		bool Init()
@@ -162,19 +164,19 @@ namespace detailEngine
 			
 			messageBus->NotifySubs();
 			
+			timer->StartTime("Rendering");
 			renderer->Update(entityController, assetManager, currentTime, deltaTime);
+			timer->EndTime("Rendering");
+
 			entityController->Update(assetManager);
 
 			this->sUpdate();
 			entityController->sUpdate();
-
-			timer->StartTime("Rendering");
 			renderer->sUpdate();
-			timer->EndTime("Rendering");
 			
+			assetManager->ProcessAssets(renderer, fileSystem);
+
 			timer->EndTime("Engine Loop");
-			//profiler->UpdateProfile("Engine", deltaTime * 1000000);
-			//std::cout << currentTime << "\n";
 		}
 
 		bool ShouldClose()

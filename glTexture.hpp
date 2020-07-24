@@ -11,4 +11,5 @@ namespace detailEngine
 	GLuint64 MakeBindless(GLuint textureID);
 	unsigned char* TextureImage(std::string path, int& width, int& height);
 	void DeleteTextureImage(unsigned char* image);
+	int GenerateTexture(std::string data, int width, int height);
 }

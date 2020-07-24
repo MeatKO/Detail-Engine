@@ -7,11 +7,12 @@ namespace detailEngine
 		if (message.GetTopic() == MSG_PROFILER)
 		{
 			std::string profileName = std::any_cast<std::string>(message.GetEvent());
-			double newTime = std::any_cast<double>(message.GetValue());
+			//double newTime = std::any_cast<double>(message.GetValue());
+			long long newTime = std::any_cast<long long>(message.GetValue());
 
-			long int microseconds = newTime * 1000000;
+			//long int microseconds = newTime * 1000000;
 
-			UpdateProfile(profileName, microseconds);
+			UpdateProfile(profileName, newTime);
 		}
 		else if (message.GetTopic() == MSG_PROFILER_ADD)
 		{
@@ -50,21 +51,21 @@ namespace detailEngine
 
 	void Profiler::Update()
 	{
-		PrintInfo();
+		//PrintInfo();
 	}
 
 	void Profiler::PrintInfo()
 	{
 		std::lock_guard<std::mutex> mut(recordMutex);
 
-		//system("CLS");
-		//
-		//for (ProfileRecord& record : records)
-		//{
-		//	std::cout << "Profile Name : '" << record.name << "'  Avg. Time : " << record.microseconds / record.updates
-		//		<< "us  Last Time : " << record.lastTime << "us  Min. Time : " << record.minTime << "us  Max. Time : " << record.maxTime << "us\n";
-		//
-		//}
+		system("CLS");
+		
+		for (ProfileRecord& record : records)
+		{
+			std::cout << "Profile Name : '" << record.name << "'  Avg. Time : " << record.microseconds / record.updates
+				<< "us  Last Time : " << record.lastTime << "us  Min. Time : " << record.minTime << "us  Max. Time : " << record.maxTime << "us\n";
+		
+		}
 	}
 
 	void Profiler::AddProfile(std::string name)
@@ -80,7 +81,10 @@ namespace detailEngine
 	// dont forget to notify channels
 	void ProfileTimer::StartTime(std::string recordName)
 	{
-		double currentTime = (double)clock() / CLOCKS_PER_SEC;
+		//double currentTime = (double)clock() / CLOCKS_PER_SEC;
+
+		auto currentTime = std::chrono::high_resolution_clock::now();
+
 		TimerRecord* record = GetRecord(recordName);
 
 		if (record)
@@ -96,13 +100,17 @@ namespace detailEngine
 
 	void ProfileTimer::EndTime(std::string recordName)
 	{
-		double currentTime = (double)clock() / CLOCKS_PER_SEC;
+		//double currentTime = (double)clock() / CLOCKS_PER_SEC;
+
+		auto currentTime = std::chrono::high_resolution_clock::now();
 
 		for (TimerRecord& rec : records)
 		{
 			if (rec.name == recordName)
 			{
-				pSendMessage(Message(MSG_PROFILER, std::string(recordName), double(currentTime - rec.lastTime)));
+				auto elapsed = std::chrono::high_resolution_clock::now() - rec.lastTime;
+
+				pSendMessage(Message(MSG_PROFILER, std::string(recordName), long long(std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count())));
 
 				return;
 			}

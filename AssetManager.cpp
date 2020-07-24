@@ -12,6 +12,7 @@ namespace detailEngine
 
 
 	AssetManager::AssetManager() {}
+
 	void AssetManager::RequestAsset(Asset asset)
 	{
 
@@ -19,11 +20,7 @@ namespace detailEngine
 
 	void AssetManager::Update(EntityController* entityController, FileSystem* fileSystem)
 	{
-		for (Asset& asset : assetList)
-		{
-			if (!asset.processed)
-				ProcessAsset(asset, fileSystem);
-		}
+		
 	}
 
 	bool AssetManager::AssetExists(std::string assetName)
@@ -125,46 +122,98 @@ namespace detailEngine
 		if (!AssetExists(asset.name))
 		{
 			std::lock_guard<std::mutex> mut(assetMutex);
+			unfinishedAssetList.push(asset);
+		}
+		else
+		{
+			std::lock_guard<std::mutex> mut(assetMutex); // cant risk crashing in case two messages are sent at the same time...
+			pSendMessage(Message(MSG_LOG, std::string("AssetManager Error"), std::string("Tried to duplicate asset '" + asset.name + "'.")));
+		}
+	}
+
+	void AssetManager::CompleteAsset(Asset& asset)
+	{
+		if (!AssetExists(asset.name))
+		{
+			std::lock_guard<std::mutex> mut(assetMutex);
 			assetList.push_back(asset);
 		}
 		else
 		{
-			// err tried to add duplicate asset
+			std::lock_guard<std::mutex> mut(assetMutex);
+			pSendMessage(Message(MSG_LOG, std::string("AssetManager Error"), std::string("Tried to duplicate asset '" + asset.name + "'.")));
 		}
 	}
 
-	void AssetManager::ProcessAsset(Asset& asset, FileSystem* fileSystem)
+	void AssetManager::ProcessAssets(OpenGL* renderer, FileSystem* fileSystem)
+	{
+		while (!unfinishedAssetList.empty())
+		{
+			ProcessAsset(unfinishedAssetList.front(), renderer, fileSystem);
+			CompleteAsset(unfinishedAssetList.front());
+			unfinishedAssetList.pop();
+		}
+	}
+
+	void AssetManager::ProcessAsset(Asset& asset, OpenGL* renderer, FileSystem* fileSystem)
 	{
 		if (asset.fileType == "obj")
 		{
-			ProcessObjAsset(asset, fileSystem);
+			ProcessObjAsset(asset, renderer, fileSystem);
 		}
-			
 	}
 
-	void AssetManager::ProcessObjAsset(Asset& asset, FileSystem* fileSystem)
+	void AssetManager::ProcessObjAsset(Asset& asset, OpenGL* renderer, FileSystem* fileSystem)
 	{
 		asset.assetType = CAT_MODEL;
 		File* file = fileSystem->GetFile(asset.name, asset.fileType);
 
 		if (file)
 		{
-			Model mdl = Model(asset.name, MDL_OBJ);
-			loadObj(file->Data(), mdl);
-
+			Model mdl = Model(asset.name);
+			LoadObj(file->Data(), mdl);
 			ProcessObj(mdl);
+
+			File* mtlLib = fileSystem->GetFile(mdl.mtlLib);
+
+			if (mtlLib)
+			{
+				ProcessObjMaterials(mtlLib->Data(), mdl);
+
+				for (Material& mat : mdl.materials)
+				{
+					File* texture = fileSystem->GetFile(mat.map_kd);
+
+					std::cout << mat.map_kd << "\n";
+
+					if (texture)
+					{
+						std::cout << texture << "\n";
+						std::string kekw = texture->Data().str();
+						int width = texture->aux[0];
+						int height = texture->aux[1];
+						std::cout << "Width : " << width << "\nHeight : " << height << "\n";
+						std::cout << "Byte size : " << texture->GetSize() << "\n";
+						//mat.map_kd_id = renderer->GenerateTexture(kekw, width, height);
+					}
+					else
+					{
+						std::cout << "Texture '" << mat.map_kd << "' not found" << "\n";
+					}
+				}
+
+			}
+			else
+			{
+				std::cout << "Mtl lib '" << mdl.mtlLib << "' not found" << "\n";
+			}
+
+			renderer->ProcessObjModel(mdl);
+
+			mdl.processed = true;
 
 			asset.data = mdl;
 			asset.processed = true;
-
-			//std::cout << file->Data().rdbuf() << "\n";
-
-			std::cout << "processed\n";
 		}
-	}
-	void AssetManager::ProcessObjTextures(Asset& asset, FileSystem* fileSystem)
-	{
-		Model mdl = std::any_cast<Model>(asset.data);
-
 	}
 }

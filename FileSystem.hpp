@@ -56,6 +56,8 @@ namespace detailEngine
 		void Dump();
 		void PrintInfo();
 
+		int aux[16];
+
 	private:
 		std::string name = "unnamed";
 		std::string type = "unnamed";
@@ -76,6 +78,7 @@ namespace detailEngine
 		void Debug();
 
 		File* GetFile(std::string fileName, std::string fileType);
+		File* GetFile(std::string fileNameType);
 
 		void LoadOBJModel(std::string path); // must contain the file name and stuff as well
 		void LoadTextureFile(std::string path);
@@ -92,6 +95,7 @@ namespace detailEngine
 		std::vector<std::string> SanitizePath(std::string path); // splits the path into words
 		bool StringContainsOnly(std::string input, char character);
 		std::string GetPathNoFile(std::string path); // receives a path to a file and gives a path to the directory
+		void SplitFileNameType(std::string fileNamePath, std::string& file, std::string& type); // splits aaa.bbb into aaa and bbb
 
 		std::vector<File> files;
 		std::mutex fileioMutex;

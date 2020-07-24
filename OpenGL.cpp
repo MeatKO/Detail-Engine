@@ -219,13 +219,9 @@ namespace detailEngine
 					if (asset.data.type() == typeid(Model))
 					{
 						Model mdl = std::any_cast<Model>(asset.data);
-						if (!mdl.init)
-						{
-							Model procMdl = std::any_cast<Model>(asset.data);
-							ProcessObjModel(procMdl);
-							asset.data = procMdl;
-							assetManager->UpdateAsset(entity.components[CAT_MODEL].GetIndex(), asset);
 
+						if (!mdl.processed)
+						{
 							continue;
 						}
 
@@ -237,9 +233,18 @@ namespace detailEngine
 						glUniform3f(glGetUniformLocation(modelShader->Program, "viewPos"), playerCamera.GetPosition().x, playerCamera.GetPosition().y, playerCamera.GetPosition().z);
 						glUniform3f(glGetUniformLocation(modelShader->Program, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
 
-						//mdl.Draw(modelShader);
+						DrawObj(mdl);
 
-						DrawObj(modelShader, mdl);
+						normalShader->Use();
+
+						glUniformMatrix4fv(glGetUniformLocation(normalShader->Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+						glUniformMatrix4fv(glGetUniformLocation(normalShader->Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+						glUniformMatrix4fv(glGetUniformLocation(normalShader->Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
+						glUniform3f(glGetUniformLocation(normalShader->Program, "viewPos"), playerCamera.GetPosition().x, playerCamera.GetPosition().y, playerCamera.GetPosition().z);
+						glUniform3f(glGetUniformLocation(normalShader->Program, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+
+						DrawObj(mdl);
+						
 
 					}
 					//else if (asset.data.type() == typeid(AABB))
@@ -269,12 +274,13 @@ namespace detailEngine
 
 	void OpenGL::ProcessObjModel(Model& model)
 	{
+		std::lock_guard<std::mutex> mut(contextLock);
 		// todo : use model2.hpp
 		// write the function
 
-		std::cout << "OGL : processed model " << model.modelName << "\n";
+		//std::cout << "OGL : processed model " << model.modelName << "\n";
 
-		model.init = true;
+		//model.init = true;
 
 		for (Mesh& mesh : model.meshes)
 		{
@@ -290,15 +296,15 @@ namespace detailEngine
 
 			// Vertex Positions
 			glEnableVertexAttribArray(0);
-			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Position));
+			glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
 
 			// Vertex Normals
 			glEnableVertexAttribArray(1);
-			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, Normal));
+			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
 
 			// Vertex Texture Coordinates
 			glEnableVertexAttribArray(2);
-			glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, UV));
+			glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
 
 			//// vertex tangent
 			//glEnableVertexAttribArray(3);
@@ -315,16 +321,56 @@ namespace detailEngine
 			glBindVertexArray(0);
 		}
 	}
-	void OpenGL::DrawObj(Shader* shader, Model& model)
+	void OpenGL::DrawObj(Model& model)
 	{
-		//std::cout << "drawing " << model.modelName << "\n";
+		std::lock_guard<std::mutex> mut(contextLock);
 
 		for (Mesh& mesh : model.meshes)
 		{
-			glBindVertexArray(mesh.VAO);
-			//glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, nullptr);
-			glDrawArrays(GL_TRIANGLES, 0, mesh.vertices.size());
-			glBindVertexArray(0);
+			Material material;
+			for (Material& mat : model.materials)
+			{
+				if (mesh.usedMaterial == mat.name)
+				{
+					material = mat;
+				}
+			}
+
+			DrawMesh(mesh, material);
 		}
+	}
+	void OpenGL::DrawMesh(Mesh& mesh, Material& mat)
+	{
+		//glBindTexture(GL_TEXTURE_2D, mat.map_kd_id);
+		//glBindVertexArray(mesh.VAO);
+
+		glBindVertexArray(mesh.VAO);
+		glDrawArrays(GL_TRIANGLES, 0, mesh.vertices.size());
+		glBindVertexArray(0);
+	}
+	int OpenGL::GenerateTexture(std::string data, int width, int height)
+	{
+		std::lock_guard<std::mutex> mut(contextLock);
+
+		GLuint textureID;
+
+		char* kekw = new char[width * height];
+		strcpy(kekw, data.c_str());
+
+		glGenTextures(1, &textureID);
+
+		glBindTexture(GL_TEXTURE_2D, textureID);
+
+	    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_BYTE, kekw);
+		glGenerateMipmap(GL_TEXTURE_2D);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		return textureID;
 	}
 }

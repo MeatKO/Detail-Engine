@@ -14,6 +14,7 @@
 #include <ctime>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <chrono>
 #include "ECS.hpp"
 
 namespace detailEngine
@@ -31,9 +32,10 @@ namespace detailEngine
 
 	struct TimerRecord
 	{
-		TimerRecord(std::string Name, double currentTime) : name(Name), lastTime(currentTime) {}
+		TimerRecord(std::string Name, std::chrono::time_point<std::chrono::high_resolution_clock> currentTime) : name(Name), lastTime(currentTime) {}
 		std::string name;
-		double lastTime = 0.0f;
+		//double lastTime = 0.0f;
+		std::chrono::time_point<std::chrono::high_resolution_clock> lastTime;
 	};
 
 	// will be on a different thread, calculating stuff 1ns and 0s serious business
