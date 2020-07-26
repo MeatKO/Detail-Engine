@@ -169,8 +169,9 @@ namespace detailEngine
 
 		files.back().aux[0] = width;
 		files.back().aux[1] = height;
+		files.back().aux[2] = (intptr_t)data;
 
-		DeleteTextureImage(data); // not needed anymore
+		//DeleteTextureImage(data); // not needed anymore
 
 	}
 

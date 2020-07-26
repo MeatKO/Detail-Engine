@@ -50,7 +50,7 @@ namespace detailEngine
 
 		void DrawMesh(Mesh& mesh, Material& mat);
 
-		int GenerateTexture(std::string data, int width, int height);
+		int GenerateTexture(std::string& data, int width, int height);
 
 	private:
 		std::mutex contextLock;

@@ -213,6 +213,7 @@ namespace detailEngine
 				//model = glm::scale(model, glm::vec3(transform.scale.x, transform.scale.y, transform.scale.z));
 				model = glm::translate(model, glm::vec3(1.0f, 1.0f, 1.0f));
 				model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
+				model = glm::rotate(model, (float)glm::radians(glfwGetTime()), glm::vec3(0.0f, 1.0f, 0.0f));
 
 				if (asset.assetType != CAT_DEFAULT)
 				{
@@ -300,11 +301,11 @@ namespace detailEngine
 
 			// Vertex Normals
 			glEnableVertexAttribArray(1);
-			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
+			glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
 
 			// Vertex Texture Coordinates
 			glEnableVertexAttribArray(2);
-			glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
+			glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uv));
 
 			//// vertex tangent
 			//glEnableVertexAttribArray(3);
@@ -348,22 +349,21 @@ namespace detailEngine
 		glDrawArrays(GL_TRIANGLES, 0, mesh.vertices.size());
 		glBindVertexArray(0);
 	}
-	int OpenGL::GenerateTexture(std::string data, int width, int height)
+	int OpenGL::GenerateTexture(std::string& data, int width, int height)
 	{
 		std::lock_guard<std::mutex> mut(contextLock);
 
 		GLuint textureID;
 
-		char* kekw = new char[width * height];
-		strcpy(kekw, data.c_str());
-
 		glGenTextures(1, &textureID);
+
+		std::cout << "kekw : " << textureID << std::endl;
 
 		glBindTexture(GL_TEXTURE_2D, textureID);
 
-	    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_BYTE, kekw);
+	    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_BYTE, data.c_str());
 		glGenerateMipmap(GL_TEXTURE_2D);
-
+		
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);

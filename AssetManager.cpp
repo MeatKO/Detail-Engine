@@ -195,6 +195,7 @@ namespace detailEngine
 						std::cout << "Width : " << width << "\nHeight : " << height << "\n";
 						std::cout << "Byte size : " << texture->GetSize() << "\n";
 						//mat.map_kd_id = renderer->GenerateTexture(kekw, width, height);
+						mat.map_kd_id = LoadTexture("detail/textures/default.png");
 					}
 					else
 					{
@@ -206,6 +207,11 @@ namespace detailEngine
 			else
 			{
 				std::cout << "Mtl lib '" << mdl.mtlLib << "' not found" << "\n";
+			}
+
+			for (Mesh& mesh : mdl.meshes)
+			{
+				std::cout << mesh.name << "\n";
 			}
 
 			renderer->ProcessObjModel(mdl);
