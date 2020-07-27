@@ -157,6 +157,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AssetManager.cpp" />
+    <ClCompile Include="dMath.hpp" />
     <ClCompile Include="ECS.cpp" />
     <ClCompile Include="FileSystem.cpp" />
     <ClCompile Include="glCamera.cpp" />
@@ -190,6 +191,7 @@
     <ClInclude Include="glTexture.hpp" />
     <ClInclude Include="Input.hpp" />
     <ClInclude Include="Log.hpp" />
+    <ClInclude Include="Model.hpp" />
     <ClInclude Include="OpenGL.hpp" />
     <ClInclude Include="PCS.hpp" />
     <ClInclude Include="Phy7ics.hpp" />
