@@ -3,100 +3,139 @@
 
 namespace detailEngine
 {
-	Asset::Asset(std::string Name, std::string FileName, std::string FileType)
+	// Asset
+	Asset::Asset(std::string Name, std::string FilePath)
 	{
-		name = Name;
-		fileName = FileName;
-		fileType = FileType;
+		assetName = Name;
+		filePath = FilePath;
+	}
+	//
+
+	// Asset Manager
+	AssetManager::AssetManager()
+	{
+		assetList.resize(CAT_LAST); // resize the asset list ... 
+		unprocessedAssets.resize(CAT_LAST); // resize the unprocessed asset list ... 
 	}
 
-
-	AssetManager::AssetManager() {}
-
-	void AssetManager::RequestAsset(Asset asset)
-	{
-
-	}
-
-	void AssetManager::Update(EntityController* entityController, FileSystem* fileSystem)
-	{
-		
-	}
-
-	bool AssetManager::AssetExists(std::string assetName)
+	int AssetManager::AddAsset(std::string Name, std::string FilePath, ComponentAssetType Type)
 	{
 		std::lock_guard<std::mutex> mut(assetMutex);
-		for (Asset& asset : assetList)
+
+		if (Type >= 0 && Type <= CAT_LAST)
 		{
-			if (asset.name == assetName)
-				return true;
+			int lastIndex = assetList[Type].size();
+			assetList[Type].push_back(Asset(Name, FilePath));
+			unprocessedAssets[Type].push_back(lastIndex); // Add the Asset to the unprocessed assets list
+			pSendMessage(Message(MSG_LOG, std::string("AssetManager Info"), std::string("Added Asset '" + Name + "' with ID [" + std::to_string(lastIndex) + "] of Type [" + std::to_string(Type) + "].")));
+			return lastIndex;
 		}
+		else
+		{
+			pSendMessage(Message(MSG_LOG, std::string("AssetManager Error"), std::string("Tried to add Asset to an unexisting Type [" + std::to_string(Type) + "].")));
+			return -1;
+		}
+	}
+
+	// has to be run on the opengl thread... fuuuuuuck
+	void AssetManager::Update(EntityController* entityController, FileSystem* fileSystem)
+	{
+		// Process the unprocessed assets
+		for (int i = 0; i < unprocessedAssets.size(); ++i)
+		{
+			for (int k = 0; k < unprocessedAssets[i].size(); ++k)
+			{
+				int currentIndex = unprocessedAssets[i][k];
+
+				// CAT_DEFAULT needs no processing
+				// Why is CAT_DEFAULT even in here
+				if (i == CAT_DEFAULT)
+				{
+					assetList[i][currentIndex].processed = true;
+					unprocessedAssets[i].erase(unprocessedAssets[i].begin() + k);
+				}
+				else if (i == CAT_SHADER)
+				{
+					glShader* shader = new glShader();
+				}
+				else if (i == CAT_MODEL)
+				{
+
+				}
+				else if (i == CAT_MODEL)
+				{
+
+				}
+				else if (i == CAT_CAMERA)
+				{
+					
+				}
+				else if (i == CAT_AABB)
+				{
+					assetList[i][currentIndex].processed = true;
+					unprocessedAssets[i].erase(unprocessedAssets[i].begin() + k);
+					pSendMessage(Message(MSG_LOG, std::string("AssetManager Info"), std::string("Processed Asset '" + assetList[i][currentIndex].assetName + "' of Type [" + std::to_string(i) + "].")));
+				}
+				else if (i == CAT_TRANSFORM)
+				{
+
+				}
+			}
+		}
+	}
+
+	int AssetManager::AssetExists(std::string AssetName, ComponentAssetType Type)
+	{
+		std::lock_guard<std::mutex> mut(assetMutex);
+
+		for (int i = 0; i < assetList[Type].size(); ++i)
+		{
+			if (assetList[Type][i].assetName == AssetName)
+				return i;
+		}
+
+		return -1;
+	}
+
+	bool AssetManager::AssetExists(int AssetID, ComponentAssetType Type)
+	{
+		std::lock_guard<std::mutex> mut(assetMutex);
+
+		if (AssetID >= 0 && AssetID < assetList[Type].size())
+			return true;
+
 		return false;
 	}
 
-	Asset& AssetManager::RefAsset(std::string assetName)
+	Asset AssetManager::GetAsset(int AssetID, ComponentAssetType Type)
 	{
 		std::lock_guard<std::mutex> mut(assetMutex);
-		for (Asset& asset : assetList)
+
+		if (AssetID >= 0 && AssetID < assetList[Type].size())
 		{
-			if (asset.name == assetName)
-				return asset;
+			return assetList[Type][AssetID];
 		}
-		// print error not found
-		return defaultAsset;
-	}
-	Asset& AssetManager::RefAsset(int assetID)
-	{
-		if (assetID >= 0 && assetID < assetList.size())
+		else
 		{
-			std::lock_guard<std::mutex> mut(assetMutex);
-			return assetList[assetID];
+			pSendMessage(Message(MSG_LOG, std::string("AssetManager Error"), std::string("Asset of Type [" + std::to_string(AssetID) + "] and ID [" + std::to_string(Type) + "] Doesn't exist.")));
+			return defaultAsset;
 		}
-		// print error invalid index
-		return defaultAsset;
 	}
-	Asset AssetManager::GetAsset(std::string assetName)
+
+	int AssetManager::GetAssetID(std::string AssetName, ComponentAssetType Type)
 	{
 		std::lock_guard<std::mutex> mut(assetMutex);
-		for (Asset& asset : assetList)
+
+		for (int i = 0; i < assetList[Type].size(); ++i)
 		{
-			if (asset.name == assetName)
-				return asset;
-		}
-		return defaultAsset;
-	}
-	Asset AssetManager::GetAsset(int assetID)
-	{
-		if (assetID >= 0 && assetID < assetList.size())
-		{
-			std::lock_guard<std::mutex> mut(assetMutex);
-			return assetList[assetID];
-		}
-		return defaultAsset;
-	}
-	std::vector<Asset> AssetManager::GetAllAssets()
-	{
-		return assetList;
-	}
-	int AssetManager::GetAssetID(std::string assetName)
-	{
-		std::lock_guard<std::mutex> mut(assetMutex);
-		for (int i = 0; i < assetList.size(); i++)
-		{
-			if (assetName == assetList[i].name)
+			if (assetList[Type][i].assetName == AssetName)
 			{
 				return i;
 			}
 		}
+
+		pSendMessage(Message(MSG_LOG, std::string("AssetManager Error"), std::string("Asset with Name '" + AssetName + "' and ID [" + std::to_string(Type) + "] Doesn't exist.")));
 		return -1;
-	}
-	void AssetManager::UpdateAsset(int AssetID, Asset newAsset)
-	{
-		std::lock_guard<std::mutex> mut(assetMutex);
-		if (AssetID >= 0 && AssetID < assetList.size())
-		{
-			assetList[AssetID] = newAsset;
-		}
 	}
 
 	void AssetManager::ExecuteMessage(Message message)
@@ -107,119 +146,13 @@ namespace detailEngine
 			{
 				if (std::any_cast<std::string>(message.GetEvent()) == "ADD")
 				{
-					AddAsset(std::any_cast<Asset>(message.GetValue()));
+					//AddAsset(std::any_cast<Asset>(message.GetValue()));
 				}
 			}
 			else
 			{
 				// error
 			}
-		}
-	}
-
-	void AssetManager::AddAsset(Asset asset)
-	{
-		if (!AssetExists(asset.name))
-		{
-			std::lock_guard<std::mutex> mut(assetMutex);
-			unfinishedAssetList.push(asset);
-		}
-		else
-		{
-			std::lock_guard<std::mutex> mut(assetMutex); // cant risk crashing in case two messages are sent at the same time...
-			pSendMessage(Message(MSG_LOG, std::string("AssetManager Error"), std::string("Tried to duplicate asset '" + asset.name + "'.")));
-		}
-	}
-
-	void AssetManager::CompleteAsset(Asset& asset)
-	{
-		if (!AssetExists(asset.name))
-		{
-			std::lock_guard<std::mutex> mut(assetMutex);
-			assetList.push_back(asset);
-		}
-		else
-		{
-			std::lock_guard<std::mutex> mut(assetMutex);
-			pSendMessage(Message(MSG_LOG, std::string("AssetManager Error"), std::string("Tried to duplicate asset '" + asset.name + "'.")));
-		}
-	}
-
-	void AssetManager::ProcessAssets(OpenGL* renderer, FileSystem* fileSystem)
-	{
-		while (!unfinishedAssetList.empty())
-		{
-			ProcessAsset(unfinishedAssetList.front(), renderer, fileSystem);
-			CompleteAsset(unfinishedAssetList.front());
-			unfinishedAssetList.pop();
-		}
-	}
-
-	void AssetManager::ProcessAsset(Asset& asset, OpenGL* renderer, FileSystem* fileSystem)
-	{
-		if (asset.fileType == "obj")
-		{
-			ProcessObjAsset(asset, renderer, fileSystem);
-		}
-	}
-
-	void AssetManager::ProcessObjAsset(Asset& asset, OpenGL* renderer, FileSystem* fileSystem)
-	{
-		asset.assetType = CAT_MODEL;
-		File* file = fileSystem->GetFile(asset.name, asset.fileType);
-
-		if (file)
-		{
-			Model mdl = Model(asset.name);
-			LoadObj(file->Data(), mdl);
-			ProcessObj(mdl);
-
-			File* mtlLib = fileSystem->GetFile(mdl.mtlLib);
-
-			if (mtlLib)
-			{
-				ProcessObjMaterials(mtlLib->Data(), mdl);
-
-				for (Material& mat : mdl.materials)
-				{
-					File* texture = fileSystem->GetFile(mat.map_kd);
-
-					std::cout << mat.map_kd << "\n";
-
-					if (texture)
-					{
-						std::cout << texture << "\n";
-						std::string kekw = texture->Data().str();
-						int width = texture->aux[0];
-						int height = texture->aux[1];
-						std::cout << "Width : " << width << "\nHeight : " << height << "\n";
-						std::cout << "Byte size : " << texture->GetSize() << "\n";
-						//mat.map_kd_id = renderer->GenerateTexture(kekw, width, height);
-						mat.map_kd_id = LoadTexture("detail/textures/default.png");
-					}
-					else
-					{
-						std::cout << "Texture '" << mat.map_kd << "' not found" << "\n";
-					}
-				}
-
-			}
-			else
-			{
-				std::cout << "Mtl lib '" << mdl.mtlLib << "' not found" << "\n";
-			}
-
-			for (Mesh& mesh : mdl.meshes)
-			{
-				std::cout << mesh.name << "\n";
-			}
-
-			renderer->ProcessObjModel(mdl);
-
-			mdl.processed = true;
-
-			asset.data = mdl;
-			asset.processed = true;
 		}
 	}
 }

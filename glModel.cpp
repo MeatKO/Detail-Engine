@@ -90,8 +90,9 @@ namespace detailEngine
 
 				model.meshes.push_back(tempMesh);
 			}
-			else if (word == "usedmtl")
+			else if (word == "usemtl")
 			{
+				lineStream >> word;
 				model.meshes.back().usedMaterial = word;
 			}
 			else if (word == "mtllib")

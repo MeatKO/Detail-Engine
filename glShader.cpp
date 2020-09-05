@@ -156,4 +156,131 @@ namespace detailEngine
 		glDeleteShader(fragment);
 		glDeleteShader(geometry);
 	}
+	//
+
+	// glShader
+	void glShader::Use()
+	{
+		glUseProgram(this->program);
+	}
+
+	void glShader::Delete()
+	{
+		glDeleteProgram(this->program);
+	}
+	//
+
+	// Dont forget to run this only on the rendering thread
+	void ProcessShader(glShader& shader, glShaderFile& shaderFile, Publisher* assetMgr, std::string ShaderAssetName)
+	{
+		const GLchar* vertexShaderCode = shaderFile.vertexSource.c_str();
+		const GLchar* fragmentShaderCode = shaderFile.fragmentSource.c_str();
+		const GLchar* geometryShaderCode = shaderFile.geometrySource.c_str();
+	
+		unsigned int vertex, fragment, geometry;
+	
+		int success;
+		std::string infoLog;
+		infoLog.reserve(512);
+	
+		shader.program = glCreateProgram();
+	
+		// Vertex Shader Operations
+		if (shaderFile.vertexSource.size() > 0)
+		{
+			vertex = glCreateShader(GL_VERTEX_SHADER);
+			glShaderSource(vertex, 1, &vertexShaderCode, NULL);
+			glCompileShader(vertex);
+			glGetShaderiv(vertex, GL_COMPILE_STATUS, &success); // Get shader compile status
+	
+			if (!success)
+			{
+				glGetShaderInfoLog(vertex, 512, NULL, infoLog.data());
+				if (assetMgr)
+				{
+					assetMgr->pSendMessage(Message(MSG_LOG, std::string("AssetManager Info"), std::string("Shader Asset '" + ShaderAssetName + "' : Vertex Shader Compilation Failed! Info Log : '" + infoLog + "'.")));
+				}
+			}
+			else
+			{
+				glAttachShader(shader.program, vertex);
+			}
+	
+			// Delete shader objects after they are linked in a program
+			glDeleteShader(vertex);
+		}
+	
+		// Fragment Shader Operations
+		if (shaderFile.fragmentSource.size() > 0)
+		{
+			fragment = glCreateShader(GL_FRAGMENT_SHADER);
+			glShaderSource(fragment, 1, &fragmentShaderCode, NULL);
+			glCompileShader(fragment);
+	
+			glGetShaderiv(fragment, GL_COMPILE_STATUS, &success);
+	
+			if (!success)
+			{
+				glGetShaderInfoLog(fragment, 512, NULL, infoLog.data());
+	
+				if (assetMgr)
+				{
+					assetMgr->pSendMessage(Message(MSG_LOG, std::string("AssetManager Info"), std::string("Shader Asset '" + ShaderAssetName + "' : Fragment Shader Compilation Failed! Info Log : '" + infoLog + "'.")));
+				}
+			}
+			else
+			{
+				glAttachShader(shader.program, fragment);
+			}
+	
+			// Delete shader objects after they are linked in a program
+			glDeleteShader(fragment);
+		}
+	
+		if (shaderFile.geometrySource.size() > 0)
+		{
+			geometry = glCreateShader(GL_GEOMETRY_SHADER);
+			glShaderSource(geometry, 1, &geometryShaderCode, NULL);
+			glCompileShader(geometry);
+	
+			glGetShaderiv(geometry, GL_COMPILE_STATUS, &success);
+	
+			if (!success)
+			{
+				glGetShaderInfoLog(fragment, 512, NULL, infoLog.data());
+	
+				if (assetMgr)
+				{
+					assetMgr->pSendMessage(Message(MSG_LOG, std::string("AssetManager Info"), std::string("Shader Asset '" + ShaderAssetName + "' : Geometry Shader Compilation Failed! Info Log : '" + infoLog + "'.")));
+				}
+			}
+			else
+			{
+				glAttachShader(shader.program, geometry);
+			}
+	
+			// Delete shader objects after they are linked in a program
+			glDeleteShader(geometry);
+		}
+	
+		glLinkProgram(shader.program);
+		glGetProgramiv(shader.program, GL_LINK_STATUS, &success);
+	
+		if (!success)
+		{
+			glGetProgramInfoLog(shader.program, 512, NULL, infoLog.data());
+			assetMgr->pSendMessage(Message(MSG_LOG, std::string("AssetManager Info"), std::string("Shader Asset '" + ShaderAssetName + "' : Shader Program Linking Failed! Info Log : '" + infoLog + "'.")));
+		}
+		else
+		{
+			shader.isEnabled = true;
+		}
+	}
+
+	glShaderFile::glShaderFile()
+	{
+		// Start from here 
+		// To do : 
+		// write the code for this function, change the File class in the filesystem to have a void* data
+	}
 }

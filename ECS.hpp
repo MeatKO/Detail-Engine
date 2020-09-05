@@ -2,11 +2,12 @@
 
 #include "PCS.hpp"
 
-/* Entity Component System v2.0
+/* Entity Component System v2.1
 // Changes : 
-// The Entities now have an std::string name and a vector of Components.
+// The Entities now have an std::string name and a vector of vectors of Component ids.
+// The EntityController now holds all the Components
 // 
-// The Components now only hold an index of an Asset and a Component type
+// The Components now only hold an index of an Asset and their ownder's entityID
 */
 
 namespace detailEngine
@@ -19,8 +20,7 @@ namespace detailEngine
 
 	enum ComponentAssetType
 	{
-		CAT_DEFAULT,
-		CAT_DISABLED,
+		CAT_DEFAULT, // wtf
 		CAT_SHADER,
 		CAT_MODEL,
 		CAT_CAMERA,
@@ -29,69 +29,67 @@ namespace detailEngine
 		CAT_LAST
 	};
 
+	enum EntityFlag
+	{
+		EF_ENABLED,
+		EF_LAST
+	};
+
 	class Entity
 	{
 	public:
-		Entity(int init_id, std::string Name);
+		Entity();
+		Entity(int InitID, std::string Name);
+		
 
-		int id;
-		std::string name;
-		std::vector<Component> components;
+		int id = -1; 
+		std::string name = "unnamed";
+		std::vector<bool> flags; // resize to EF_LAST
+		std::vector<std::vector<int>> componentIDs; // resize it to CAT_LAST
 	};
 
 	class Component
 	{
 	public:
-		Component() {}
-		Component(ComponentAssetType Type, std::string ComponentName, std::string AssetName);
-		
-		ComponentAssetType GetType();
-		int GetEntityID();
-		int GetIndex();
-		std::string GetName();
-		std::string GetAssetName();
+		Component();
+		Component(int EntityID, int AssetID);
 
-		void SetType(ComponentAssetType Type);
-		void SetEntityID(int EntityID);
-		void SetIndex(int Index);
-		void SetName(std::string newName);
-		void SetAssetName(std::string newAssetName);
-
-	private:
-		std::string name = "";
-		std::string assetName = "";
-		ComponentAssetType type = CAT_DEFAULT;
-		int entityId = -1;
-		int index = -1;
+		int entityID = -1;
+		int assetID = -1;
 	};
 
 	class EntityController : public Publisher, public Subscriber
 	{
 	public:
-		EntityController();
+		EntityController(); // Adds an initial Entity !
 
-		Entity* GetEntity(std::string EntityName);
-		Entity* GetEntity(int EntityID);
 		int AddEntity(std::string EntityName);
 		void RemoveEntity(std::string EntityName);
-		bool EntityExists(std::string EntityName);
-		bool AddComponent(std::string EntityName, Component component);
-		bool AddComponent(int EntityID, Component component);
-		bool RemoveComponent(std::string EntityName, ComponentAssetType Type, std::string ComponentName);
-		//bool ChangeComponent(std::string EntityName, Component component, std::string ComponentName);
-		Component GetComponent(std::string EntityName, ComponentAssetType Type);
-		void EnableEntity(std::string EntityName);
-		void DisableEntity(std::string EntityName);
-		std::vector<Entity> GetAllEntities();
+		void RemoveEntity(int EntityID);
+
+		void EnableEntity(std::string EntityName); // Dont use if you can
+		void EnableEntity(int EntityID);
+
+		void DisableEntity(std::string EntityName); // Dont use if you can
+		void DisableEntity(int EntityID);
+
+		std::vector<Entity> GetEntities();
+		Entity GetEntity(int EntityID);
+		int GetEntityID(std::string EntityName);
+		Entity GetEntity(std::string EntityName);
+		std::vector<Component> GetComponents(ComponentAssetType Type);
+
+		void AddComponent(int EntityID, int AssetID, ComponentAssetType Type, AssetManager* assetManager);
+		void AddComponent(int EntityID, std::string AssetName, ComponentAssetType Type, AssetManager* assetManager);
+		void AddComponent(std::string EntityName, std::string AssetName, ComponentAssetType Type, AssetManager* assetManager);
+
 		void Update(AssetManager* assetManager);
 
 	private:
 		std::mutex ecsMutex;
-		int entityGUID = -1;
 		std::vector<Entity> entityList;
-		std::vector<std::vector<Component>> queuedComponents; // Components that are linked to an asset that is not yet loaded 
-		Component defaultComponent = Component(CAT_DEFAULT, "DEFAULT", "DEFAULT");
-		Component disabledComponent = Component(CAT_DISABLED, "DISABLED", "DISABLED");
+		std::vector<std::vector<Component>> components;
+		Component defaultComponent = Component(-1, -1); // -1 is invalid index so this is a good default component i guess
 	};
 
 }

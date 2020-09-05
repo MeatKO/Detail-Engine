@@ -8,6 +8,9 @@
 #include <GL/glew.h>
 #include <map>
 
+#include "FileSystem.hpp" // i must use the string functions and sanitizations
+#include "PCS.hpp"
+
 namespace detailEngine
 {
 	class Shader
@@ -22,4 +25,27 @@ namespace detailEngine
 
 		std::string name;
 	};
+
+	// The name will be stored in the asset, this will only hold a program ID
+	class glShader
+	{
+	public:
+		void Use();
+		void Delete();
+
+		bool isEnabled = false;
+		unsigned int program;
+	};
+
+	// Will inherit the file class and will override the load function
+	class glShaderFile
+	{
+	public:
+		glShaderFile();
+		std::string vertexSource;
+		std::string fragmentSource;
+		std::string geometrySource;
+	};
+	 
+	void ProcessShader(glShader& shader, glShaderFile& shaderFile, Publisher* assetMgr, std::string ShaderAssetName); // the AssetManager* is used for pSendMessage Errors
 }

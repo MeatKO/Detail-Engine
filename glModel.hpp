@@ -45,7 +45,7 @@ namespace detailEngine
 	{
 		std::string name;
 		std::string map_kd;
-		int map_kd_id;
+		int map_kd_id = 0;
 	};
 
 	struct MtlLib

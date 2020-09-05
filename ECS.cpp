@@ -4,301 +4,292 @@
 namespace detailEngine
 {
 	// Entity
-	Entity::Entity(int init_id, std::string Name)
+	Entity::Entity()
 	{
-		id = init_id;
-		name = Name;
-		components.resize(CAT_LAST);
+		flags.resize(EF_LAST);
+		componentIDs.resize(CAT_LAST);
 	}
+
+	Entity::Entity(int InitID, std::string Name)
+	{
+		id = InitID;
+		name = Name;
+		flags.resize(EF_LAST);
+		componentIDs.resize(CAT_LAST);
+	}
+	//
 
 	// Component
-	Component::Component(ComponentAssetType Type, std::string ComponentName, std::string AssetName)
+	Component::Component() {}
+
+	Component::Component(int EntityID, int AssetID)
 	{
-		type = Type;
-		name = ComponentName;
-		assetName = AssetName;
+		entityID = EntityID;
+		assetID = AssetID;
 	}
-
-	ComponentAssetType Component::GetType() { return type; }
-
-	int Component::GetIndex() { return index; }
-
-	std::string Component::GetName()
-	{
-		return name;
-	}
-
-	std::string Component::GetAssetName()
-	{
-		return assetName;
-	}
-
-	void Component::SetEntityID(int EntityID) { entityId = EntityID; }
-
-	int Component::GetEntityID() { return entityId; }
-
-	void Component::SetType(ComponentAssetType Type) { type = Type; }
-
-	void Component::SetIndex(int Index) { index = Index; }
-
-	void Component::SetName(std::string newName)
-	{
-		name = newName;
-	}
-
-	void Component::SetAssetName(std::string newAssetName)
-	{
-		assetName = newAssetName;
-	}
+	//
 
 	// Entity Controller
 	EntityController::EntityController()
 	{
-		AddEntity("DEFAULT"); // if you remove this make sure to make the default GUID number to 0 instead of -1
-		queuedComponents.resize(CAT_LAST); // Make components size the same as the number of Component Types
-	}
-
-	Entity* EntityController::GetEntity(std::string EntityName)
-	{
-		for (Entity& ent : entityList)
-		{
-			if (ent.name == EntityName)
-			{
-				return &ent;
-			}
-		}
-
-		return nullptr;
-	}
-
-	Entity* EntityController::GetEntity(int EntityID)
-	{
-		for (Entity& ent : entityList)
-		{
-			if (ent.id == EntityID)
-			{
-				return &ent;
-			}
-		}
-
-		return nullptr;
+		AddEntity("DEFAULT");
+		components.resize(CAT_LAST);
 	}
 
 	int EntityController::AddEntity(std::string EntityName)
 	{
-		std::lock_guard<std::mutex> mut(ecsMutex);
-		entityGUID++;
-		entityList.push_back(Entity(entityGUID, EntityName));
-		return entityGUID;
+		int checkExistingID = GetEntityID(EntityName);
+
+		// Dont add entity if another one with the same name exists
+		if(checkExistingID == -1)
+		{
+			std::lock_guard<std::mutex> mut(ecsMutex);
+			int lastIndex = entityList.size(); // the old size will be the new last index after we push back the entity
+			entityList.push_back(Entity(lastIndex, EntityName));
+
+			pSendMessage(Message(MSG_LOG, std::string("ECS Info"), std::string("Added Entity with Name '" + EntityName + "' and ID [" + std::to_string(lastIndex) + "]."))); // Info Log
+
+			return lastIndex;
+		}
 	}
 
 	void EntityController::RemoveEntity(std::string EntityName)
 	{
 		std::lock_guard<std::mutex> mut(ecsMutex);
+
 		for (int i = 0; i < entityList.size(); i++)
 		{
 			if (EntityName == entityList[i].name)
 			{
+				pSendMessage(Message(MSG_LOG, std::string("ECS Info"), std::string("Removed Entity with Name '" + EntityName + "' and ID [" + std::to_string(i) + "]."))); // Info Log
 				entityList.erase(entityList.begin() + i);
 				return;
 			}
 		}
-		pSendMessage(Message(MSG_LOG, std::string("ECS Error"), std::string("Tried to remove an unexisting Entity '" + EntityName + "'.")));
+		pSendMessage(Message(MSG_LOG, std::string("ECS Error"), std::string("Tried to remove an unexisting Entity '" + EntityName + "'."))); // Error
 	}
 
-	bool EntityController::EntityExists(std::string EntityName)
-	{
-		for (Entity loopEnt : entityList)
-		{
-			if (loopEnt.name == EntityName)
-			{
-				return true;
-			}
-		}
-		return false;
-	}
-
-	bool EntityController::AddComponent(std::string EntityName, Component component)
+	void EntityController::RemoveEntity(int EntityID)
 	{
 		std::lock_guard<std::mutex> mut(ecsMutex);
-		Entity* entity = GetEntity(EntityName);
 
-		if (entity != nullptr)
+		if (EntityID >= 0 && EntityID < entityList.size())
 		{
-			if (component.GetType() == CAT_DISABLED)
-			{
-				DisableEntity(EntityName);
-			}
-			else
-			{
-				component.SetEntityID(entity->id);
-				queuedComponents[component.GetType()].push_back(component);
-			}
-			
-			return true;
+			entityList.erase(entityList.begin() + EntityID);
 		}
 		else
 		{
-			pSendMessage(Message(MSG_LOG, std::string("ECS Error"), std::string("Tried to add component to unexisting Entity '" + EntityName + "'.")));
-			return false;
-		}
-	}
-
-	bool EntityController::AddComponent(int EntityID, Component component)
-	{
-		std::lock_guard<std::mutex> mut(ecsMutex);
-		Entity* entity = GetEntity(EntityID);
-
-		if (entity != nullptr)
-		{
-			if (component.GetType() == CAT_DISABLED)
-			{
-				DisableEntity(entity->name);
-			}
-			else
-			{
-				component.SetEntityID(entity->id);
-				queuedComponents[component.GetType()].push_back(component);
-			}
-
-			return true;
-		}
-		else
-		{
-			pSendMessage(Message(MSG_LOG, std::string("ECS Error"), std::string("Tried to add component to unexisting Entity with ID'" + std::to_string(EntityID) + "'.")));
-			return false;
-		}
-	}
-
-	bool EntityController::RemoveComponent(std::string EntityName, ComponentAssetType Type, std::string ComponentName)
-	{
-		std::lock_guard<std::mutex> mut(ecsMutex);
-		Entity* entity = GetEntity(EntityName);
-
-		if (entity != nullptr)
-		{
-			entity->components[Type] = defaultComponent;
-
-			return true;
-		}
-		else
-		{
-			pSendMessage(Message(MSG_LOG, std::string("ECS Error"), std::string("Tried to remove a component from unexisting Entity '" + EntityName + "'.")));
-			return false;
-		}
-	}
-
-	//bool EntityController::ChangeComponent(std::string EntityName, Component component)
-	//{
-	//	std::lock_guard<std::mutex> mut(ecsMutex);
-	//	Entity* entity = GetEntity(EntityName);
-	//
-	//	if (entity != nullptr)
-	//	{
-	//		//for (int i = 0; i < components[component.GetType()].size(); i++)
-	//		//{
-	//		//	if (components[component.GetType()][i].GetEntityID() == entity->id)
-	//		//	{
-	//		//		component.SetEntityID(entity->id);
-	//		//		entity->components[component.GetType()] = component; // Entity 
-	//		//		components[component.GetType()].push_back(component); // Entity Controller
-	//		//		return true;
-	//		//	}
-	//		//}
-	//	}
-	//
-	//	pSendMessage(Message(MSG_LOG, std::string("ECS Error"), std::string("Tried to change component of unexisting Entity '" + EntityName + "'.")));
-	//	return false;
-	//}
-
-	Component EntityController::GetComponent(std::string EntityName, ComponentAssetType Type)
-	{
-		std::lock_guard<std::mutex> mut(ecsMutex);
-		Entity* entity = GetEntity(EntityName);
-
-		if (entity != nullptr)
-		{
-			return entity->components[Type];
-		}
-		else
-		{
-			pSendMessage(Message(MSG_LOG, std::string("ECS Error"), std::string("Tried to get component of unexisting Entity '" + EntityName + "'.")));
-			return defaultComponent;
+			pSendMessage(Message(MSG_LOG, std::string("ECS Error"), std::string("Tried to remove an Entity with invalid Index: '" + std::to_string(EntityID) + "'."))); // Error
 		}
 	}
 
 	void EntityController::EnableEntity(std::string EntityName)
 	{
 		std::lock_guard<std::mutex> mut(ecsMutex);
-		Entity* entity = GetEntity(EntityName);
 
-		if (entity != nullptr)
+		for (int i = 0; i < entityList.size(); ++i)
 		{
-			entity->components[CAT_DISABLED] = defaultComponent;
+			if (entityList[i].name == EntityName)
+			{
+				pSendMessage(Message(MSG_LOG, std::string("ECS Info"), std::string("Enabled Entity with Name '" + entityList[i].name + "' and ID [" + std::to_string(i) + "]."))); // Info Log
+				entityList[i].flags[EF_ENABLED] = true;
+				return;
+			}
 		}
-		else
+
+		pSendMessage(Message(MSG_LOG, std::string("ECS Error"), std::string("Tried to enable an unexisting Entity '" + EntityName + "'."))); // Error
+	}
+
+	void EntityController::EnableEntity(int EntityID)
+	{
+		std::lock_guard<std::mutex> mut(ecsMutex);
+
+		if (EntityID >= 0 && EntityID < entityList.size())
 		{
-			pSendMessage(Message(MSG_LOG, std::string("ECS Error"), std::string("Tried to disable an unexisting Entity '" + EntityName + "'.")));
+			pSendMessage(Message(MSG_LOG, std::string("ECS Info"), std::string("Enabled Entity with Name '" + entityList[EntityID].name + "' and ID [" + std::to_string(EntityID) + "]."))); // Info Log
+
+			entityList[EntityID].flags[EF_ENABLED] = true;
+			return;
 		}
+
+		pSendMessage(Message(MSG_LOG, std::string("ECS Error"), std::string("Tried to enable an unexisting Entity with ID [" + std::to_string(EntityID) + "]."))); // Error
 	}
 
 	void EntityController::DisableEntity(std::string EntityName)
 	{
 		std::lock_guard<std::mutex> mut(ecsMutex);
-		Entity* entity = GetEntity(EntityName);
-
-		if (entity != nullptr)
+		
+		for (int i = 0; i < entityList.size(); ++i)
 		{
-			entity->components[CAT_DISABLED] = disabledComponent;
+			if (entityList[i].name == EntityName)
+			{
+				pSendMessage(Message(MSG_LOG, std::string("ECS Info"), std::string("Disabled Entity with Name '" + entityList[i].name + "' and ID [" + std::to_string(i) + "]."))); // Info Log
+				entityList[i].flags[EF_ENABLED] = false;
+				return;
+			}
+		}
+
+		pSendMessage(Message(MSG_LOG, std::string("ECS Error"), std::string("Tried to disable an unexisting Entity '" + EntityName + "'."))); // Error
+	}
+
+	void EntityController::DisableEntity(int EntityID)
+	{
+		if (EntityID >= 0 && EntityID < entityList.size())
+		{
+			pSendMessage(Message(MSG_LOG, std::string("ECS Info"), std::string("Disabled Entity with Name '" + entityList[EntityID].name + "' and ID [" + std::to_string(EntityID) + "]."))); // Info Log
+
+			entityList[EntityID].flags[EF_ENABLED] = false;
+			return;
+		}
+
+		pSendMessage(Message(MSG_LOG, std::string("ECS Error"), std::string("Tried to disable an unexisting Entity with ID [" + std::to_string(EntityID) + "]."))); // Error
+	}
+
+	std::vector<Entity> EntityController::GetEntities()
+	{
+		std::lock_guard<std::mutex> mut(ecsMutex);
+
+		return entityList;
+	}
+
+	Entity EntityController::GetEntity(int EntityID)
+	{
+		std::lock_guard<std::mutex> mut(ecsMutex);
+
+		if (EntityID >= 0 && EntityID < entityList.size())
+		{
+			return entityList[EntityID];
 		}
 		else
 		{
-			pSendMessage(Message(MSG_LOG, std::string("ECS Error"), std::string("Tried to disable an unexisting Entity '" + EntityName + "'.")));
+			pSendMessage(Message(MSG_LOG, std::string("ECS Error"), std::string("Couldn't find Entity with id [" + std::to_string(EntityID) + "]. Returning default Entity."))); // Error
 		}
-		
+
+		return entityList[0];
 	}
 
-	std::vector<Entity> EntityController::GetAllEntities()
+	int EntityController::GetEntityID(std::string EntityName)
 	{
 		std::lock_guard<std::mutex> mut(ecsMutex);
-		return entityList;
+
+		for (int i = 0; i < entityList.size(); ++i)
+		{
+			if (entityList[i].name == EntityName)
+				return i;
+		}
+
+		return -1;
+	}
+
+	Entity EntityController::GetEntity(std::string EntityName)
+	{
+		std::lock_guard<std::mutex> mut(ecsMutex);
+
+		int entityID = GetEntityID(EntityName);
+
+		if (entityID > -1)
+		{
+			return entityList[entityID];
+		}
+
+		pSendMessage(Message(MSG_LOG, std::string("ECS Error"), std::string("Couldn't find Entity: '" + EntityName + "'. Returning default Entity.")));
+
+		return entityList[0];
+	}
+
+	std::vector<Component> EntityController::GetComponents(ComponentAssetType Type)
+	{
+		std::lock_guard<std::mutex> mut(ecsMutex);
+
+		return components[Type];
+	}
+
+	void EntityController::AddComponent(int EntityID, int AssetID, ComponentAssetType Type, AssetManager* assetManager)
+	{
+		std::lock_guard<std::mutex> mut(ecsMutex);
+
+		if (EntityID >= 0 && EntityID < entityList.size())
+		{
+			if (assetManager->AssetExists(AssetID, Type))
+			{
+				components[Type].push_back(Component(EntityID, AssetID));
+				pSendMessage(Message(MSG_LOG, std::string("ECS Info"), std::string("Added Component of type [" +
+					std::to_string(Type) + "] to Entity '" + 
+					entityList[EntityID].name + "' with Asset '" +
+					assetManager->GetAsset(AssetID, Type).assetName + "'.")));
+			}
+			else
+			{
+				pSendMessage(Message(MSG_LOG, std::string("ECS Error"), std::string("Couldn't add Component to Entity with ID [" + std::to_string(EntityID) + "] with invalid Asset ID [" + std::to_string(AssetID) + "].")));
+			}
+		}
+		else
+		{
+			pSendMessage(Message(MSG_LOG, std::string("ECS Error"), std::string("Couldn't add Component to invalid Entity with ID [" + std::to_string(EntityID) + "].")));
+		}
+	}
+
+	void EntityController::AddComponent(int EntityID, std::string AssetName, ComponentAssetType Type, AssetManager* assetManager)
+	{
+		std::lock_guard<std::mutex> mut(ecsMutex);
+
+		if (EntityID >= 0 && EntityID < entityList.size())
+		{
+			// -1 is the invalid asset return value
+			int AssetID = assetManager->AssetExists(AssetName, Type);
+			if (AssetID != -1)
+			{
+				components[Type].push_back(Component(EntityID, AssetID));
+				pSendMessage(Message(MSG_LOG, std::string("ECS Info"), std::string("Added Component of type [" +
+					std::to_string(Type) + "] to Entity '" +
+					entityList[EntityID].name + "' with Asset '" +
+					assetManager->GetAsset(AssetID, Type).assetName + "'.")));
+			}
+			else
+			{
+				pSendMessage(Message(MSG_LOG, std::string("ECS Error"), std::string("Couldn't add Component to Entity with ID [" + std::to_string(EntityID) + "] with invalid Asset ID [" + std::to_string(AssetID) + "].")));
+			}
+		}
+		else
+		{
+			pSendMessage(Message(MSG_LOG, std::string("ECS Error"), std::string("Couldn't add Component to invalid Entity with ID [" + std::to_string(EntityID) + "].")));
+		}
+	}
+
+	void EntityController::AddComponent(std::string EntityName, std::string AssetName, ComponentAssetType Type, AssetManager* assetManager)
+	{
+		// This is up here because its using the same mutex as below
+		int EntityID = GetEntityID(EntityName);
+
+		std::lock_guard<std::mutex> mut(ecsMutex);
+
+		if (EntityID >= 0 && EntityID < entityList.size())
+		{
+			// -1 is the invalid asset return value
+			int AssetID = assetManager->AssetExists(AssetName, Type);
+			if (AssetID != -1)
+			{
+				components[Type].push_back(Component(EntityID, AssetID));
+				pSendMessage(Message(MSG_LOG, std::string("ECS Info"), std::string("Added Component of type [" +
+					std::to_string(Type) + "] to Entity '" +
+					entityList[EntityID].name + "' with Asset '" +
+					assetManager->GetAsset(AssetID, Type).assetName + "'.")));
+			}
+			else
+			{
+				pSendMessage(Message(MSG_LOG, std::string("ECS Error"), std::string("Couldn't add Component to Entity with ID [" + std::to_string(EntityID) + "] with invalid Asset ID [" + std::to_string(AssetID) + "].")));
+			}
+		}
+		else
+		{
+			pSendMessage(Message(MSG_LOG, std::string("ECS Error"), std::string("Couldn't add Component to invalid Entity with ID [" + std::to_string(EntityID) + "].")));
+		}
 	}
 
 	void EntityController::Update(AssetManager* assetManager)
 	{
-		for (std::vector<Component> componentVector : queuedComponents)
-		for(int i = 0; i < queuedComponents.size(); i++)
-		{
-			for (int k = 0; k < queuedComponents[i].size(); k++)
-			{
-				std::string assetName = queuedComponents[i][k].GetAssetName();
-				if (assetManager->AssetExists(assetName))
-				{
-					int AssetID = assetManager->GetAssetID(assetName);
-					if (AssetID >= 0)
-					{
-						Entity* entity = GetEntity(queuedComponents[i][k].GetEntityID());
 		
-						if (entity)
-						{
-							queuedComponents[i][k].SetIndex(AssetID);
-							entity->components[queuedComponents[i][k].GetType()] = queuedComponents[i][k];
-							queuedComponents[i].erase(queuedComponents[i].begin() + k);
-						}
-						else
-						{
-							pSendMessage(Message(MSG_LOG, std::string("ECS Error"), std::string("Component '" + queuedComponents[i][k].GetName() + "' was added to an unexisting Entity.")));
-						}
-					}
-					else
-					{
-						pSendMessage(Message(MSG_LOG, std::string("ECS Error"), std::string("GetAssetID returned -1 for Asset '" + assetName + "'.")));
-					}
-				}
-				
-			}
-		}
 	}
-
+	//
 }
 

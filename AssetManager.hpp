@@ -1,9 +1,9 @@
 #pragma once
 
-// This needs a complete rewrite and its 1:30 AM 
-
 #include "ECS.hpp"
 #include "OpenGL.hpp"
+
+#include "glShader.hpp"
 
 namespace detailEngine
 {
@@ -11,50 +11,36 @@ namespace detailEngine
 	class OpenGL;
 	class Model;
 
+	// The asset doesnt need to contain its type for the same reason it doesnt need to contain its id
+	// the type is determined by the vector in which the asset resides and the id is the index in the vector
 	class Asset
 	{
 	public:
-		Asset(std::string Name, std::string FileName, std::string FileType);
+		Asset(std::string Name, std::string FilePath);
 
-		std::string name;
-		std::string fileName;
-		std::string fileType;
-		ComponentAssetType assetType;
-		bool deleted = false;
-		bool processed = false;
-		std::any data;
+		std::string assetName = "undefined";
+		std::string filePath = "";
+		bool processed = false; // needed to inform the systems wheter or not to use this Asset, only use processed assets
+		void* data; // replaced std::any with void* as it allows direct access to the data and doesnt require any voodoo casting
 	};
 
 	class AssetManager : public Publisher, public Subscriber
 	{
 	public:
-		AssetManager();
-		void RequestAsset(Asset asset);
-		void Update(EntityController* entityController, FileSystem* fileSystem);
-		bool AssetExists(std::string assetName);
-		Asset& RefAsset(std::string assetName);
-		Asset& RefAsset(int assetID);
-		Asset GetAsset(std::string assetName);
-		Asset GetAsset(int assetID);
-		std::vector<Asset> GetAllAssets();
-		int GetAssetID(std::string assetName);
-		void UpdateAsset(int AssetID, Asset newAsset);
-
-		// Will be ran on the same thread as the renderer to use opengl functions without context switching between threads
-		// The functions inside the renderer dont need mutexes because they will run on its thread, but the function here need it
-		void ProcessAssets(OpenGL* renderer, FileSystem* fileSystem);
+		AssetManager(); // resizes the assetList to CAT_LAST
+		int AddAsset(std::string Name, std::string FilePath, ComponentAssetType Type);
+		void Update(EntityController* entityController, FileSystem* fileSystem); // run ONLY on the openGL context thread !
+		int AssetExists(std::string AssetName, ComponentAssetType Type); // returns -1 if the asset doesnt exist, otherwise returns the asset id
+		bool AssetExists(int AssetID, ComponentAssetType Type); // returns -1 if the asset doesnt exist, otherwise returns the asset id
+		Asset GetAsset(int AssetID, ComponentAssetType Type);
+		int GetAssetID(std::string AssetName, ComponentAssetType Type);
 
 	private:
 		void ExecuteMessage(Message message);
 		std::mutex assetMutex;
-		void AddAsset(Asset asset);
-		std::vector<Asset> assetList;
-		std::queue<Asset> unfinishedAssetList;
+		std::vector<std::vector<Asset>> assetList; // size will be equal to CAT_LAST
+		std::vector<std::vector<unsigned int>> unprocessedAssets; // size will be equal to CAT_LAST
 
-		void CompleteAsset(Asset& asset);
-		void ProcessAsset(Asset& asset, OpenGL* renderer, FileSystem* fileSystem);
-		void ProcessObjAsset(Asset& asset, OpenGL* renderer, FileSystem* fileSystem);
-
-		Asset defaultAsset = Asset("DEFAULT", "DEFAULT", "DEFAULT");
+		Asset defaultAsset = Asset("DEF", "DEF");
 	};
 }

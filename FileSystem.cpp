@@ -26,20 +26,119 @@ namespace detailEngine
 		return (info.st_mode & S_IFDIR) ? true : false;
 	}
 
-	FileOpenMode TypeToMode(std::string fileType)
+	std::string ReplaceSpaces(std::string input, char replaceWith)
 	{
-		if (fileType == "obj" || fileType == "mtl")
-			return OPEN_TEXT;
+		for (int i = 0; i < input.size(); ++i)
+		{
+			if (input[i] == ' ')
+			{
+				input[i] = replaceWith;
+			}
+		}
 
-		if (fileType == "png" || fileType == "tga" || fileType == "jpg" || fileType == "jpeg")
-			return OPEN_BINARY;
-
-		return OPEN_UNSUPPORTED;
+		return input;
 	}
 
 	FileSystem::FileSystem()
 	{
-		//Debug();
+		directories.push_back(Directory("root"));
+
+		AddDirectory("newDir", "");
+
+	}
+
+	int FileSystem::GetDirIndex(std::string DirName)
+	{
+		for (int i = 0; i < directories.size(); ++i)
+		{
+			if (directories[i].name == DirName)
+				return i;
+		}
+
+		return -1;
+	}
+
+	int FileSystem::FileTreeValidatePath(std::string path)
+	{
+		std::vector<std::string> directoryNames = SanitizePath(path);
+		std::string validPath = "";
+
+		int ret = FileTreeValidatePathRec(0, 0, directoryNames, validPath);
+
+		if (ret == -1)
+		{
+			pSendMessage(Message(MSG_LOG, std::string("FileSystem Error"), std::string("The Path 'root" + path + "' is invalid'")));
+		}
+
+		return ret;
+	}
+
+	int FileSystem::FileTreeValidatePathRec(int parentID, int depth, std::vector<std::string> directoryNames, std::string validPath)
+	{
+		std::string currentDirName = directories[parentID].name;
+		validPath += currentDirName + '/';
+
+		// if the whole list is looped through and everything is in check
+		if (directoryNames.size() == depth)
+		{
+			return parentID; // give the id of the deepest path
+		}
+
+		std::string searchedDirName = directoryNames[depth]; // depth starts from 0 so it can be used as an index
+
+		// check if the current parent dir's list containst a dir with the name value of the searchedDirName
+		for (int i = 0; i < directories[parentID].directoryIDs.size(); ++i)
+		{
+			// get the id from the parent dir's list, use the id as an index in the directories list, check its name
+			if (directories[directories[parentID].directoryIDs[i]].name == searchedDirName)
+			{
+				return FileTreeValidatePathRec(directories[parentID].directoryIDs[i], depth + 1, directoryNames, validPath);
+			}
+		}
+
+		// if nothing is found, print error message containing the latest search for directoryName and the validPath
+		pSendMessage(Message(MSG_LOG, std::string("FileSystem Error"), std::string("The Path '" + validPath + "' doesn't contain Directory '" + searchedDirName + "'")));
+
+		return -1;
+	}
+
+	int FileSystem::AddDirectory(std::string DirName, std::string path)
+	{
+		std::lock_guard<std::mutex> mut(fileioMutex);
+
+		int ret = FileTreeValidatePath(path);
+
+		if (ret != -1)
+		{
+			int newDirID = directories.size(); // it will get incremented by 1 and this number will be the new dir's ID
+			directories.push_back(Directory(DirName));
+			directories.back().parentDirID = ret; // set the new directory's parent
+			directories[ret].directoryIDs.push_back(newDirID); // add the new directory to the parent's dirID list
+
+			return newDirID;
+		}
+
+		return -1;
+	}
+
+	void FileSystem::AddFile(int FileID, std::string path)
+	{
+
+	}
+
+	void FileSystem::PrintDirContents(Directory& dir)
+	{
+		for (int i = 0; i < dir.directoryIDs.size(); ++i)
+		{
+			std::cout << "";
+		}
+	}
+
+	void FileSystem::PrintFileTree()
+	{
+		std::lock_guard<std::mutex> mut(fileioMutex);
+
+
 	}
 
 	void FileSystem::Update(EntityController* entityController, AssetManager* assetManager)
@@ -165,11 +264,11 @@ namespace detailEngine
 		files.back().Fill(dataString);
 		files.back().SetName(fileName);
 		files.back().SetType(fileType);
-		files.back().SetMode(OPEN_BINARY);
-
-		files.back().aux[0] = width;
-		files.back().aux[1] = height;
-		files.back().aux[2] = (intptr_t)data;
+		//files.back().SetMode(OPEN_BINARY);
+		//
+		//files.back().aux[0] = width;
+		//files.back().aux[1] = height;
+		//files.back().aux[2] = (intptr_t)data;
 
 		//DeleteTextureImage(data); // not needed anymore
 
@@ -196,7 +295,7 @@ namespace detailEngine
 		std::string fullFileName = GetPathFullFilename(path);
 		std::string fileName = GetPathFileName(path);
 		std::string fileType = GetPathFileType(path);
-		FileOpenMode mode = TypeToMode(fileType);
+		//FileOpenMode mode = TypeToMode(fileType);
 
 		if (fileType == "png" || fileType == "tga" || fileType == "jpg" || fileType == "jpeg")
 		{
@@ -221,38 +320,38 @@ namespace detailEngine
 
 		std::ifstream FILE;
 
-		if (mode == OPEN_UNSUPPORTED)
-		{
-			// error unsupported file type
-			pSendMessage(Message(MSG_LOG, std::string("FileSystem Error"), std::string("File Type '" + fileType + "' is not supported.")));
+		//if (mode == OPEN_UNSUPPORTED)
+		//{
+		//	// error unsupported file type
+		//	pSendMessage(Message(MSG_LOG, std::string("FileSystem Error"), std::string("File Type '" + fileType + "' is not supported.")));
+		//
+		//	return;
+		//}
 
-			return;
-		}
-
-		if (mode == OPEN_BINARY)
-		{
-			FILE = std::ifstream(newPath, std::ios::binary);
-		}
-		else if(mode == OPEN_TEXT)
-		{
-			FILE = std::ifstream(newPath);
-		}
-
-		if (!FILE.fail())
-		{
-			files.push_back(File(UnixTimestamp()));
-			files.back().Fill(FILE);
-			files.back().SetName(fileName);
-			files.back().SetType(fileType);
-			files.back().SetMode(mode);
-
-			FILE.close();
-		}
-		else
-		{
-			// error file doesnt exist
-			pSendMessage(Message(MSG_LOG, std::string("FileSystem Error"), std::string("File '" + fullFileName + "' cannot be accessed.")));
-		}
+		//if (mode == OPEN_BINARY)
+		//{
+		//	FILE = std::ifstream(newPath, std::ios::binary);
+		//}
+		//else if(mode == OPEN_TEXT)
+		//{
+		//	FILE = std::ifstream(newPath);
+		//
+	   
+		//if (!FILE.fail())
+		//{
+		//	files.push_back(File(UnixTimestamp()));
+		//	files.back().Fill(FILE);
+		//	files.back().SetName(fileName);
+		//	files.back().SetType(fileType);
+		//	files.back().SetMode(mode);
+	   
+		//	FILE.close();
+		//}
+		//else
+		//{
+		//	// error file doesnt exist
+		///	pSendMessage(Message(MSG_LOG, std::string("FileSystem Error"), std::string("File '" + fullFileName + "' cannot be accessed.")));
+		//}
 	}
 
 	void FileSystem::LoadDir(std::string path) // loads all the file from a specific directory in the file list
@@ -285,7 +384,7 @@ namespace detailEngine
 		return fileNames;
 	}
 
-	std::string FileSystem::GetPathFileName(std::string path)
+	std::string GetPathFileName(std::string path)
 	{
 		std::string fileName = GetPathFullFilename(path);
 		std::string out;
@@ -304,7 +403,7 @@ namespace detailEngine
 		return out;
 	}
 
-	std::string FileSystem::GetPathFileType(std::string path)
+	std::string GetPathFileType(std::string path)
 	{
 		std::string fileName = GetPathFullFilename(path);
 		std::string out;
@@ -326,12 +425,12 @@ namespace detailEngine
 		return out;
 	}
 
-	std::string FileSystem::GetPathFullFilename(std::string path)
+	std::string GetPathFullFilename(std::string path)
 	{
 		return SanitizePath(path).back();
 	}
 
-	std::string FileSystem::GetSanitizedPath(std::string path)
+	std::string GetSanitizedPath(std::string path)
 	{
 		std::vector<std::string> words = SanitizePath(path);
 
@@ -342,7 +441,7 @@ namespace detailEngine
 			if (words[i] == "" || words[i] == " ")
 				continue;
 
-			out += words[i] + "\\";
+			out += words[i] + "/";
 		}
 
 		out += words.back();
@@ -352,7 +451,7 @@ namespace detailEngine
 
 	// Works only with ASCII characters < 127
 	// No ? * | < > : "
-	std::vector<std::string> FileSystem::SanitizePath(std::string path)
+	std::vector<std::string> SanitizePath(std::string path)
 	{
 		std::vector<std::string> out;
 		std::string filter = "";
@@ -372,6 +471,7 @@ namespace detailEngine
 					// must be idiot proof since i will be working with it
 					if (!StringContainsOnly(filter, ' '))
 					{
+						filter = ReplaceSpaces(filter, '_');
 						out.push_back(filter);
 					}
 
@@ -395,6 +495,7 @@ namespace detailEngine
 
 		if (!StringContainsOnly(filter, ' '))
 		{
+			filter = ReplaceSpaces(filter, '_');
 			out.push_back(filter);
 		}
 
@@ -402,7 +503,7 @@ namespace detailEngine
 
 	}
 
-	bool FileSystem::StringContainsOnly(std::string input, char character)
+	bool StringContainsOnly(std::string input, char character)
 	{
 		for (int i = 0; i < input.size(); ++i)
 		{
@@ -414,7 +515,7 @@ namespace detailEngine
 	}
 
 	// expects a path that contains a file name and type !
-	std::string FileSystem::GetPathNoFile(std::string path)
+	std::string GetPathNoFile(std::string path)
 	{
 		std::vector<std::string> words = SanitizePath(path);
 
@@ -438,7 +539,7 @@ namespace detailEngine
 		return out;
 	}
 
-	void FileSystem::SplitFileNameType(std::string fileNamePath, std::string& file, std::string& type)
+	void SplitFileNameType(std::string fileNamePath, std::string& file, std::string& type)
 	{
 		bool dot = false;
 
@@ -466,26 +567,26 @@ namespace detailEngine
 	std::string File::GetName() { return name; }
 	void File::SetType(std::string Type) { type = Type; }
 	std::string File::GetType() { return type; }
-	void File::SetMode(FileOpenMode Mode) { mode = Mode; }
-	FileOpenMode File::GetMode() { return mode; }
-	void File::Fill(std::ifstream& file) { contents.clear(); contents << file.rdbuf(); }
-	void File::Fill(std::string& string) { contents.clear(); contents << string; }
-	void File::Append(std::ifstream& file) { contents << file.rdbuf(); }
-	void File::Erase() { contents.clear(); name = "deleted"; type = "deleted"; }
-	std::stringstream& File::Data() { return contents; }
+	//void File::SetMode(FileOpenMode Mode) { mode = Mode; }
+	//FileOpenMode File::GetMode() { return mode; }
+	void File::Fill(std::ifstream& file) { data.clear(); data << file.rdbuf(); }
+	void File::Fill(std::string& string) { data.clear(); data << string; }
+	void File::Append(std::ifstream& file) { data << file.rdbuf(); }
+	void File::Erase() { data.clear(); name = "deleted"; type = "deleted"; }
+	std::stringstream& File::Data() { return data; }
 	long int File::GetCreationTime() { return creationTime; }
-	int File::GetSize() { return contents.rdbuf()->str().size(); }
+	int File::GetSize() { return data.rdbuf()->str().size(); }
 	void File::Dump()
 	{
 		std::string word;
-		while (getline(contents, word))
+		while (getline(data, word))
 		{
 			std::cout << word;
 		}
 	}
 	void File::PrintInfo()
 	{
-		std::cout << "Name : '" << GetName() << "' Type : '" << GetType() << "' Size : " << GetSize() << " (Bytes), Binary : " << GetMode() << "\n";
+		std::cout << "Name : '" << GetName() << "' Type : '" << GetType() << "' Size : " << GetSize() << "\n";
 		std::cout << "Created at : " << GetCreationTime() << "\n";
 	}
 }

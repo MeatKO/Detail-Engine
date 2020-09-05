@@ -8,6 +8,8 @@ namespace detailEngine
 
 	bool OpenGL::Init(std::string WindowName, int windowSizeX, int windowSizeY, Input* inputPtr, int majorVersion, int minorVersion)
 	{
+		std::lock_guard<std::mutex> mut(contextLock);
+
 		input = inputPtr;
 		if (!input)
 		{
@@ -69,7 +71,7 @@ namespace detailEngine
 
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Wireframe
 
-		glfwSwapInterval(0); // VSYNC
+		glfwSwapInterval(1); // VSYNC
 
 		if (glGenVertexArrays == NULL)
 			pSendMessage(Message(MSG_LOG, std::string("OpenGL Error"), std::string("glGenVertexArray returned NULL at initialization.")));
@@ -100,8 +102,8 @@ namespace detailEngine
 
 		// Things that will later be removed from here when i start actually using ECS : 
 		skybox = new Shader("skybox");
-		//modelShader = new Shader("textured");
-		modelShader = new Shader("lighting_array");
+		modelShader = new Shader("textured");
+		//modelShader = new Shader("lighting_array");
 		normalShader = new Shader("normal_b", "normal_b");
 		lightShader = new Shader("light");
 		//skyTexture = new CubemapTex("detail");
@@ -165,9 +167,11 @@ namespace detailEngine
 
 	void OpenGL::Update(EntityController* entityController, AssetManager* assetManager, double currentTime, double deltaTime)
 	{
+		std::lock_guard<std::mutex> mut(contextLock);
+
 		// Setting up the ECS stuff
-		std::vector<Entity> entities = entityController->GetAllEntities();
-		std::vector<Asset> assets = assetManager->GetAllAssets();
+		//std::vector<Entity> entities = entityController->GetAllEntities();
+		//std::vector<Asset> assets = assetManager->GetAllAssets();
 
 		playerCamera.ProcessKeyboardInput(input, (float)deltaTime);
 
@@ -187,88 +191,88 @@ namespace detailEngine
 		view = playerCamera.GetViewMatrix();
 
 
-		Transformation transform;
-
-		for (Entity& entity : entities)
-		{
-			if (entity.components[CAT_DISABLED].GetType() != CAT_DISABLED)
-			{
-				if (entity.components[CAT_TRANSFORM].GetType() != CAT_DEFAULT)
-				{
-					Asset transformAsset = assetManager->GetAsset(entity.components[CAT_TRANSFORM].GetIndex());
-					if (transformAsset.data.type() == typeid(Transformation))
-					{
-						transform = std::any_cast<Transformation>(transformAsset.data);
-					}
-					else
-					{
-						// error wtf ??
-						pSendMessage(Message(MSG_LOG, std::string("OpenGL Error"), std::string("The Transformation component for entity '" + entity.name + "' is not of type Transformation.")));
-					}
-				}
-
-				Asset asset = assetManager->GetAsset(entity.components[CAT_MODEL].GetIndex());
-
-				//model = glm::translate(model, glm::vec3(transform.translation.x, transform.translation.y, transform.translation.z));
-				//model = glm::scale(model, glm::vec3(transform.scale.x, transform.scale.y, transform.scale.z));
-				model = glm::translate(model, glm::vec3(1.0f, 1.0f, 1.0f));
-				model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
-				model = glm::rotate(model, (float)glm::radians(glfwGetTime()), glm::vec3(0.0f, 1.0f, 0.0f));
-
-				if (asset.assetType != CAT_DEFAULT)
-				{
-					if (asset.data.type() == typeid(Model))
-					{
-						Model mdl = std::any_cast<Model>(asset.data);
-
-						if (!mdl.processed)
-						{
-							continue;
-						}
-
-						modelShader->Use();
-
-						glUniformMatrix4fv(glGetUniformLocation(modelShader->Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
-						glUniformMatrix4fv(glGetUniformLocation(modelShader->Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-						glUniformMatrix4fv(glGetUniformLocation(modelShader->Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
-						glUniform3f(glGetUniformLocation(modelShader->Program, "viewPos"), playerCamera.GetPosition().x, playerCamera.GetPosition().y, playerCamera.GetPosition().z);
-						glUniform3f(glGetUniformLocation(modelShader->Program, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
-
-						DrawObj(mdl);
-
-						normalShader->Use();
-
-						glUniformMatrix4fv(glGetUniformLocation(normalShader->Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
-						glUniformMatrix4fv(glGetUniformLocation(normalShader->Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-						glUniformMatrix4fv(glGetUniformLocation(normalShader->Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
-						glUniform3f(glGetUniformLocation(normalShader->Program, "viewPos"), playerCamera.GetPosition().x, playerCamera.GetPosition().y, playerCamera.GetPosition().z);
-						glUniform3f(glGetUniformLocation(normalShader->Program, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
-
-						DrawObj(mdl);
-						
-
-					}
-					//else if (asset.data.type() == typeid(AABB))
-					//{
-					//	AABB drawnAABB = std::any_cast<AABB>(asset.data);
-					//
-					//	if (drawnAABB.VAO == 0 && drawnAABB.VBO == 0 && drawnAABB.EBO == 0)
-					//	{
-					//		glGenVertexArrays(1, &drawnAABB.VAO);
-					//		glGenBuffers(1, &drawnAABB.VBO);
-					//		glGenBuffers(1, &drawnAABB.EBO);
-					//		glBindVertexArray(drawnAABB.VAO);
-					//		glBindBuffer(GL_ARRAY_BUFFER, drawnAABB.VBO);
-					//		glBufferData(GL_ARRAY_BUFFER, sizeof(drawnAABB.lines), drawnAABB.lines, GL_STATIC_DRAW);
-					//
-					//		glEnableVertexAttribArray(0);
-					//		glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (GLvoid*)0);
-					//		glBindVertexArray(0);
-					//	}
-					//}
-				}
-			}
-		}
+		//Transformation transform;
+		//
+		//for (Entity& entity : entities)
+		//{
+		//	if (entity.components[CAT_DISABLED].GetType() != CAT_DISABLED)
+		//	{
+		//		if (entity.components[CAT_TRANSFORM].GetType() != CAT_DEFAULT)
+		//		{
+		//			Asset transformAsset = assetManager->GetAsset(entity.components[CAT_TRANSFORM].GetIndex());
+		//			if (transformAsset.data.type() == typeid(Transformation))
+		//			{
+		//				transform = std::any_cast<Transformation>(transformAsset.data);
+		//			}
+		//			else
+		//			{
+		//				// error wtf ??
+		//				pSendMessage(Message(MSG_LOG, std::string("OpenGL Error"), std::string("The Transformation component for entity '" + entity.name + "' is not of type Transformation.")));
+		//			}
+		//		}
+		//
+		//		Asset asset = assetManager->GetAsset(entity.components[CAT_MODEL].GetIndex());
+		//
+		//		//model = glm::translate(model, glm::vec3(transform.translation.x, transform.translation.y, transform.translation.z));
+		//		//model = glm::scale(model, glm::vec3(transform.scale.x, transform.scale.y, transform.scale.z));
+		//		model = glm::translate(model, glm::vec3(1.0f, 1.0f, 1.0f));
+		//		model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
+		//		//model = glm::rotate(model, (float)glm::radians(glfwGetTime()), glm::vec3(0.0f, 1.0f, 0.0f));
+		//
+		//		if (asset.assetType != CAT_DEFAULT)
+		//		{
+		//			if (asset.data.type() == typeid(Model))
+		//			{
+		//				Model mdl = std::any_cast<Model>(asset.data);
+		//
+		//				if (!mdl.processed)
+		//				{
+		//					continue;
+		//				}
+		//
+		//				modelShader->Use();
+		//
+		//				glUniformMatrix4fv(glGetUniformLocation(modelShader->Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+		//				glUniformMatrix4fv(glGetUniformLocation(modelShader->Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+		//				glUniformMatrix4fv(glGetUniformLocation(modelShader->Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
+		//				glUniform3f(glGetUniformLocation(modelShader->Program, "viewPos"), playerCamera.GetPosition().x, playerCamera.GetPosition().y, playerCamera.GetPosition().z);
+		//				glUniform3f(glGetUniformLocation(modelShader->Program, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+		//
+		//				DrawObj(modelShader, mdl);
+		//
+		//				normalShader->Use();
+		//
+		//				glUniformMatrix4fv(glGetUniformLocation(normalShader->Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+		//				glUniformMatrix4fv(glGetUniformLocation(normalShader->Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+		//				glUniformMatrix4fv(glGetUniformLocation(normalShader->Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
+		//				glUniform3f(glGetUniformLocation(normalShader->Program, "viewPos"), playerCamera.GetPosition().x, playerCamera.GetPosition().y, playerCamera.GetPosition().z);
+		//				glUniform3f(glGetUniformLocation(normalShader->Program, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+		//
+		//				DrawObj(modelShader, mdl);
+		//				
+		//
+		//			}
+		//			//else if (asset.data.type() == typeid(AABB))
+		//			//{
+		//			//	AABB drawnAABB = std::any_cast<AABB>(asset.data);
+		//			//
+		//			//	if (drawnAABB.VAO == 0 && drawnAABB.VBO == 0 && drawnAABB.EBO == 0)
+		//			//	{
+		//			//		glGenVertexArrays(1, &drawnAABB.VAO);
+		//			//		glGenBuffers(1, &drawnAABB.VBO);
+		//			//		glGenBuffers(1, &drawnAABB.EBO);
+		//			//		glBindVertexArray(drawnAABB.VAO);
+		//			//		glBindBuffer(GL_ARRAY_BUFFER, drawnAABB.VBO);
+		//			//		glBufferData(GL_ARRAY_BUFFER, sizeof(drawnAABB.lines), drawnAABB.lines, GL_STATIC_DRAW);
+		//			//
+		//			//		glEnableVertexAttribArray(0);
+		//			//		glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (GLvoid*)0);
+		//			//		glBindVertexArray(0);
+		//			//	}
+		//			//}
+		//		}
+		//	}
+		//}
 
 		glfwSwapBuffers(glWindow);
 	}
@@ -322,32 +326,33 @@ namespace detailEngine
 			glBindVertexArray(0);
 		}
 	}
-	void OpenGL::DrawObj(Model& model)
+	void OpenGL::DrawObj(Shader* shader, Model& model)
 	{
-		std::lock_guard<std::mutex> mut(contextLock);
-
-		for (Mesh& mesh : model.meshes)
-		{
-			Material material;
-			for (Material& mat : model.materials)
-			{
-				if (mesh.usedMaterial == mat.name)
-				{
-					material = mat;
-				}
-			}
-
-			DrawMesh(mesh, material);
-		}
+		//for (Mesh& mesh : model.meshes)
+		//{
+		//	Material material;
+		//	for (Material& mat : model.materials)
+		//	{
+		//		if (mesh.usedMaterial == mat.name)
+		//		{
+		//			material = mat;
+		//		}
+		//	}
+		//
+		//	DrawMesh(shader, mesh, material);
+		//}
 	}
-	void OpenGL::DrawMesh(Mesh& mesh, Material& mat)
+	void OpenGL::DrawMesh(Shader* shader, Mesh& mesh, Material& mat)
 	{
+		//glActiveTexture(GL_TEXTURE0);
+		//glUniform1i(glGetUniformLocation((shader->Program), "map_kd"), 0);
 		//glBindTexture(GL_TEXTURE_2D, mat.map_kd_id);
+		//
+		//std::cout << mat.map_kd_id << "\n";
+		//
 		//glBindVertexArray(mesh.VAO);
-
-		glBindVertexArray(mesh.VAO);
-		glDrawArrays(GL_TRIANGLES, 0, mesh.vertices.size());
-		glBindVertexArray(0);
+		//glDrawArrays(GL_TRIANGLES, 0, mesh.vertices.size());
+		//glBindVertexArray(0);
 	}
 	int OpenGL::GenerateTexture(std::string& data, int width, int height)
 	{
@@ -357,19 +362,53 @@ namespace detailEngine
 
 		glGenTextures(1, &textureID);
 
-		std::cout << "kekw : " << textureID << std::endl;
-
 		glBindTexture(GL_TEXTURE_2D, textureID);
 
 	    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_BYTE, data.c_str());
-		glGenerateMipmap(GL_TEXTURE_2D);
-		
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		//glGenerateMipmap(GL_TEXTURE_2D);
+		//
+		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 		glBindTexture(GL_TEXTURE_2D, 0);
+
+		return textureID;
+	}
+
+	int OpenGL::LoadTexture(std::string directory, bool nearest)
+	{
+		std::lock_guard<std::mutex> mut(contextLock);
+
+		GLuint textureID;
+		int width, height;
+
+		glGenTextures(1, &textureID);
+
+		unsigned char* image = SOIL_load_image(directory.c_str(), &width, &height, 0, SOIL_LOAD_RGBA);
+
+		glBindTexture(GL_TEXTURE_2D, textureID);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+		glGenerateMipmap(GL_TEXTURE_2D);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		if (nearest)
+		{
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		}
+		else
+		{
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		}
+
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		SOIL_free_image_data(image);
 
 		return textureID;
 	}

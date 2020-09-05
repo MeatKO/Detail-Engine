@@ -6,18 +6,6 @@
 #include "glShader.hpp"
 #include "glCamera.hpp"
 
-/*
-The scene is meant to define a list of active game compoments.
-You can switch between scenes and modify them by adding and removing entities, lights, cubemaps etc.
-Should be a nice way of organizing the assets.
-
-The entities and the shaders are referenced by name.
-The lights and cubemaps are held by the Scene class.
-
-this WILL crash if you init a scene before init-ing an opengl context
-must run on the same thread as the renderer because of it...
-*/
-
 namespace detailEngine
 {
 	class Scene
@@ -31,11 +19,11 @@ namespace detailEngine
 		std::string name = "unnamed";
 		std::string skybox = "detail"; // asset name 
 
-		std::vector<std::string> entityList;
-		std::vector<std::string> shadersList;
-		std::vector<Light> lightsList;
-		std::vector<CubemapEnvDynamic> dynamicCubemapList; // add positions later ?
-		std::vector<CubemapEnvStatic> staticCubemapList;
+		std::vector<int> entityList;
+		std::vector<int> shadersList;
+		std::vector<int> lightsList;
+		std::vector<int> dynamicCubemapList; // add positions later ?
+		std::vector<int> staticCubemapList;
 		Camera camera = Camera();
 	};
 

@@ -46,11 +46,13 @@ namespace detailEngine
 
 		void ProcessObjModel(Model& model);
 
-		void DrawObj(Model& model);
+		void DrawObj(Shader* shader, Model& model);
 
-		void DrawMesh(Mesh& mesh, Material& mat);
+		void DrawMesh(Shader* shader, Mesh& mesh, Material& mat);
 
 		int GenerateTexture(std::string& data, int width, int height);
+
+		int LoadTexture(std::string directory, bool nearest = true);
 
 	private:
 		std::mutex contextLock;

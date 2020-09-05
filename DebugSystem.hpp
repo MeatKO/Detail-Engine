@@ -17,9 +17,9 @@ namespace detailEngine
 			if (entityController != nullptr)
 			{
 				//std::vector<std::vector<Component>>& components = entityController->GetAllComponents();
-				std::vector<Entity> entities = entityController->GetAllEntities();
-				std::vector<Asset> assets = assetManager->GetAllAssets();
-				
+				//std::vector<Entity> entities = entityController->GetAllEntities();
+				//std::vector<Asset> assets = assetManager->GetAllAssets();
+				//
 				//system("CLS");
 				//for (Asset asset : assets)
 				//{
@@ -71,8 +71,6 @@ namespace detailEngine
 		{
 			if (Type == CAT_DEFAULT)
 				return "Default";
-			if (Type == CAT_DISABLED)
-				return "Disabled";
 			if (Type == CAT_SHADER)
 				return "Shader";
 			if (Type == CAT_MODEL)

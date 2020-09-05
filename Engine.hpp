@@ -68,7 +68,7 @@ namespace detailEngine
 
 				input->Update(currentTime);
 				console->Update(input, entityController);
-				assetManager->Update(entityController, fileSystem);
+				//assetManager->Update(entityController, fileSystem);
 				profiler->Update();
 
 				messageLog->sUpdate();
@@ -80,8 +80,6 @@ namespace detailEngine
 
 				timer->EndTime("Update Thread");
 			}
-
-			
 		}
 
 		bool Init()
@@ -125,23 +123,16 @@ namespace detailEngine
 
 			threadList.resize(THR_LAST);
 
-			if (!renderer->Init("Window", 1200, 900, input, 4, 5))
+			if (!renderer->Init("deta:l Engine", 1200, 900, input, 4, 5))
 				pSendMessage(Message(MSG_LOG, std::string("Engine Error"), std::string("Renderer initialization failed.")));
 
 			threadList[THR_OUTSOURCE] = std::move(std::thread(&Engine::UpdateThread, this));
 			threadList[THR_FILESYSTEM] = std::move(std::thread(&Engine::UpdateFileSystem, this));
 
 
-			entityController->AddEntity("Map");
-			entityController->AddEntity("Plane");
-			
-			std::string testModel = "de_inferno";
-
-			pSendMessage(Message(MSG_LOAD_DIR, std::string("detail/models/" + testModel + "/" + testModel + ".obj"), int(0)));
-
-			pSendMessage(Message(MSG_ASSET, std::string("ADD"), Asset(testModel, "models", "obj")));
-			
-			entityController->AddComponent("Map", Component(CAT_MODEL, "PlaneModel", testModel));
+			entityController->AddEntity("Test");
+			assetManager->AddAsset("TestAsset", "FilePath", CAT_AABB);
+			entityController->AddComponent("Test", "TestAsset", CAT_AABB, assetManager);
 
 			timer->EndTime("Engine Init");
 
@@ -170,12 +161,12 @@ namespace detailEngine
 
 			entityController->Update(assetManager);
 
+			assetManager->Update(entityController, fileSystem);
+
 			this->sUpdate();
 			entityController->sUpdate();
 			renderer->sUpdate();
-			
-			assetManager->ProcessAssets(renderer, fileSystem);
-
+			int a = 5;
 			timer->EndTime("Engine Loop");
 		}
 
