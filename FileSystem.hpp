@@ -108,15 +108,13 @@ namespace detailEngine
 		// depth must start from 0 (root index)
 		int FileTreeValidatePathRec(int parentID, int depth, std::vector<std::string> directoryNames, std::string validPath);
 		int AddDirectory(std::string DirName, std::string path);
-		void AddFile(int FileID, std::string path);
-
-		void PrintDirContents(Directory& dir);
-		void PrintFileTree();
+		void AddFile(int FileID, std::string filePath);
 
 		void Update(EntityController* entityController, AssetManager* assetManager);
 		void ExecuteMessage(Message message);
 
-		bool IsLoaded(std::string filename); // makes no sense
+		//bool IsLoaded(std::string filename); // makes no sense
+		bool IsLoaded(std::string filePath);
 		void Debug();
 
 		File* GetFile(std::string fileName, std::string fileType);

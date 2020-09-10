@@ -1,0 +1,219 @@
+#include "VFS.hpp"
+
+namespace detailEngine
+{
+	bool vfsStringContainsOnly(std::string input, char containedChar)
+	{
+		for (int i = 0; i < input.size(); ++i)
+		{
+			if (input[i] != containedChar)
+				return false;
+		}
+
+		return true;
+	}
+
+	std::string vfsRemovePathSlashes(std::string path)
+	{
+		std::string outPathString = "";
+		bool previousCharSlash = true; // to remove the first slash
+
+		for (int i = 0; i < path.size(); ++i)
+		{
+			if (previousCharSlash)
+			{
+				if (path[i] != '\\' && path[i] != '/')
+				{
+					outPathString += path[i];
+					previousCharSlash = false;
+				}
+			}
+			else
+			{
+				outPathString += path[i];
+
+				if (path[i] == '\\' && path[i] == '/')
+					previousCharSlash = true;
+			}
+		}
+
+		return outPathString;
+	}
+
+	std::string vfsStandardisePathToken(std::string token)
+	{
+		std::string outToken = "";
+		bool previousSpace = true; // to remove the first space as well
+
+		for (int i = 0; i < token.size(); ++i)
+		{
+			if (previousSpace)
+			{
+				if (token[i] != ' ')
+				{
+					outToken += token[i];
+					previousSpace = false;
+				}
+			}
+			else
+			{
+				outToken += token[i];
+
+				if (token[i] == ' ')
+					previousSpace = true;
+			}
+		}
+
+		if (outToken.back() == ' ')
+			outToken.pop_back();
+
+		for (int i = 0; i < outToken.size(); ++i)
+		{
+			if (outToken[i] == ' ')
+				outToken[i] = '_';
+		}
+
+		return outToken;
+	}
+
+	std::string vfsRemovePathInvalidSymbols(std::string path)
+	{
+		std::string outPathString = "";
+
+		for (int i = 0; i < path.size(); ++i)
+		{
+			// if the character isnt equal to ? & | < > : or "
+			if (!(path[i] == '?' || path[i] == '*' || path[i] == '|' || path[i] == '<' || path[i] == '>' || path[i] == ':' || path[i] == '"'))
+				outPathString += path[i];
+		}
+		return outPathString;
+	}
+
+	std::string vfsSanitizeFilePath(std::string path)
+	{
+		std::string outPathString = vfsRemovePathInvalidSymbols(path);
+		outPathString = vfsRemovePathSlashes(path);
+
+		for (int i = 0; i < outPathString.size(); ++i)
+		{
+			if (outPathString[i] == '\\')
+				outPathString[i] = '/';
+		}
+
+		return outPathString;
+	}
+
+	std::string vfsAssemblePath(std::vector<std::string> tokens)
+	{
+		std::string out;
+
+		for (int i = 0; i < tokens.size(); ++i)
+		{
+			out += tokens[i] + '/';
+		}
+
+		return out;
+	}
+
+	std::vector<std::string> vfsGetPathTokens(std::string path)
+	{
+		std::vector<std::string> tokens;
+		std::string currentToken = "";
+
+		for (int i = 0; i < path.size(); ++i)
+		{
+			// check if the current char is / and push the currentToken to the tokens list
+			if (path[i] == '/')
+			{
+				// check if the currentToken string is not empty
+				if (currentToken.size() > 0)
+				{
+					tokens.push_back(currentToken);
+					currentToken = "";
+				}
+			}
+			else
+			{
+				currentToken += path[i];
+			}
+		}
+
+		// if the last character of the path is not / then the last token wont get pushed by the loop above
+		if (path.back() != '/')
+		{
+			if (currentToken.size() > 0)
+			{
+				tokens.push_back(currentToken);
+				currentToken = "";
+			}
+		}
+
+		for (int i = tokens.size() - 1; i >= 0; --i)
+		{
+			std::string filteredToken = vfsStandardisePathToken(tokens[i]);
+
+			if (filteredToken == "")
+			{
+				tokens.erase(tokens.begin() + i);
+			}
+			else
+			{
+				tokens[i] = filteredToken;
+			}
+		}
+
+		return tokens;
+	}
+
+	int vfsStringContains(std::string input, char character)
+	{
+		for (int i = 0; i < input.size(); ++i)
+		{
+			if (input[i] == character)
+				return i;
+		}
+
+		return -1;
+	}
+
+	FilePathInfo GetFilePathInfo(std::string path)
+	{
+		FilePathInfo info;
+
+		path = vfsSanitizeFilePath(path);
+		std::vector<std::string> pathTokens = vfsGetPathTokens(path);
+
+		if (pathTokens.size() > 0)
+		{
+			// if the path string contains a file and filetype then the last token will be file.filetype
+			if (vfsStringContains(pathTokens.back(), '.'))
+			{
+				int dotIndex = 0;
+
+				for (int i = 0; i < pathTokens.back().size(); ++i)
+				{
+					if (pathTokens.back()[i] == '.')
+					{
+						dotIndex = i;
+						break;
+					}
+
+					info.name += pathTokens.back()[i];
+				}
+
+				for (int i = dotIndex + 1; i < pathTokens.back().size(); ++i)
+				{
+					info.type += pathTokens.back()[i];
+				}
+
+				pathTokens.pop_back(); // remove the file name and type to leve only the path
+			}
+
+			info.path = vfsAssemblePath(pathTokens);
+
+		}
+		
+		return info;
+	}
+
+}

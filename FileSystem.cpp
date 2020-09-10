@@ -44,7 +44,6 @@ namespace detailEngine
 		directories.push_back(Directory("root"));
 
 		AddDirectory("newDir", "");
-
 	}
 
 	int FileSystem::GetDirIndex(std::string DirName)
@@ -121,24 +120,10 @@ namespace detailEngine
 		return -1;
 	}
 
-	void FileSystem::AddFile(int FileID, std::string path)
+	void FileSystem::AddFile(int FileID, std::string filePath)
 	{
-
-	}
-
-	void FileSystem::PrintDirContents(Directory& dir)
-	{
-		for (int i = 0; i < dir.directoryIDs.size(); ++i)
-		{
-			std::cout << "";
-		}
-	}
-
-	void FileSystem::PrintFileTree()
-	{
-		std::lock_guard<std::mutex> mut(fileioMutex);
-
-
+		std::string dirPath = GetPathNoFile(filePath);
+		std::string fileName = GetPathFileName(filePath);
 	}
 
 	void FileSystem::Update(EntityController* entityController, AssetManager* assetManager)

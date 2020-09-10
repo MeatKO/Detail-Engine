@@ -60,9 +60,14 @@ namespace detailEngine
 							}
 						}
 					}
-					if (newCharacter == 257)
+					else if (newCharacter == '`')
 					{
 						ToggleFocus();
+					}
+					else if (newCharacter == '256')
+					{
+						commandList.push_back(currentCommand);
+						currentCommand.clear();
 					}
 				}
 				
@@ -86,21 +91,22 @@ namespace detailEngine
 	private:
 		std::mutex commandMutex;
 		std::string currentCommand = "";
+		std::string currentDir = "";
 		std::vector<std::string> commandList;
 		bool focused = false;
 		bool capsLock = false;
 
 		void ToggleFocus()
 		{
-			if (focused)
-			{
-				if (currentCommand.size() > 0)
-				{
-					commandList.push_back(currentCommand);
-					currentCommand.clear();
-				}
-			}
-
+			//if (!focused)
+			//{
+			//	if (currentCommand.size() > 0)
+			//	{
+			//		commandList.push_back(currentCommand);
+			//		currentCommand.clear();
+			//	}
+			//}
+			std::cout << "toggled : " << focused << std::endl;
 			focused = !focused;
 		}
 	};

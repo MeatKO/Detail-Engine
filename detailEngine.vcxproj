@@ -175,6 +175,7 @@
     <ClCompile Include="SOIL2\image_helper.c" />
     <ClCompile Include="SOIL2\SOIL2.c" />
     <ClCompile Include="Source.cpp" />
+    <ClCompile Include="VFS.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AssetManager.hpp" />
@@ -198,6 +199,7 @@
     <ClInclude Include="Profiler.hpp" />
     <ClInclude Include="Scene.hpp" />
     <ClInclude Include="Transformation.hpp" />
+    <ClInclude Include="VFS.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

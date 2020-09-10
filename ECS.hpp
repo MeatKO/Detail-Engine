@@ -39,10 +39,10 @@ namespace detailEngine
 	{
 	public:
 		Entity();
-		Entity(int InitID, std::string Name);
+		Entity(std::string Name);
 		
 
-		int id = -1; 
+		//int id = -1; 
 		std::string name = "unnamed";
 		std::vector<bool> flags; // resize to EF_LAST
 		std::vector<std::vector<int>> componentIDs; // resize it to CAT_LAST

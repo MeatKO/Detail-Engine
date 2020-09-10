@@ -166,6 +166,7 @@ namespace detailEngine
 
 	void glShader::Delete()
 	{
+		isEnabled = false;
 		glDeleteProgram(this->program);
 	}
 	//

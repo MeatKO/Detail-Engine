@@ -11,6 +11,7 @@
 #include <time.h>
 
 #include "ECS.hpp"
+#include "VFS.hpp"
 #include "Log.hpp"
 #include "Input.hpp"
 #include "OpenGL.hpp"
@@ -133,6 +134,12 @@ namespace detailEngine
 			entityController->AddEntity("Test");
 			assetManager->AddAsset("TestAsset", "FilePath", CAT_AABB);
 			entityController->AddComponent("Test", "TestAsset", CAT_AABB, assetManager);
+
+			FilePathInfo info = GetFilePathInfo("////\/\// //\\/ /\// /ok boom / boom / this is the file.type");
+
+			std::cout << "FilePathInfo : path - " << info.path << std::endl;
+			std::cout << "FilePathInfo : name - " << info.name << std::endl;
+			std::cout << "FilePathInfo : type - " << info.type << std::endl;
 
 			timer->EndTime("Engine Init");
 

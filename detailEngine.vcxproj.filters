@@ -72,6 +72,9 @@
     <ClCompile Include="dMath.hpp">
       <Filter>Header Files</Filter>
     </ClCompile>
+    <ClCompile Include="VFS.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PCS.hpp">
@@ -135,6 +138,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Model.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VFS.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

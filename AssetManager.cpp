@@ -56,7 +56,7 @@ namespace detailEngine
 				}
 				else if (i == CAT_SHADER)
 				{
-					glShader* shader = new glShader();
+					//glShader* shader = new glShader();
 				}
 				else if (i == CAT_MODEL)
 				{

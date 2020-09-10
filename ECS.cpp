@@ -10,9 +10,9 @@ namespace detailEngine
 		componentIDs.resize(CAT_LAST);
 	}
 
-	Entity::Entity(int InitID, std::string Name)
+	Entity::Entity(std::string Name)
 	{
-		id = InitID;
+		//id = InitID;
 		name = Name;
 		flags.resize(EF_LAST);
 		componentIDs.resize(CAT_LAST);
@@ -45,7 +45,7 @@ namespace detailEngine
 		{
 			std::lock_guard<std::mutex> mut(ecsMutex);
 			int lastIndex = entityList.size(); // the old size will be the new last index after we push back the entity
-			entityList.push_back(Entity(lastIndex, EntityName));
+			entityList.push_back(Entity(EntityName));
 
 			pSendMessage(Message(MSG_LOG, std::string("ECS Info"), std::string("Added Entity with Name '" + EntityName + "' and ID [" + std::to_string(lastIndex) + "]."))); // Info Log
 
