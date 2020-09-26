@@ -77,12 +77,11 @@ namespace detailEngine
 
 
 	// Timer stuff
-	// In case of memory leak you probably havent 
 	// dont forget to notify channels
+	// will cause a problem if two threads are writing to the same record !
+	// if you want to avoid that problem then add a mutex right below 
 	void ProfileTimer::StartTime(std::string recordName)
 	{
-		//double currentTime = (double)clock() / CLOCKS_PER_SEC;
-
 		auto currentTime = std::chrono::high_resolution_clock::now();
 
 		TimerRecord* record = GetRecord(recordName);

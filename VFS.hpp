@@ -28,6 +28,7 @@ namespace detailEngine
 		std::string type = "";
 	};
 
+	// returns true if the input string contains only containedChar
 	bool vfsStringContainsOnly(std::string input, char containedChar);
 
 	// removes excess \ and /, also removes invalid symbols
@@ -49,9 +50,22 @@ namespace detailEngine
 	// Expects a sanitized path !
 	std::vector<std::string> vfsGetPathTokens(std::string path);
 
+	// returns the place where CHARACTER is found within INPUT
+	// returns -1 if the CHARACTER is not found anywhere
 	int vfsStringContains(std::string input, char character);
 
+	// Since the file IO doesn't automatically generate directories
+	// This function will try to create the path if it doesn't exist
+	// will return false if the directory cannot be created
+	bool vfsEnsureDirectory(std::string path);
+
 	FilePathInfo GetFilePathInfo(std::string path);
+
+	class Pack
+	{
+	public: 
+		Pack() {}
+	};
 
 	class VirtualFileSystem : public Publisher, public Subscriber
 	{

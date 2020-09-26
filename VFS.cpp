@@ -176,6 +176,33 @@ namespace detailEngine
 		return -1;
 	}
 
+	bool vfsEnsureDirectory(std::string path)
+	{
+		path = vfsSanitizeFilePath(path);
+		std::vector<std::string> tokens = vfsGetPathTokens(path);
+
+		// since we ensure only the dir, the file should be removed
+		if (vfsStringContains(tokens.back(), '.') != -1)
+			tokens.pop_back();
+
+		std::string currentPath = "";
+
+		// for whatever reason create_directories breaks miserably so i have to loop em
+		for (int i = 0; i < tokens.size(); ++i)
+		{
+			// gradually add the directories and create them one by one
+			currentPath += tokens[i] + '/';
+			
+			if (!fs::exists(currentPath))
+			{
+				if (!fs::create_directory(currentPath))
+					return false;
+			}
+		}
+
+		return true;
+	}
+
 	FilePathInfo GetFilePathInfo(std::string path)
 	{
 		FilePathInfo info;

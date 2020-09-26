@@ -130,16 +130,9 @@ namespace detailEngine
 			threadList[THR_OUTSOURCE] = std::move(std::thread(&Engine::UpdateThread, this));
 			threadList[THR_FILESYSTEM] = std::move(std::thread(&Engine::UpdateFileSystem, this));
 
-
 			entityController->AddEntity("Test");
 			assetManager->AddAsset("TestAsset", "FilePath", CAT_AABB);
 			entityController->AddComponent("Test", "TestAsset", CAT_AABB, assetManager);
-
-			FilePathInfo info = GetFilePathInfo("////\/\// //\\/ /\// /ok boom / boom / this is the file.type");
-
-			std::cout << "FilePathInfo : path - " << info.path << std::endl;
-			std::cout << "FilePathInfo : name - " << info.name << std::endl;
-			std::cout << "FilePathInfo : type - " << info.type << std::endl;
 
 			timer->EndTime("Engine Init");
 
@@ -173,7 +166,6 @@ namespace detailEngine
 			this->sUpdate();
 			entityController->sUpdate();
 			renderer->sUpdate();
-			int a = 5;
 			timer->EndTime("Engine Loop");
 		}
 
@@ -223,5 +215,6 @@ namespace detailEngine
 		DebugSystem* debugSystem = new DebugSystem();
 		Profiler* profiler = new Profiler();
 		ProfileTimer* timer = new ProfileTimer();
+		VirtualFileSystem* virtualFileSystem = new VirtualFileSystem();
 	};
 }
