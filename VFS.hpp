@@ -2,7 +2,6 @@
 
 // Virtual File System
 // This is meant to replace FileSystem.hpp
-// Not actually a virtual file system
 
 #include <vector>
 #include <sstream>
@@ -46,6 +45,8 @@ namespace detailEngine
 	// returns a path string that seperates all tokens with /
 	std::string vfsAssemblePath(std::vector<std::string> tokens);
 
+	void vfsStandardisePathTokens(std::vector<std::string>& tokens);
+
 	// splits by /
 	// Expects a sanitized path !
 	std::vector<std::string> vfsGetPathTokens(std::string path);
@@ -59,12 +60,64 @@ namespace detailEngine
 	// will return false if the directory cannot be created
 	bool vfsEnsureDirectory(std::string path);
 
-	FilePathInfo GetFilePathInfo(std::string path);
+	FilePathInfo vfsGetFilePathInfo(std::string path);
 
 	class Pack
 	{
 	public: 
 		Pack() {}
+	};
+
+	class File
+	{
+	public:
+		File() {}
+
+		File(std::string FileName, std::string FileType)
+		{
+			fileName = FileName;
+			fileType = FileType;
+		}
+
+		File(std::string FileName, std::string FileType, char* Data, int ByteSize)
+		{
+			fileName = FileName;
+			fileType = FileType;
+			data = Data;
+			byteSize = ByteSize;
+		}
+
+		// for manual destruction of the data when the engine terminates
+		// i do it this way because i might copy the pointer into other objects and i dont want it to get deleted
+		// i might've used smart pointers but eh
+		void Terminate()
+		{
+			if (data && byteSize)
+			{
+				delete[] data;
+			}
+		}
+
+		std::string GetName()
+		{
+			return fileName;
+		}
+
+		std::string GetType()
+		{
+			return fileType;
+		}
+
+		char* Data()
+		{
+			return data;
+		}
+
+	private:
+		std::string fileName = "";
+		std::string fileType = "";
+		int byteSize = -1;
+		char* data = nullptr;
 	};
 
 	class VirtualFileSystem : public Publisher, public Subscriber

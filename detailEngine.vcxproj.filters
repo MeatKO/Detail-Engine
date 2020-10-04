@@ -75,6 +75,9 @@
     <ClCompile Include="VFS.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="PXL.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PCS.hpp">
@@ -141,6 +144,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="VFS.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PXL.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

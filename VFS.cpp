@@ -115,6 +115,14 @@ namespace detailEngine
 		return out;
 	}
 
+	void vfsStandardisePathTokens(std::vector<std::string>& tokens)
+	{
+		for (int i = 0; i < tokens.size(); ++i)
+		{
+			tokens[i] = vfsStandardisePathToken(tokens[i]);
+		}
+	}
+
 	std::vector<std::string> vfsGetPathTokens(std::string path)
 	{
 		std::vector<std::string> tokens;
@@ -203,7 +211,7 @@ namespace detailEngine
 		return true;
 	}
 
-	FilePathInfo GetFilePathInfo(std::string path)
+	FilePathInfo vfsGetFilePathInfo(std::string path)
 	{
 		FilePathInfo info;
 

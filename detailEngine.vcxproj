@@ -170,6 +170,7 @@
     <ClCompile Include="PCS.cpp" />
     <ClCompile Include="Phy7ics.cpp" />
     <ClCompile Include="Profiler.cpp" />
+    <ClCompile Include="PXL.cpp" />
     <ClCompile Include="SOIL2\etc1_utils.c" />
     <ClCompile Include="SOIL2\image_DXT.c" />
     <ClCompile Include="SOIL2\image_helper.c" />
@@ -197,6 +198,7 @@
     <ClInclude Include="PCS.hpp" />
     <ClInclude Include="Phy7ics.hpp" />
     <ClInclude Include="Profiler.hpp" />
+    <ClInclude Include="PXL.hpp" />
     <ClInclude Include="Scene.hpp" />
     <ClInclude Include="Transformation.hpp" />
     <ClInclude Include="VFS.hpp" />
