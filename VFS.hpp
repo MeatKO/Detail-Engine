@@ -62,6 +62,21 @@ namespace detailEngine
 
 	FilePathInfo vfsGetFilePathInfo(std::string path);
 
+	class dFile
+	{
+	public:
+		dFile() {}
+
+		dFile(std::string FileName, std::string FileType);
+
+		std::string fileName = "";
+		std::string fileType = "";
+		int byteSize = 0;
+		unsigned char* bytes = nullptr;
+	};
+
+	bool dLoadFile(dFile& newFile, std::string path, std::string name, std::string type);
+
 	class Pack
 	{
 	public: 

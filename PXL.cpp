@@ -2,6 +2,14 @@
 
 namespace detailEngine
 {
+	void Texture::Terminate()
+	{
+		if (image)
+		{
+			delete[] image;
+		}
+	}
+
 	bool LoadTexture(Texture& Texture, std::string FileName, std::string FileType, unsigned char* FileData, unsigned int FileByteSize, std::string& error)
 	{
 		if (FileType == "tga" || FileType == ".tga")
@@ -12,6 +20,10 @@ namespace detailEngine
 				Texture.type = TEX_TGA;
 
 				return true;
+			}
+			else
+			{
+				Texture.Terminate();
 			}
 		}
 		else if (FileType == "png" || FileType == ".png")
@@ -45,7 +57,38 @@ namespace detailEngine
 			return false;
 		}
 
-		memcpy((char*)&header, FileData + offset, 18);
+		//memcpy((char*)&header, FileData + offset, 18);
+		//offset += 18;
+
+		//unsigned char  idLength;
+		//unsigned char  colorMapType;
+		//unsigned char  dataTypeCode;
+		//short int colorMapOrigin;
+		//short int colorMapLength;
+		//unsigned char  colorMapDepth;
+		//short int xOrigin;
+		//short int yOrigin;
+		//short int width;
+		//short int height;
+		//unsigned char  bitsPerPixel;
+		//unsigned char  imageDescriptor;
+
+		//
+		memcpy((char*)&header.idLength, FileData + 0, 1);
+		memcpy((char*)&header.colorMapType, FileData + 1, 1);
+		memcpy((char*)&header.dataTypeCode, FileData + 2, 1);
+		memcpy((char*)&header.colorMapOrigin, FileData + 3, 2);
+		memcpy((char*)&header.colorMapLength, FileData + 5, 2);
+		memcpy((char*)&header.colorMapDepth, FileData + 7, 1);
+		memcpy((char*)&header.xOrigin, FileData + 8, 2);
+		memcpy((char*)&header.yOrigin, FileData + 10, 2);
+		memcpy((char*)&header.width, FileData + 12, 2);
+		memcpy((char*)&header.height, FileData + 14, 2);
+		memcpy((char*)&header.bitsPerPixel, FileData + 16, 1);
+		memcpy((char*)&header.imageDescriptor, FileData + 17, 1);
+
+		//
+
 		offset += 18;
 
 		if (!(header.dataTypeCode == 2 || header.dataTypeCode == 10))
@@ -120,7 +163,7 @@ namespace detailEngine
 				if (offset + 1 >= FileByteSize)
 				{
 					error = "Unexpected end of file at byte " + std::to_string(offset);
-					return;
+					return false;
 				}
 
 				memcpy(&chunkheader, FileData + offset, 1);
@@ -135,7 +178,7 @@ namespace detailEngine
 						if (offset >= FileByteSize)
 						{
 							error = "Unexpected end of file at byte " + std::to_string(offset);
-							return;
+							return false;
 						}
 
 						memcpy(tempPixel, FileData + offset, bytesPerPixel);
@@ -161,7 +204,7 @@ namespace detailEngine
 					if (offset >= FileByteSize)
 					{
 						error = "Unexpected end of file at byte " + std::to_string(offset);
-						return;
+						return false;
 					}
 
 					memcpy(tempPixel, FileData + offset, bytesPerPixel);
@@ -181,11 +224,12 @@ namespace detailEngine
 						currentPixel++;
 					}
 				}
-			} while (currentpixel < pixelCount);
+			} while (currentPixel < pixelCount);
 
 			return true;
 		}
 
 		return false;
 	}
+
 }

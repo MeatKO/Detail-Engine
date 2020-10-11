@@ -20,6 +20,8 @@
 #include "glCubemap.hpp"
 #include "Phy7ics.hpp"
 #include "Transformation.hpp"
+#include "PXL.hpp"
+#include "VFS.hpp"
 
 namespace detailEngine
 {
@@ -52,7 +54,21 @@ namespace detailEngine
 
 		int GenerateTexture(std::string& data, int width, int height);
 
-		int LoadTexture(std::string directory, bool nearest = true);
+		//int LoadTexture(std::string directory, bool nearest = true);
+
+		float initPlaneVertices[20]
+		{
+			1.0f, 0.0f, 1.0f, 1.0f, 1.0f,
+			1.0f, 0.0f, -1.0f, 1.0f, 0.0f,
+			-1.0f, 0.0f, -1.0f, 0.0f, 0.0f,
+			-1.0f, 0.0f, 1.0f, 0.0f, 1.0f
+		};
+
+		int initPlaceIndices[6]
+		{
+			0, 1, 2,
+			2, 3, 0
+		};
 
 	private:
 		std::mutex contextLock;
@@ -70,5 +86,8 @@ namespace detailEngine
 		Shader* lightShader;
 		CubemapTex* skyTexture;
 		vec3 lightPos = vec3(1.0f);
+
+		unsigned int defaultVAO, defaultVBO, defaultEBO;
+		int defaultTextureID = 0;
 	};
 }

@@ -251,4 +251,40 @@ namespace detailEngine
 		return info;
 	}
 
+	bool dLoadFile(dFile& newFile, std::string path, std::string name, std::string type)
+	{
+		std::string filePath = path + name + "." + type;
+
+		std::ifstream file_in(filePath, std::ios::in | std::ios::binary | std::ios::ate);
+
+		if (file_in.is_open())
+		{
+			newFile.fileName = name;
+			newFile.fileType = type;
+			newFile.byteSize = file_in.tellg();
+			newFile.bytes = new unsigned char[newFile.byteSize];
+
+			file_in.seekg(0);
+			file_in.read((char*)newFile.bytes, newFile.byteSize);
+
+			file_in.close();
+
+			std::cout << newFile.byteSize << std::endl;
+
+			return true;
+		}
+		else
+		{
+			std::cout << "couldn't open file " << filePath << std::endl;
+		}
+
+		return false;
+	}
+
+	dFile::dFile(std::string FileName, std::string FileType)
+	{
+		fileName = FileName;
+		fileType = FileType;
+	}
+
 }

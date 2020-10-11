@@ -97,6 +97,23 @@ namespace detailEngine
 			}
 		);
 
+		glGenVertexArrays(1, &defaultVAO);
+		glGenBuffers(1, &defaultVBO);
+		glBindVertexArray(defaultVAO);
+		glBindBuffer(GL_ARRAY_BUFFER, defaultVBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(initPlaneVertices), initPlaneVertices, GL_STATIC_DRAW);
+		glGenBuffers(1, &defaultEBO);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, defaultEBO);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(initPlaceIndices), initPlaceIndices, GL_STATIC_DRAW);
+
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), 0);
+		glEnableVertexAttribArray(0);
+		
+		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+		glEnableVertexAttribArray(2);
+
+
+
 		CheckExtension("GL_ARB_gpu_shader5");
 		CheckExtension("GL_ARB_multi_draw_indirect");
 
@@ -108,6 +125,28 @@ namespace detailEngine
 		lightShader = new Shader("light");
 		//skyTexture = new CubemapTex("detail");
 		skyTexture = new CubemapTex("frozen");
+
+		//defaultTextureID = LoadTexture("detail/textures/default.png");
+
+		dFile defaultTex;
+		Texture tex1;
+		std::string error;
+
+		if (dLoadFile(defaultTex, "detail/textures/", "pepega", "tga"))
+		{
+			std::cout << "file loaded\n";
+
+			if (LoadTGA(tex1, defaultTex.fileName, defaultTex.fileType, defaultTex.bytes, defaultTex.byteSize, error))
+			{
+				std::cout << "texture initialized\n";
+
+				defaultTextureID = InitTexture(tex1);
+			}
+			else
+			{
+				std::cout << error << "\n";
+			}
+		}
 
 		std::cout << "Version : " << glGetString(GL_VERSION) << std::endl;
 
@@ -190,6 +229,23 @@ namespace detailEngine
 
 		view = playerCamera.GetViewMatrix();
 
+		modelShader->Use();
+
+		glUniformMatrix4fv(glGetUniformLocation(modelShader->Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+		glUniformMatrix4fv(glGetUniformLocation(modelShader->Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+		glUniformMatrix4fv(glGetUniformLocation(modelShader->Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
+		glUniform3f(glGetUniformLocation(modelShader->Program, "viewPos"), playerCamera.GetPosition().x, playerCamera.GetPosition().y, playerCamera.GetPosition().z);
+		glUniform3f(glGetUniformLocation(modelShader->Program, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+
+		//glActiveTexture(GL_TEXTURE0);
+		//glUniform1i(glGetUniformLocation((modelShader->Program), "map_kd"), 0);
+		glBindTexture(GL_TEXTURE_2D, defaultTextureID);
+
+		glBindVertexArray(defaultVAO);
+		//glDrawArrays(GL_TRIANGLES, 0, sizeof(initPlaneVertices));
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, defaultEBO);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		glBindVertexArray(0);
 
 		//Transformation transform;
 		//
@@ -377,39 +433,39 @@ namespace detailEngine
 		return textureID;
 	}
 
-	int OpenGL::LoadTexture(std::string directory, bool nearest)
-	{
-		std::lock_guard<std::mutex> mut(contextLock);
-
-		GLuint textureID;
-		int width, height;
-
-		glGenTextures(1, &textureID);
-
-		unsigned char* image = SOIL_load_image(directory.c_str(), &width, &height, 0, SOIL_LOAD_RGBA);
-
-		glBindTexture(GL_TEXTURE_2D, textureID);
-
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
-		glGenerateMipmap(GL_TEXTURE_2D);
-
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		if (nearest)
-		{
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		}
-		else
-		{
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		}
-
-		glBindTexture(GL_TEXTURE_2D, 0);
-
-		SOIL_free_image_data(image);
-
-		return textureID;
-	}
+	//int OpenGL::LoadTexture(std::string directory, bool nearest)
+	//{
+	//	std::lock_guard<std::mutex> mut(contextLock);
+	//
+	//	GLuint textureID;
+	//	int width, height;
+	//
+	//	glGenTextures(1, &textureID);
+	//
+	//	unsigned char* image = SOIL_load_image(directory.c_str(), &width, &height, 0, SOIL_LOAD_RGBA);
+	//
+	//	glBindTexture(GL_TEXTURE_2D, textureID);
+	//
+	//	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+	//	glGenerateMipmap(GL_TEXTURE_2D);
+	//
+	//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	//	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	//	if (nearest)
+	//	{
+	//		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+	//		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	//	}
+	//	else
+	//	{
+	//		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	//		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	//	}
+	//
+	//	glBindTexture(GL_TEXTURE_2D, 0);
+	//
+	//	SOIL_free_image_data(image);
+	//
+	//	return textureID;
+	//}
 }
