@@ -18,6 +18,7 @@ namespace detailEngine
 		TEX_TGA,
 		TEX_PNG,
 		TEX_BMP,
+		TEX_UNSUPPORTED,
 		TEX_LAST
 	};
 
@@ -33,27 +34,32 @@ namespace detailEngine
 		TextureType type = TEX_TGA;
 		TextureFormat format = TEX_RGB;
 		unsigned char* image = nullptr;
-		int width = -1, height = -1, bpp = -1, textureID = -1; // bpp - bits per pixel, textureID is used in the graphics API
+		int width = -1;
+		int height = -1;
+		int byteCount = -1;
+		int bpp = -1;    // bpp - bits per pixel
+		int textureID = -1;
 	};
 
-	struct TGA
+	struct TGAHeader
 	{
-		unsigned char header[6];         // Holds The First 6 Useful Bytes Of The File
-		unsigned int bytesPerPixel = 0;  // Number Of BYTES Per Pixel (3 Or 4)
-		unsigned int imageSize = 0;      // Amount Of Memory Needed To Hold The Image
-		unsigned int type = 0;           // The Type Of Image, GL_RGB Or GL_RGBA
-		unsigned int height = 0;         // Height Of Image                 
-		unsigned int width = 0;          // Width Of Image              
-		unsigned int bpp = 0;            // Number Of BITS Per Pixel (24 Or 32)
+		unsigned char  idLength;
+		unsigned char  colorMapType;
+		unsigned char  dataTypeCode;
+		short int colorMapOrigin;
+		short int colorMapLength;
+		unsigned char  colorMapDepth;
+		short int xOrigin;
+		short int yOrigin;
+		short int width;
+		short int height;
+		unsigned char  bitsPerPixel;
+		unsigned char  imageDescriptor;
 	};
 
-	bool LoadTexture(Texture& Texture, unsigned char* FileData, std::string FileName, std::string FileType);
+	bool LoadTexture(Texture& Texture, std::string FileName, std::string FileType, unsigned char* FileData, unsigned int FileByteSize, std::string& error);
 
-	Texture LoadTGA(unsigned char* FileData);
-	//Texture LoadPNG(unsigned char* fileData);
-	//Texture LoadBMP(unsigned char* fileData);
-
-	void LoadUncompressedTGA(Texture& Texture, unsigned char* FileData);
-	void LoadCompressedTGA(Texture& Texture, unsigned char* FileData);
+	// Supports 24 and 32 bit, RAW and RLE, RGB TGA files only
+	bool LoadTGA(Texture& Texture, std::string FileName, std::string FileType, unsigned char* FileData, unsigned int FileByteSize, std::string& error);
 
 }

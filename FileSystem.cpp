@@ -297,6 +297,7 @@ namespace detailEngine
 		}
 
 		// cant use the function because of deadlocks...
+		// EDIT : wtf did I write, what is that comment ??
 		if (fileExists)
 		{
 			pSendMessage(Message(MSG_LOG, std::string("FileSystem Warning"), std::string("Trying to reload file '" + fileName + "." + fileType + "'.")));

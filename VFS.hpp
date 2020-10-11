@@ -68,18 +68,18 @@ namespace detailEngine
 		Pack() {}
 	};
 
-	class File
+	class vFile
 	{
 	public:
-		File() {}
+		vFile() {}
 
-		File(std::string FileName, std::string FileType)
+		vFile(std::string FileName, std::string FileType)
 		{
 			fileName = FileName;
 			fileType = FileType;
 		}
 
-		File(std::string FileName, std::string FileType, char* Data, int ByteSize)
+		vFile(std::string FileName, std::string FileType, char* Data, int ByteSize)
 		{
 			fileName = FileName;
 			fileType = FileType;
