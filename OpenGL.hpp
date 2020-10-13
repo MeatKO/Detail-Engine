@@ -58,10 +58,10 @@ namespace detailEngine
 
 		float initPlaneVertices[20]
 		{
-			1.0f, 0.0f, 1.0f, 1.0f, 1.0f,
-			1.0f, 0.0f, -1.0f, 1.0f, 0.0f,
-			-1.0f, 0.0f, -1.0f, 0.0f, 0.0f,
-			-1.0f, 0.0f, 1.0f, 0.0f, 1.0f
+			10.0f, 0.0f, 10.0f, 1.0f, 1.0f,
+			10.0f, 0.0f, -10.0f, 1.0f, 0.0f,
+			-10.0f, 0.0f, -10.0f, 0.0f, 0.0f,
+			-10.0f, 0.0f, 10.0f, 0.0f, 1.0f
 		};
 
 		int initPlaceIndices[6]
