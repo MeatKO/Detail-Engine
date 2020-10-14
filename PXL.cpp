@@ -23,7 +23,7 @@ namespace detailEngine
 			}
 			else
 			{
-				Texture.Terminate();
+				Texture.Terminate(); // in case the error came after the image buffer was allocated, so we would need to delete the memory
 			}
 		}
 		else if (FileType == "png" || FileType == ".png")
@@ -32,7 +32,17 @@ namespace detailEngine
 		}
 		else if (FileType == "bmp" || FileType == ".bmp")
 		{
-			// load bmp
+			if (LoadBMP(Texture, FileName, FileType, FileData, FileByteSize, error))
+			{
+				Texture.textureName = FileName;
+				Texture.type = TEX_BMP;
+
+				return true;
+			}
+			else
+			{
+				Texture.Terminate();
+			}
 		}
 		else
 		{
@@ -57,23 +67,6 @@ namespace detailEngine
 			return false;
 		}
 
-		//memcpy((char*)&header, FileData + offset, 18);
-		//offset += 18;
-
-		//unsigned char  idLength;
-		//unsigned char  colorMapType;
-		//unsigned char  dataTypeCode;
-		//short int colorMapOrigin;
-		//short int colorMapLength;
-		//unsigned char  colorMapDepth;
-		//short int xOrigin;
-		//short int yOrigin;
-		//short int width;
-		//short int height;
-		//unsigned char  bitsPerPixel;
-		//unsigned char  imageDescriptor;
-
-		//
 		memcpy((char*)&header.idLength, FileData + 0, 1);
 		memcpy((char*)&header.colorMapType, FileData + 1, 1);
 		memcpy((char*)&header.dataTypeCode, FileData + 2, 1);
@@ -86,8 +79,6 @@ namespace detailEngine
 		memcpy((char*)&header.height, FileData + 14, 2);
 		memcpy((char*)&header.bitsPerPixel, FileData + 16, 1);
 		memcpy((char*)&header.imageDescriptor, FileData + 17, 1);
-
-		//
 
 		offset += 18;
 
@@ -230,6 +221,102 @@ namespace detailEngine
 		}
 
 		return false;
+	}
+
+	bool LoadBMP(Texture& Texture, std::string FileName, std::string FileType, unsigned char* FileData, unsigned int FileByteSize, std::string& error)
+	{
+		unsigned int offset = 0;
+		BMPHeader header;
+
+		int imageDataOffset = 0;
+
+		// The size of BMPHeader is 54 bytes
+		if ((offset + 54) > FileByteSize)
+		{
+			error = "Unexpected end of File '" + FileName + "." + FileType + " at byte : " + std::to_string(offset + 54) + ".";
+			return false;
+		}
+
+		memcpy((char*)&header.header, FileData + offset, 54);
+		offset += 54;
+
+		if (header.header[0] != 'B' || header.header[1] != 'M')
+		{
+			error = FileName + "." + FileType + " is not a valid Bitmap.";
+			return false;
+		}
+
+		imageDataOffset = *(int*)&(header.header[10]);
+		Texture.byteCount = *(int*)&(header.header[34]);
+		Texture.width = *(int*)&(header.header[18]);
+		Texture.height = *(int*)&(header.header[22]);
+		Texture.bpp = *(short*)&(header.header[28]);
+
+		if (Texture.bpp == 24)
+		{
+			Texture.format = TEX_RGB;
+		}
+		else if (Texture.bpp == 32)
+		{
+			Texture.format = TEX_RGBA;
+		}
+		else
+		{
+			error = "Unsupported BMP Bits Per Pixel format, please use an RGB or RGBA image with 24 or 32 bpp respectively.";
+			return false;
+		}
+		
+		if (imageDataOffset == 0)
+			imageDataOffset = 54;
+
+		// In case the BMP file didn't contain explicit image size
+		if (Texture.byteCount == 0)
+			Texture.byteCount = Texture.width * Texture.height * (Texture.bpp / 8);
+
+		if (Texture.byteCount <= 0)
+		{
+			error = "Texture Size is less or equal to 0.";
+			return false;
+		}
+
+		Texture.image = new unsigned char[Texture.byteCount];
+
+		if (Texture.image == nullptr)
+		{
+			error = "Couldn't allocate " + std::to_string(Texture.byteCount) + " bytes for the image.";
+			return false;
+		}
+
+		if ((imageDataOffset + Texture.byteCount) > FileByteSize)
+		{
+			error = "Unexpected end of File '" + FileName + "." + FileType + " at byte : " + std::to_string(imageDataOffset + Texture.byteCount) + ".";
+			return false;
+		}
+
+		memcpy(Texture.image, FileData + imageDataOffset, Texture.byteCount);
+
+		// Convert the BGR to RGB and BGRA to RGBA
+
+		// BGR
+		if (Texture.bpp == 24)
+		{
+			// BGR => RGB
+			for (int i = 0; i < Texture.byteCount; i += 3)
+			{
+				// XOR 3 times the R and B from the RGB pixel to swap them
+				Texture.image[i] ^= Texture.image[i + 2] ^= Texture.image[i] ^= Texture.image[i + 2];
+			}
+		}
+		else // BGRA
+		{
+			// BGRA => RGBA
+			for (int i = 0; i < Texture.byteCount; i += 4)
+			{
+				Texture.image[i] ^= Texture.image[i + 2] ^= Texture.image[i] ^= Texture.image[i + 2];
+			}
+		}
+
+		return true;
 	}
 
 }

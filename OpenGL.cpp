@@ -132,11 +132,11 @@ namespace detailEngine
 		Texture tex1;
 		std::string error;
 
-		if (dLoadFile(defaultTex, "detail/textures/", "pepega", "tga"))
+		if (dLoadFile(defaultTex, "detail/textures/", "pepega", "bmp"))
 		{
 			std::cout << "file loaded\n";
 
-			if (LoadTGA(tex1, defaultTex.fileName, defaultTex.fileType, defaultTex.bytes, defaultTex.byteSize, error))
+			if (LoadTexture(tex1, defaultTex.fileName, defaultTex.fileType, defaultTex.bytes, defaultTex.byteSize, error))
 			{
 				std::cout << "texture initialized\n";
 

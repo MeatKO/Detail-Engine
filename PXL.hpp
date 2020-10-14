@@ -59,9 +59,14 @@ namespace detailEngine
 		unsigned char  imageDescriptor;
 	};
 
+	struct BMPHeader
+	{
+		unsigned char header[54]; // Each BMP file begins by a 54-bytes header
+	};
+
 	bool LoadTexture(Texture& Texture, std::string FileName, std::string FileType, unsigned char* FileData, unsigned int FileByteSize, std::string& error);
 
 	// Supports 24 and 32 bit, RAW and RLE, RGB TGA files only
 	bool LoadTGA(Texture& Texture, std::string FileName, std::string FileType, unsigned char* FileData, unsigned int FileByteSize, std::string& error);
-
+	bool LoadBMP(Texture& Texture, std::string FileName, std::string FileType, unsigned char* FileData, unsigned int FileByteSize, std::string& error);
 }
