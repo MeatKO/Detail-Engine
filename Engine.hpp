@@ -66,16 +66,19 @@ namespace detailEngine
 				console->NotifyChannels();
 				assetManager->NotifyChannels();
 				profiler->NotifyChannels();
+				sceneManager->NotifyChannels();
 
 				input->Update(currentTime);
 				console->Update(input, entityController);
 				//assetManager->Update(entityController, fileSystem);
 				profiler->Update();
+				sceneManager->Update();
 
 				messageLog->sUpdate();
 				console->sUpdate();
 				assetManager->sUpdate();
 				profiler->sUpdate();
+				sceneManager->sUpdate();
 
 				Sleep(10);
 
@@ -96,6 +99,7 @@ namespace detailEngine
 			assetManager->Publish(messageBus);
 			profiler->Publish(messageBus);
 			timer->Publish(messageBus);
+			sceneManager->Publish(messageBus);
 
 			this->Subscribe(messageBus);
 			messageLog->Subscribe(messageBus);
@@ -105,6 +109,7 @@ namespace detailEngine
 			fileSystem->Subscribe(messageBus);
 			assetManager->Subscribe(messageBus);
 			profiler->Subscribe(messageBus);
+			sceneManager->Subscribe(messageBus);
 
 			this->AddType(MSG_ENGINE);
 			this->AddType(MSG_CONSOLE);
@@ -114,6 +119,7 @@ namespace detailEngine
 			profiler->AddType(MSG_PROFILER);
 			profiler->AddType(MSG_PROFILER_ADD);
 			fileSystem->AddType(MSG_LOAD_DIR);
+			sceneManager->AddType(MSG_ANY);
 
 			threadCount = std::thread::hardware_concurrency();
 
@@ -133,6 +139,9 @@ namespace detailEngine
 			entityController->AddEntity("Test");
 			assetManager->AddAsset("TestAsset", "FilePath", CAT_AABB);
 			entityController->AddComponent("Test", "TestAsset", CAT_AABB, assetManager);
+
+			sceneManager->AddScene("main");
+			sceneManager->GetSceneRef("main").flags[SF_FOCUSED] = true;
 
 			timer->EndTime("Engine Init");
 
@@ -156,7 +165,7 @@ namespace detailEngine
 			messageBus->NotifySubs();
 			
 			timer->StartTime("Rendering");
-			renderer->Update(entityController, assetManager, currentTime, deltaTime);
+			renderer->Update(entityController, assetManager, sceneManager, currentTime, deltaTime);
 			timer->EndTime("Rendering");
 
 			entityController->Update(assetManager);
@@ -207,6 +216,7 @@ namespace detailEngine
 		EntityController* entityController = new EntityController();
 		AssetManager* assetManager = new AssetManager();
 		FileSystem* fileSystem = new FileSystem();
+		SceneManager* sceneManager = new SceneManager();
 		Channel* messageBus = new Channel();
 		Log* messageLog = new Log();
 		Input* input = new Input();

@@ -13,5 +13,5 @@ namespace detailEngine
 	unsigned char* TextureImage(std::string path, int& width, int& height);
 	void DeleteTextureImage(unsigned char* image);
 	int GenerateTexture(std::string data, int width, int height);
-	int InitTexture(Texture& texture);
+	int InitTexture(Texture& texture, bool releaseTextureMemory = true);
 }

@@ -22,6 +22,7 @@
 #include "Transformation.hpp"
 #include "PXL.hpp"
 #include "VFS.hpp"
+#include "Scene.hpp"
 
 namespace detailEngine
 {
@@ -44,7 +45,7 @@ namespace detailEngine
 
 		void MouseCallback(GLFWwindow* window, float xPos, float yPos);
 
-		void Update(EntityController* entityController, AssetManager* assetManager, double currentTime, double deltaTime);
+		void Update(EntityController* entityController, AssetManager* assetManager, SceneManager* sceneManager, double currentTime, double deltaTime);
 
 		void ProcessObjModel(Model& model);
 

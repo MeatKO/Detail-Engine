@@ -28,6 +28,8 @@ namespace detailEngine
 		MSG_MESSAGE_BOX,    // OK option only (there is no hwnd window so message box result cannot be obtained
 		MSG_KEY,            // string, int
 		MSG_MOUSE,          // string, int
+		MSG_MOUSEPOS,       // float, float
+		MSG_MOUSEDELTA,     // float, float
 		MSG_SYMBOL,         // string type - HOLD, RELEASE, PRESS, int wideChar ( must be 2 bytes but 4 is still ok )
 		MSG_RENDER,
 		MSG_AUDIO,

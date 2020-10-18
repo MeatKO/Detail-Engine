@@ -7,7 +7,7 @@ namespace detailEngine
 	Entity::Entity()
 	{
 		flags.resize(EF_LAST);
-		componentIDs.resize(CAT_LAST);
+		assetIDs.resize(CAT_LAST);
 	}
 
 	Entity::Entity(std::string Name)
@@ -15,7 +15,14 @@ namespace detailEngine
 		//id = InitID;
 		name = Name;
 		flags.resize(EF_LAST);
-		componentIDs.resize(CAT_LAST);
+		assetIDs.resize(CAT_LAST);
+	}
+
+	Entity::Entity(std::string Name, Entity& copy)
+	{
+		name = Name;
+		this->flags = copy.flags;
+		this->assetIDs = copy.assetIDs;
 	}
 	//
 
@@ -27,6 +34,11 @@ namespace detailEngine
 		entityID = EntityID;
 		assetID = AssetID;
 	}
+	//Component::Component(Component& copy)
+	//{
+	//	this->entityID = copy.entityID;
+	//	this->assetID = copy.assetID;
+	//}
 	//
 
 	// Entity Controller

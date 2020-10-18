@@ -1,11 +1,12 @@
 #pragma once
 
 #include "PCS.hpp"
+#include "PCS.hpp"
 
 /* Entity Component System v2.1
 // Changes : 
-// The Entities now have an std::string name and a vector of vectors of Component ids.
-// The EntityController now holds all the Components
+// The Entities now have an std::string name and a vector of vectors of Asset ids.
+// The EntityController doesn't hold Components anymore, and only the scenes will contain Component data for fast searching
 // 
 // The Components now only hold an index of an Asset and their ownder's entityID
 */
@@ -32,6 +33,9 @@ namespace detailEngine
 	enum EntityFlag
 	{
 		EF_ENABLED,
+		EF_VISIBLE,
+		EF_PHYSICAL,
+		EF_PARTICLE,
 		EF_LAST
 	};
 
@@ -40,12 +44,11 @@ namespace detailEngine
 	public:
 		Entity();
 		Entity(std::string Name);
+		Entity(std::string Name, Entity& copy);
 		
-
-		//int id = -1; 
 		std::string name = "unnamed";
 		std::vector<bool> flags; // resize to EF_LAST
-		std::vector<std::vector<int>> componentIDs; // resize it to CAT_LAST
+		std::vector<std::vector<int>> assetIDs; // resize it to CAT_LAST
 	};
 
 	class Component
@@ -53,6 +56,7 @@ namespace detailEngine
 	public:
 		Component();
 		Component(int EntityID, int AssetID);
+		//Component(Component& copy);
 
 		int entityID = -1;
 		int assetID = -1;

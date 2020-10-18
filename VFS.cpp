@@ -269,7 +269,7 @@ namespace detailEngine
 
 			file_in.close();
 
-			std::cout << newFile.byteSize << std::endl;
+			//std::cout << newFile.byteSize << std::endl;
 
 			return true;
 		}

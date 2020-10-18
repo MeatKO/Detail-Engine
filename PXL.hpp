@@ -40,7 +40,7 @@ namespace detailEngine
 		int bpp = -1;    // bpp - bits per pixel
 		int textureID = -1;
 
-		void Terminate();
+		void Release();
 	};
 
 	struct TGAHeader

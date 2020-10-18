@@ -2,7 +2,7 @@
 
 namespace detailEngine
 {
-	void Texture::Terminate()
+	void Texture::Release()
 	{
 		if (image)
 		{
@@ -23,7 +23,7 @@ namespace detailEngine
 			}
 			else
 			{
-				Texture.Terminate(); // in case the error came after the image buffer was allocated, so we would need to delete the memory
+				Texture.Release(); // in case the error came after the image buffer was allocated, so we would need to delete the memory
 			}
 		}
 		else if (FileType == "png" || FileType == ".png")
@@ -41,7 +41,7 @@ namespace detailEngine
 			}
 			else
 			{
-				Texture.Terminate();
+				Texture.Release();
 			}
 		}
 		else

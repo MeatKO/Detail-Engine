@@ -86,23 +86,17 @@ namespace detailEngine
 		return textureID;
 	}
 
-	int InitTexture(Texture& texture)
+	int InitTexture(Texture& texture, bool releaseTextureMemory)
 	{
 		GLuint textureID;
-		int width = texture.width, height = texture.height;
-
 		glGenTextures(1, &textureID);
-
-		//unsigned char* image = SOIL_load_image(directory.c_str(), &width, &height, 0, SOIL_LOAD_RGBA);
-		unsigned char* image = texture.image;
-
 		glBindTexture(GL_TEXTURE_2D, textureID);
 		
 		// I wont trust this code below too much
 		if (texture.format == TEX_RGB)
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, texture.width, texture.height, 0, GL_RGB, GL_UNSIGNED_BYTE, texture.image);
 		else
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, texture.width, texture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, texture.image);
 		
 		glGenerateMipmap(GL_TEXTURE_2D);
 
@@ -114,7 +108,8 @@ namespace detailEngine
 
 		glBindTexture(GL_TEXTURE_2D, 0);
 
-		SOIL_free_image_data(image);
+		if (releaseTextureMemory)
+			texture.Release();
 
 		return textureID;
 	}
