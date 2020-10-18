@@ -136,6 +136,7 @@ namespace detailEngine
 		{
 			if (message.GetTopic() == MSG_MOUSEDELTA)
 			{
+				//Sleep(1);
 				int moveX = std::any_cast<float>(message.GetEvent());
 				int moveY = std::any_cast<float>(message.GetValue());
 

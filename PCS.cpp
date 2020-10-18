@@ -148,6 +148,7 @@ namespace detailEngine
 		std::lock_guard<std::mutex> mut(messageLock);
 		buffer = !buffer;
 	}
+	// The non-blocking message execution only works if its on a different thread
 	void Subscriber::sUpdate()
 	{
 		SwapBuffers();
@@ -160,5 +161,9 @@ namespace detailEngine
 	void Subscriber::OnNotify(Message message)
 	{
 		messageBuffer[buffer].push_back(message);
+	}
+	int Subscriber::GetMessageCount(bool Buffer)
+	{
+		return messageBuffer[Buffer].size();
 	}
 }

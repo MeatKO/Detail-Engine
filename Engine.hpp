@@ -31,6 +31,8 @@ namespace detailEngine
 		THR_AUDIO,
 		THR_OUTSOURCE,
 		THR_FILESYSTEM,
+		THR_BUS,
+		THR_SCENE,
 		THR_LAST
 	};
 
@@ -56,6 +58,24 @@ namespace detailEngine
 			}
 		}
 
+		void UpdateBus()
+		{
+			while (threadWork)
+				messageBus->NotifySubs();
+		}
+
+		void UpdateScene()
+		{
+			while (threadWork)
+			{
+				//Sleep(10);
+				//std::cout << "buf 0 " << sceneManager->GetMessageCount(0) << "\n";
+				//std::cout << "buf 1 " << sceneManager->GetMessageCount(1) << "\n";
+				sceneManager->sUpdate();
+				sceneManager->Update();
+			}
+		}
+
 		void UpdateThread()
 		{
 			while (threadWork)
@@ -72,15 +92,15 @@ namespace detailEngine
 				console->Update(input, entityController);
 				//assetManager->Update(entityController, fileSystem);
 				profiler->Update();
-				sceneManager->Update();
+				//sceneManager->Update();
 
 				messageLog->sUpdate();
 				console->sUpdate();
 				assetManager->sUpdate();
 				profiler->sUpdate();
-				sceneManager->sUpdate();
+				//sceneManager->sUpdate();
 
-				Sleep(10);
+				Sleep(1);
 
 				timer->EndTime("Update Thread");
 			}
@@ -119,7 +139,7 @@ namespace detailEngine
 			profiler->AddType(MSG_PROFILER);
 			profiler->AddType(MSG_PROFILER_ADD);
 			fileSystem->AddType(MSG_LOAD_DIR);
-			sceneManager->AddType(MSG_ANY);
+			sceneManager->AddType(MSG_MOUSEDELTA);
 
 			threadCount = std::thread::hardware_concurrency();
 
@@ -135,6 +155,8 @@ namespace detailEngine
 
 			threadList[THR_OUTSOURCE] = std::move(std::thread(&Engine::UpdateThread, this));
 			threadList[THR_FILESYSTEM] = std::move(std::thread(&Engine::UpdateFileSystem, this));
+			threadList[THR_BUS] = std::move(std::thread(&Engine::UpdateBus, this));
+			threadList[THR_SCENE] = std::move(std::thread(&Engine::UpdateScene, this));
 
 			entityController->AddEntity("Test");
 			assetManager->AddAsset("TestAsset", "FilePath", CAT_AABB);
@@ -162,7 +184,7 @@ namespace detailEngine
 			renderer->NotifyChannels();
 			timer->NotifyChannels();
 			
-			messageBus->NotifySubs();
+			//messageBus->NotifySubs();
 			
 			timer->StartTime("Rendering");
 			renderer->Update(entityController, assetManager, sceneManager, currentTime, deltaTime);
@@ -176,6 +198,8 @@ namespace detailEngine
 			entityController->sUpdate();
 			renderer->sUpdate();
 			timer->EndTime("Engine Loop");
+
+			pSendMessage(Message(MSG_LOG, std::string("Engine Test"), std::string("Test Passed." + std::to_string(deltaTime))));
 		}
 
 		bool ShouldClose()

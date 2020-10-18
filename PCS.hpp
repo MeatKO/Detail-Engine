@@ -114,6 +114,7 @@ namespace detailEngine
 		void SwapBuffers();
 		void sUpdate();
 		void OnNotify(Message message);
+		int GetMessageCount(bool Buffer);
 
 	protected:
 		virtual void ExecuteMessage(Message message) {}
