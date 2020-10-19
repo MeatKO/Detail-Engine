@@ -24,7 +24,7 @@ namespace detailEngine
 		this->flags = copy.flags;
 		this->assetIDs = copy.assetIDs;
 	}
-	//
+	
 
 	// Component
 	Component::Component() {}
@@ -34,12 +34,6 @@ namespace detailEngine
 		entityID = EntityID;
 		assetID = AssetID;
 	}
-	//Component::Component(Component& copy)
-	//{
-	//	this->entityID = copy.entityID;
-	//	this->assetID = copy.assetID;
-	//}
-	//
 
 	// Entity Controller
 	EntityController::EntityController()
@@ -58,6 +52,7 @@ namespace detailEngine
 			std::lock_guard<std::mutex> mut(ecsMutex);
 			int lastIndex = entityList.size(); // the old size will be the new last index after we push back the entity
 			entityList.push_back(Entity(EntityName));
+			entityList.back().id = lastIndex;
 
 			pSendMessage(Message(MSG_LOG, std::string("ECS Info"), std::string("Added Entity with Name '" + EntityName + "' and ID [" + std::to_string(lastIndex) + "]."))); // Info Log
 
@@ -172,10 +167,8 @@ namespace detailEngine
 		{
 			return entityList[EntityID];
 		}
-		else
-		{
-			pSendMessage(Message(MSG_LOG, std::string("ECS Error"), std::string("Couldn't find Entity with id [" + std::to_string(EntityID) + "]. Returning default Entity."))); // Error
-		}
+
+		pSendMessage(Message(MSG_LOG, std::string("ECS Error"), std::string("Couldn't find Entity with id [" + std::to_string(EntityID) + "]. Returning default Entity."))); // Error
 
 		return entityList[0];
 	}

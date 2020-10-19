@@ -45,6 +45,7 @@ namespace detailEngine
 		{
 			while (threadWork)
 			{
+				Sleep(3000);
 				timer->StartTime("FileSystem Loop");
 
 				fileSystem->NotifyChannels();
@@ -61,19 +62,24 @@ namespace detailEngine
 		void UpdateBus()
 		{
 			while (threadWork)
+			{
 				messageBus->NotifySubs();
+			}
 		}
 
 		void UpdateScene()
 		{
+			double sceneCurrentTime = 0.0f, sceneLastTime = 0.0f, sceneDeltaTime = 0.0f;
+
 			while (threadWork)
 			{
-				//Sleep(10);
-				//std::cout << "buf 0 " << sceneManager->GetMessageCount(0) << "\n";
-				//std::cout << "buf 1 " << sceneManager->GetMessageCount(1) << "\n";
+				sceneLastTime = sceneCurrentTime;
+				sceneCurrentTime = (double)clock() / CLOCKS_PER_SEC;
+				sceneDeltaTime = sceneCurrentTime - sceneLastTime;
+
 				sceneManager->sUpdate();
-				sceneManager->Update();
-			}
+				sceneManager->Update(input, sceneDeltaTime);
+			} 
 		}
 
 		void UpdateThread()
@@ -90,15 +96,12 @@ namespace detailEngine
 
 				input->Update(currentTime);
 				console->Update(input, entityController);
-				//assetManager->Update(entityController, fileSystem);
 				profiler->Update();
-				//sceneManager->Update();
 
 				messageLog->sUpdate();
 				console->sUpdate();
 				assetManager->sUpdate();
 				profiler->sUpdate();
-				//sceneManager->sUpdate();
 
 				Sleep(1);
 
@@ -184,8 +187,6 @@ namespace detailEngine
 			renderer->NotifyChannels();
 			timer->NotifyChannels();
 			
-			//messageBus->NotifySubs();
-			
 			timer->StartTime("Rendering");
 			renderer->Update(entityController, assetManager, sceneManager, currentTime, deltaTime);
 			timer->EndTime("Rendering");
@@ -198,8 +199,6 @@ namespace detailEngine
 			entityController->sUpdate();
 			renderer->sUpdate();
 			timer->EndTime("Engine Loop");
-
-			pSendMessage(Message(MSG_LOG, std::string("Engine Test"), std::string("Test Passed." + std::to_string(deltaTime))));
 		}
 
 		bool ShouldClose()

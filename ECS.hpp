@@ -46,6 +46,7 @@ namespace detailEngine
 		Entity(std::string Name);
 		Entity(std::string Name, Entity& copy);
 		
+		int id = -1; // not used for looping, only to know the ID of the copied Entity in other Systems (useful for error logging)
 		std::string name = "unnamed";
 		std::vector<bool> flags; // resize to EF_LAST
 		std::vector<std::vector<int>> assetIDs; // resize it to CAT_LAST
@@ -56,7 +57,6 @@ namespace detailEngine
 	public:
 		Component();
 		Component(int EntityID, int AssetID);
-		//Component(Component& copy);
 
 		int entityID = -1;
 		int assetID = -1;
