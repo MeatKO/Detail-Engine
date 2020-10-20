@@ -38,7 +38,7 @@ namespace detailEngine
 	}
 
 	// has to be run on the opengl thread... fuuuuuuck
-	void AssetManager::Update(EntityController* entityController, FileSystem* fileSystem)
+	void AssetManager::Update(EntityController* entityController, VirtualFileSystem* fileSystem)
 	{
 		// Process the unprocessed assets
 		for (int i = 0; i < unprocessedAssets.size(); ++i)

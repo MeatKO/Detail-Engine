@@ -251,7 +251,63 @@ namespace detailEngine
 		return info;
 	}
 
-	bool dLoadFile(dFile& newFile, std::string path, std::string name, std::string type)
+	bool VirtualFileSystem::vLoadFile(std::string fullPath)
+	{
+		std::string sanitizedPath = vfsSanitizeFilePath(fullPath);
+		FilePathInfo pathInfo = vfsGetFilePathInfo(sanitizedPath);
+
+		if (pathInfo.name.size() > 0 && pathInfo.type.size() > 0)
+		{
+			vFile newFile;
+
+			std::lock_guard<std::mutex> mut(fileIO);
+
+			if (LoadFile(newFile, pathInfo.path, pathInfo.name, pathInfo.type))
+			{
+				if (newFile.byteSize > 0)
+				{
+					pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Info"),
+						std::string("File '" + pathInfo.name + "." + pathInfo.type + "' was added successfully.")));
+					virtualFileList.push_back(newFile);
+
+					return true;
+				}
+
+				pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Info"),
+					std::string("File '" + pathInfo.name + "." + pathInfo.type + "' had a size of 0 and will not be added.")));
+
+				return false;
+			}
+		}
+		else
+		{
+			pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Error"),
+				std::string("PathInfo error for Path '" + sanitizedPath + "' - Name '" + pathInfo.name + "' - Type '" + pathInfo.type + "'.")));
+			pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Info"),
+				std::string("Sanitizing Path '" + fullPath + "' => '" + sanitizedPath + "'.")));
+		}
+
+		return false;
+	}
+
+	void VirtualFileSystem::Terminate()
+	{
+		std::lock_guard<std::mutex> mut(fileIO);
+
+		for (vFile& file : virtualFileList)
+		{
+			if (file.byteSize > 0)
+			{
+				pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Info"),
+					std::string("File '" + file.fileName + "." + file.fileType + "' was deleted successfully. Freed " + std::to_string(file.byteSize) + " bytes")));
+
+				// Deletes the file data and resets the file size
+				file.Terminate();
+			}
+		}
+	}
+
+	bool VirtualFileSystem::LoadFile(vFile& newFile, std::string path, std::string name, std::string type)
 	{
 		std::string filePath = path + name + "." + type;
 
@@ -262,29 +318,25 @@ namespace detailEngine
 			newFile.fileName = name;
 			newFile.fileType = type;
 			newFile.byteSize = file_in.tellg();
-			newFile.bytes = new unsigned char[newFile.byteSize];
+			newFile.data = new unsigned char[newFile.byteSize];
 
 			file_in.seekg(0);
-			file_in.read((char*)newFile.bytes, newFile.byteSize);
+			file_in.read((char*)newFile.data, newFile.byteSize);
 
 			file_in.close();
-
-			//std::cout << newFile.byteSize << std::endl;
 
 			return true;
 		}
 		else
 		{
-			std::cout << "couldn't open file " << filePath << std::endl;
+			pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Error"), std::string("Cannot open File '" + name + "." + type + "' at '" + path + "'.")));
 		}
 
 		return false;
 	}
 
-	dFile::dFile(std::string FileName, std::string FileType)
+	VirtualFileSystem::~VirtualFileSystem()
 	{
-		fileName = FileName;
-		fileType = FileType;
+		Terminate();
 	}
-
 }

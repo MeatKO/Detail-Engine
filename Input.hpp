@@ -122,36 +122,6 @@ namespace detailEngine
 			}
 		}
 
-		// Returns true only if the specified keys are pressed
-		// If other keys are pressed as well, it returns false
-		bool CheckCombination(int key1 = -1, int key2 = -1, int key3 = -1, int key4 = -1, int key5 = -1)
-		{
-			if ((key1 != -1 && !IsPressed(key1))
-				|| (key2 != -1 && !IsPressed(key2))
-				|| (key3 != -1 && !IsPressed(key3))
-				|| (key4 != -1 && !IsPressed(key4))
-				|| (key5 != -1 && !IsPressed(key5)))
-				return false;
-
-			for (int i = 0; i < 1024; i++)
-			{
-				bool current = false;
-				if (IsPressed(i))
-				{
-					if ((key1 != -1 && key1 == i)
-						|| (key2 != -1 && key2 == i)
-						|| (key3 != -1 && key3 == i)
-						|| (key4 != -1 && key4 == i)
-						|| (key5 != -1 && key5 == i))
-						current = true;
-
-					if (current == false)
-						return false;
-				}
-			}
-			return true;
-		}
-
 		double holdDeltaTime = 1.0f; // in seconds
 		bool capsLock = false;
 		std::vector<Key> keyList;

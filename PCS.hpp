@@ -43,6 +43,7 @@ namespace detailEngine
 		MSG_LOAD_DIR,
 		MSG_PROFILER_ADD,   // string, string (not needed)
 		MSG_PROFILER,       // string, double
+		MSG_STRESSTEST,     // isn't meant to be read, only sent
 		MSG_SCENE
 	};
 

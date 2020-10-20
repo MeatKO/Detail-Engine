@@ -62,21 +62,6 @@ namespace detailEngine
 
 	FilePathInfo vfsGetFilePathInfo(std::string path);
 
-	class dFile
-	{
-	public:
-		dFile() {}
-
-		dFile(std::string FileName, std::string FileType);
-
-		std::string fileName = "";
-		std::string fileType = "";
-		int byteSize = 0;
-		unsigned char* bytes = nullptr;
-	};
-
-	bool dLoadFile(dFile& newFile, std::string path, std::string name, std::string type);
-
 	class Pack
 	{
 	public: 
@@ -87,14 +72,12 @@ namespace detailEngine
 	{
 	public:
 		vFile() {}
-
 		vFile(std::string FileName, std::string FileType)
 		{
 			fileName = FileName;
 			fileType = FileType;
 		}
-
-		vFile(std::string FileName, std::string FileType, char* Data, int ByteSize)
+		vFile(std::string FileName, std::string FileType, unsigned char* Data, int ByteSize)
 		{
 			fileName = FileName;
 			fileType = FileType;
@@ -109,35 +92,28 @@ namespace detailEngine
 		{
 			if (data && byteSize)
 			{
+				byteSize = 0;
 				delete[] data;
 			}
 		}
-
-		std::string GetName()
-		{
-			return fileName;
-		}
-
-		std::string GetType()
-		{
-			return fileType;
-		}
-
-		char* Data()
-		{
-			return data;
-		}
-
-	private:
 		std::string fileName = "";
 		std::string fileType = "";
 		int byteSize = -1;
-		char* data = nullptr;
+		unsigned char* data = nullptr;
 	};
 
 	class VirtualFileSystem : public Publisher, public Subscriber
 	{
 	public:
 		VirtualFileSystem() {}
+		~VirtualFileSystem();
+
+		bool vLoadFile(std::string fullPath);
+
+		void Terminate();
+
+		std::mutex fileIO;
+		bool LoadFile(vFile& newFile, std::string path, std::string name, std::string type);
+		std::vector<vFile> virtualFileList;
 	};
 }

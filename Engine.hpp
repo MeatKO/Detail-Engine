@@ -17,7 +17,6 @@
 #include "OpenGL.hpp"
 #include "Console.hpp"
 #include "Profiler.hpp"
-#include "FileSystem.hpp"
 #include "DebugSystem.hpp"
 #include "AssetManager.hpp"
 #include "Transformation.hpp"
@@ -33,6 +32,7 @@ namespace detailEngine
 		THR_FILESYSTEM,
 		THR_BUS,
 		THR_SCENE,
+		THR_MISC,
 		THR_LAST
 	};
 
@@ -45,15 +45,14 @@ namespace detailEngine
 		{
 			while (threadWork)
 			{
-				Sleep(3000);
 				timer->StartTime("FileSystem Loop");
 
-				fileSystem->NotifyChannels();
-				fileSystem->sUpdate();
-				fileSystem->Update(entityController, assetManager);
-				debugSystem->Update(input, entityController, assetManager);
+				virtualFileSystem->NotifyChannels();
+				virtualFileSystem->sUpdate();
+				//virtualFileSystem->Update(entityController, assetManager);
+				//debugSystem->Update(input, entityController, assetManager);
 
-				Sleep(50);
+				Sleep(1);
 
 				timer->EndTime("FileSystem Loop");
 			}
@@ -67,6 +66,15 @@ namespace detailEngine
 			}
 		}
 
+		//void TestFunc()
+		//{
+		//	while (threadWork)
+		//	{
+		//		Sleep(1000);
+		//		debugSystem->TestMessageBus(4000000);
+		//	}
+		//}
+
 		void UpdateScene()
 		{
 			double sceneCurrentTime = 0.0f, sceneLastTime = 0.0f, sceneDeltaTime = 0.0f;
@@ -79,6 +87,8 @@ namespace detailEngine
 
 				sceneManager->sUpdate();
 				sceneManager->Update(input, sceneDeltaTime);
+
+				Sleep(1);
 			} 
 		}
 
@@ -93,6 +103,7 @@ namespace detailEngine
 				assetManager->NotifyChannels();
 				profiler->NotifyChannels();
 				sceneManager->NotifyChannels();
+				debugSystem->NotifyChannels();
 
 				input->Update(currentTime);
 				console->Update(input, entityController);
@@ -102,6 +113,7 @@ namespace detailEngine
 				console->sUpdate();
 				assetManager->sUpdate();
 				profiler->sUpdate();
+				debugSystem->sUpdate();
 
 				Sleep(1);
 
@@ -118,21 +130,23 @@ namespace detailEngine
 			console->Publish(messageBus);
 			entityController->Publish(messageBus);
 			renderer->Publish(messageBus);
-			fileSystem->Publish(messageBus);
 			assetManager->Publish(messageBus);
 			profiler->Publish(messageBus);
 			timer->Publish(messageBus);
 			sceneManager->Publish(messageBus);
+			virtualFileSystem->Publish(messageBus);
+			debugSystem->Publish(messageBus);
 
 			this->Subscribe(messageBus);
 			messageLog->Subscribe(messageBus);
 			console->Subscribe(messageBus);
 			entityController->Subscribe(messageBus);
 			renderer->Subscribe(messageBus);
-			fileSystem->Subscribe(messageBus);
 			assetManager->Subscribe(messageBus);
 			profiler->Subscribe(messageBus);
 			sceneManager->Subscribe(messageBus);
+			virtualFileSystem->Subscribe(messageBus);
+			debugSystem->Subscribe(messageBus);
 
 			this->AddType(MSG_ENGINE);
 			this->AddType(MSG_CONSOLE);
@@ -141,8 +155,13 @@ namespace detailEngine
 			assetManager->AddType(MSG_ASSET);
 			profiler->AddType(MSG_PROFILER);
 			profiler->AddType(MSG_PROFILER_ADD);
-			fileSystem->AddType(MSG_LOAD_DIR);
 			sceneManager->AddType(MSG_MOUSEDELTA);
+
+			console->AddType(MSG_STRESSTEST);
+			assetManager->AddType(MSG_STRESSTEST);
+			profiler->AddType(MSG_STRESSTEST);
+			profiler->AddType(MSG_STRESSTEST);
+			sceneManager->AddType(MSG_STRESSTEST);
 
 			threadCount = std::thread::hardware_concurrency();
 
@@ -160,13 +179,18 @@ namespace detailEngine
 			threadList[THR_FILESYSTEM] = std::move(std::thread(&Engine::UpdateFileSystem, this));
 			threadList[THR_BUS] = std::move(std::thread(&Engine::UpdateBus, this));
 			threadList[THR_SCENE] = std::move(std::thread(&Engine::UpdateScene, this));
+			//threadList[THR_MISC] = std::move(std::thread(&Engine::TestFunc, this));
 
 			entityController->AddEntity("Test");
 			assetManager->AddAsset("TestAsset", "FilePath", CAT_AABB);
 			entityController->AddComponent("Test", "TestAsset", CAT_AABB, assetManager);
 
-			sceneManager->AddScene("main");
-			sceneManager->GetSceneRef("main").flags[SF_FOCUSED] = true;
+			if (sceneManager->AddScene("main"))
+			{
+				sceneManager->GetSceneRef("main").flags[SF_FOCUSED] = true;
+			}
+
+			virtualFileSystem->vLoadFile("detail/textures/pepega.tga");
 
 			timer->EndTime("Engine Init");
 
@@ -193,7 +217,7 @@ namespace detailEngine
 
 			entityController->Update(assetManager);
 
-			assetManager->Update(entityController, fileSystem);
+			assetManager->Update(entityController, virtualFileSystem);
 
 			this->sUpdate();
 			entityController->sUpdate();
@@ -216,6 +240,22 @@ namespace detailEngine
 				    thr.join();
 				}
 			}
+
+			//entityController->Terminate();
+			//assetManager->Terminate();
+			//sceneManager->Terminate();
+			//messageBus->Terminate();
+			//messageLog->Terminate();
+			//input->Terminate();
+			//renderer->Terminate();
+			//console->Terminate();
+			//debugSystem->Terminate();
+			//profiler->Terminate();
+			//timer->Terminate();
+			virtualFileSystem->Terminate(); virtualFileSystem->NotifyChannels();
+
+			messageBus->NotifySubs();
+			messageLog->sUpdate();
 		}
 
 		void ExecuteMessage(Message message)
@@ -238,7 +278,6 @@ namespace detailEngine
 
 		EntityController* entityController = new EntityController();
 		AssetManager* assetManager = new AssetManager();
-		FileSystem* fileSystem = new FileSystem();
 		SceneManager* sceneManager = new SceneManager();
 		Channel* messageBus = new Channel();
 		Log* messageLog = new Log();

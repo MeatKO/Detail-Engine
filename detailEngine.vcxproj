@@ -157,6 +157,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AssetManager.cpp" />
+    <ClCompile Include="DebugSystem.cpp" />
     <ClCompile Include="dMath.hpp" />
     <ClCompile Include="ECS.cpp" />
     <ClCompile Include="FileSystem.cpp" />

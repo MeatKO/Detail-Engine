@@ -7,10 +7,12 @@
 
 namespace detailEngine
 {
-	class DebugSystem
+	class DebugSystem : public Publisher, public Subscriber
 	{
 	public:
 		DebugSystem() {}
+
+		void TestMessageBus(int messageCount);
 
 		void Update(Input* input, EntityController* entityController, AssetManager* assetManager)
 		{

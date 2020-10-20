@@ -71,7 +71,7 @@ namespace detailEngine
 
 		//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // Wireframe
 
-		glfwSwapInterval(1); // VSYNC
+		glfwSwapInterval(0); // VSYNC
 
 		if (glGenVertexArrays == NULL)
 			pSendMessage(Message(MSG_LOG, std::string("OpenGL Error"), std::string("glGenVertexArray returned NULL at initialization.")));
@@ -128,25 +128,25 @@ namespace detailEngine
 
 		//defaultTextureID = LoadTexture("detail/textures/default.png");
 
-		dFile defaultTex;
-		Texture tex1;
-		std::string error;
-
-		if (dLoadFile(defaultTex, "detail/textures/", "pepega", "bmp"))
-		{
-			std::cout << "file loaded\n";
-
-			if (LoadTexture(tex1, defaultTex.fileName, defaultTex.fileType, defaultTex.bytes, defaultTex.byteSize, error))
-			{
-				std::cout << "texture initialized\n";
-
-				defaultTextureID = InitTexture(tex1);
-			}
-			else
-			{
-				std::cout << error << "\n";
-			}
-		}
+		//dFile defaultTex;
+		//Texture tex1;
+		//std::string error;
+		//
+		//if (dLoadFile(defaultTex, "detail/textures/", "pepega", "bmp"))
+		//{
+		//	std::cout << "file loaded\n";
+		//
+		//	if (LoadTexture(tex1, defaultTex.fileName, defaultTex.fileType, defaultTex.bytes, defaultTex.byteSize, error))
+		//	{
+		//		std::cout << "texture initialized\n";
+		//
+		//		defaultTextureID = InitTexture(tex1);
+		//	}
+		//	else
+		//	{
+		//		std::cout << error << "\n";
+		//	}
+		//}
 
 		std::cout << "Version : " << glGetString(GL_VERSION) << std::endl;
 
@@ -206,7 +206,7 @@ namespace detailEngine
 
 	void OpenGL::Update(EntityController* entityController, AssetManager* assetManager, SceneManager* sceneManager, double currentTime, double deltaTime)
 	{
-		std::lock_guard<std::mutex> mut(contextLock);
+		//std::lock_guard<std::mutex> mut(contextLock);
 
 		glfwPollEvents();
 

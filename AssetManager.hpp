@@ -2,7 +2,7 @@
 
 #include "ECS.hpp"
 #include "OpenGL.hpp"
-
+#include "VFS.hpp"
 #include "glShader.hpp"
 
 namespace detailEngine
@@ -29,7 +29,7 @@ namespace detailEngine
 	public:
 		AssetManager(); // resizes the assetList to CAT_LAST
 		int AddAsset(std::string Name, std::string FilePath, ComponentAssetType Type);
-		void Update(EntityController* entityController, FileSystem* fileSystem); // run ONLY on the openGL context thread !
+		void Update(EntityController* entityController, VirtualFileSystem* fileSystem); // run ONLY on the openGL context thread !
 		int AssetExists(std::string AssetName, ComponentAssetType Type); // returns -1 if the asset doesnt exist, otherwise returns the asset id
 		bool AssetExists(int AssetID, ComponentAssetType Type); // returns -1 if the asset doesnt exist, otherwise returns the asset id
 		Asset GetAsset(int AssetID, ComponentAssetType Type);
