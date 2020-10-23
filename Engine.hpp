@@ -18,6 +18,7 @@
 #include "Console.hpp"
 #include "Profiler.hpp"
 #include "DebugSystem.hpp"
+#include "WorldManager.hpp"
 #include "AssetManager.hpp"
 #include "Transformation.hpp"
 
@@ -31,7 +32,7 @@ namespace detailEngine
 		THR_OUTSOURCE,
 		THR_FILESYSTEM,
 		THR_BUS,
-		THR_SCENE,
+		THR_WORLD,
 		THR_MISC,
 		THR_LAST
 	};
@@ -75,18 +76,18 @@ namespace detailEngine
 		//	}
 		//}
 
-		void UpdateScene()
+		void UpdateWorld()
 		{
-			double sceneCurrentTime = 0.0f, sceneLastTime = 0.0f, sceneDeltaTime = 0.0f;
+			double wCurrentTime = 0.0f, wLastTime = 0.0f, wDeltaTime = 0.0f;
 
 			while (threadWork)
 			{
-				sceneLastTime = sceneCurrentTime;
-				sceneCurrentTime = (double)clock() / CLOCKS_PER_SEC;
-				sceneDeltaTime = sceneCurrentTime - sceneLastTime;
+				wLastTime = wCurrentTime;
+				wCurrentTime = (double)clock() / CLOCKS_PER_SEC;
+				wDeltaTime = wCurrentTime - wLastTime;
 
-				sceneManager->sUpdate();
-				sceneManager->Update(input, sceneDeltaTime);
+				worldManager->sUpdate();
+				worldManager->Update();
 
 				Sleep(1);
 			} 
@@ -102,7 +103,6 @@ namespace detailEngine
 				console->NotifyChannels();
 				assetManager->NotifyChannels();
 				profiler->NotifyChannels();
-				sceneManager->NotifyChannels();
 				debugSystem->NotifyChannels();
 
 				input->Update(currentTime);
@@ -133,9 +133,9 @@ namespace detailEngine
 			assetManager->Publish(messageBus);
 			profiler->Publish(messageBus);
 			timer->Publish(messageBus);
-			sceneManager->Publish(messageBus);
 			virtualFileSystem->Publish(messageBus);
 			debugSystem->Publish(messageBus);
+			worldManager->Publish(messageBus);
 
 			this->Subscribe(messageBus);
 			messageLog->Subscribe(messageBus);
@@ -144,9 +144,9 @@ namespace detailEngine
 			renderer->Subscribe(messageBus);
 			assetManager->Subscribe(messageBus);
 			profiler->Subscribe(messageBus);
-			sceneManager->Subscribe(messageBus);
 			virtualFileSystem->Subscribe(messageBus);
 			debugSystem->Subscribe(messageBus);
+			worldManager->Subscribe(messageBus);
 
 			this->AddType(MSG_ENGINE);
 			this->AddType(MSG_CONSOLE);
@@ -155,13 +155,12 @@ namespace detailEngine
 			assetManager->AddType(MSG_ASSET);
 			profiler->AddType(MSG_PROFILER);
 			profiler->AddType(MSG_PROFILER_ADD);
-			sceneManager->AddType(MSG_MOUSEDELTA);
+			worldManager->AddType(MSG_ANY);
 
 			console->AddType(MSG_STRESSTEST);
 			assetManager->AddType(MSG_STRESSTEST);
 			profiler->AddType(MSG_STRESSTEST);
 			profiler->AddType(MSG_STRESSTEST);
-			sceneManager->AddType(MSG_STRESSTEST);
 
 			threadCount = std::thread::hardware_concurrency();
 
@@ -178,19 +177,12 @@ namespace detailEngine
 			threadList[THR_OUTSOURCE] = std::move(std::thread(&Engine::UpdateThread, this));
 			threadList[THR_FILESYSTEM] = std::move(std::thread(&Engine::UpdateFileSystem, this));
 			threadList[THR_BUS] = std::move(std::thread(&Engine::UpdateBus, this));
-			threadList[THR_SCENE] = std::move(std::thread(&Engine::UpdateScene, this));
+			threadList[THR_WORLD] = std::move(std::thread(&Engine::UpdateWorld, this));
 			//threadList[THR_MISC] = std::move(std::thread(&Engine::TestFunc, this));
 
 			entityController->AddEntity("Test");
 			assetManager->AddAsset("TestAsset", "FilePath", CAT_AABB);
 			entityController->AddComponent("Test", "TestAsset", CAT_AABB, assetManager);
-
-			if (sceneManager->AddScene("main"))
-			{
-				sceneManager->GetSceneRef("main").flags[SF_FOCUSED] = true;
-			}
-
-			virtualFileSystem->vLoadFile("detail/textures/pepega.tga");
 
 			timer->EndTime("Engine Init");
 
@@ -212,7 +204,7 @@ namespace detailEngine
 			timer->NotifyChannels();
 			
 			timer->StartTime("Rendering");
-			renderer->Update(entityController, assetManager, sceneManager, currentTime, deltaTime);
+			renderer->Update(entityController, assetManager, worldManager, currentTime, deltaTime);
 			timer->EndTime("Rendering");
 
 			entityController->Update(assetManager);
@@ -243,7 +235,6 @@ namespace detailEngine
 
 			//entityController->Terminate();
 			//assetManager->Terminate();
-			//sceneManager->Terminate();
 			//messageBus->Terminate();
 			//messageLog->Terminate();
 			//input->Terminate();
@@ -253,6 +244,7 @@ namespace detailEngine
 			//profiler->Terminate();
 			//timer->Terminate();
 			virtualFileSystem->Terminate(); virtualFileSystem->NotifyChannels();
+			worldManager->Terminate(); worldManager->NotifyChannels();
 
 			messageBus->NotifySubs();
 			messageLog->sUpdate();
@@ -278,7 +270,6 @@ namespace detailEngine
 
 		EntityController* entityController = new EntityController();
 		AssetManager* assetManager = new AssetManager();
-		SceneManager* sceneManager = new SceneManager();
 		Channel* messageBus = new Channel();
 		Log* messageLog = new Log();
 		Input* input = new Input();
@@ -288,5 +279,6 @@ namespace detailEngine
 		Profiler* profiler = new Profiler();
 		ProfileTimer* timer = new ProfileTimer();
 		VirtualFileSystem* virtualFileSystem = new VirtualFileSystem();
+		WorldManager* worldManager = new WorldManager();
 	};
 }

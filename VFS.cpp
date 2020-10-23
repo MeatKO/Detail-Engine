@@ -2,6 +2,12 @@
 
 namespace detailEngine
 {
+	std::ostream& operator<<(std::ostream& stream, const FilePathInfo& info)
+	{
+		stream << "FilePathInfo : PATH '" << info.path << "' NAME '" << info.name << "' TYPE '" << info.type << "'.";
+		return stream;
+	}
+
 	bool vfsStringContainsOnly(std::string input, char containedChar)
 	{
 		for (int i = 0; i < input.size(); ++i)
@@ -290,9 +296,61 @@ namespace detailEngine
 		return false;
 	}
 
+	bool VirtualFileSystem::vRemoveFile(std::string fileName, std::string fileType)
+	{
+		return vRemoveFile(GetFileIndex(fileName, fileType)); // literally the function below;
+	}
+
+	bool VirtualFileSystem::vRemoveFile(int fileID)
+	{
+		std::lock_guard<std::mutex> mut(fileIO);
+
+		if (fileID >= 0 && fileID < virtualFileList.size())
+		{
+			pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Info"),
+				std::string("File '" + virtualFileList[fileID].fileName + "." + virtualFileList[fileID].fileType + "' was deleted successfully. Freed " + std::to_string(virtualFileList[fileID].byteSize) + " bytes")));
+			
+			// Deletes the file data and resets the file size
+			virtualFileList[fileID].Terminate();
+			virtualFileList[fileID].deleted = true;
+		}
+
+		return false;
+	}
+
+	FilePathInfo VirtualFileSystem::GetFilePathInfo(std::string fileName, std::string fileType)
+	{
+		return GetFilePathInfo(GetFileIndex(fileName, fileType));
+	}
+
+	FilePathInfo VirtualFileSystem::GetFilePathInfo(int fileID)
+	{
+		if (fileID >= 0 && fileID < virtualFileList.size())
+		{
+			FilePathInfo newInfo;
+			newInfo.name = virtualFileList[fileID].fileName;
+			newInfo.type = virtualFileList[fileID].fileType;
+			newInfo.path = virtualFileList[fileID].filePath;
+
+			return newInfo;
+		}
+
+		return defaultFilePathInfo;
+	}
+
 	void VirtualFileSystem::Terminate()
 	{
 		std::lock_guard<std::mutex> mut(fileIO);
+		int totalNonEmpty = 0;
+
+		for (vFile& file : virtualFileList)
+		{
+			if (file.byteSize > 0)
+				totalNonEmpty++;
+		}
+
+		pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Info"), std::string("Total number of files loaded : " + std::to_string(virtualFileList.size()))));
+		pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Info"), std::string("Total number of files loaded : " + std::to_string(totalNonEmpty) + " ( Size > 0 )")));
 
 		for (vFile& file : virtualFileList)
 		{
@@ -305,6 +363,9 @@ namespace detailEngine
 				file.Terminate();
 			}
 		}
+
+		pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Info"), std::string("Termination successful.")));
+
 	}
 
 	bool VirtualFileSystem::LoadFile(vFile& newFile, std::string path, std::string name, std::string type)
@@ -317,6 +378,7 @@ namespace detailEngine
 		{
 			newFile.fileName = name;
 			newFile.fileType = type;
+			newFile.filePath = path;
 			newFile.byteSize = file_in.tellg();
 			newFile.data = new unsigned char[newFile.byteSize];
 
@@ -335,8 +397,28 @@ namespace detailEngine
 		return false;
 	}
 
+	VirtualFileSystem::VirtualFileSystem()
+	{
+		defaultFilePathInfo.name = "DEFAULT";
+		defaultFilePathInfo.type = "DEFAULT";
+		defaultFilePathInfo.path = "DEFAULT";
+	}
+
 	VirtualFileSystem::~VirtualFileSystem()
 	{
 		Terminate();
+	}
+
+	int VirtualFileSystem::GetFileIndex(std::string fileName, std::string fileType)
+	{
+		std::lock_guard<std::mutex> mut(fileIO);
+
+		for (int i = 0; i < virtualFileList.size(); ++i)
+		{
+			if (virtualFileList[i].fileName == fileName && virtualFileList[i].fileType == fileType && !virtualFileList[i].deleted)
+				return i;
+		}
+
+		return -1;
 	}
 }

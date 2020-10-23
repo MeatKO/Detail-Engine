@@ -25,6 +25,8 @@ namespace detailEngine
 		std::string path = "";
 		std::string name = "";
 		std::string type = "";
+
+		friend std::ostream& operator <<(std::ostream& stream, const FilePathInfo& info);
 	};
 
 	// returns true if the input string contains only containedChar
@@ -72,15 +74,17 @@ namespace detailEngine
 	{
 	public:
 		vFile() {}
-		vFile(std::string FileName, std::string FileType)
+		vFile(std::string FileName, std::string FileType, std::string FilePath = "")
 		{
 			fileName = FileName;
 			fileType = FileType;
+			filePath = FilePath;
 		}
-		vFile(std::string FileName, std::string FileType, unsigned char* Data, int ByteSize)
+		vFile(std::string FileName, std::string FileType, std::string FilePath, unsigned char* Data, int ByteSize)
 		{
 			fileName = FileName;
 			fileType = FileType;
+			filePath = FilePath;
 			data = Data;
 			byteSize = ByteSize;
 		}
@@ -90,14 +94,17 @@ namespace detailEngine
 		// i might've used smart pointers but eh
 		void Terminate()
 		{
-			if (data && byteSize)
+			if ((data != nullptr) && (byteSize >= 0))
 			{
-				byteSize = 0;
+				byteSize = -1;
 				delete[] data;
 			}
 		}
+
+		bool deleted = false;
 		std::string fileName = "";
 		std::string fileType = "";
+		std::string filePath = "";
 		int byteSize = -1;
 		unsigned char* data = nullptr;
 	};
@@ -105,15 +112,23 @@ namespace detailEngine
 	class VirtualFileSystem : public Publisher, public Subscriber
 	{
 	public:
-		VirtualFileSystem() {}
+		VirtualFileSystem();
 		~VirtualFileSystem();
 
+		int GetFileIndex(std::string fileName, std::string fileType);
+
 		bool vLoadFile(std::string fullPath);
+		bool vRemoveFile(std::string fileName, std::string fileType);
+		bool vRemoveFile(int fileID);
+
+		FilePathInfo GetFilePathInfo(std::string fileName, std::string fileType);
+		FilePathInfo GetFilePathInfo(int fileID);
 
 		void Terminate();
 
 		std::mutex fileIO;
 		bool LoadFile(vFile& newFile, std::string path, std::string name, std::string type);
 		std::vector<vFile> virtualFileList;
+		FilePathInfo defaultFilePathInfo; // all fields will be set to "DEFAULT"
 	};
 }

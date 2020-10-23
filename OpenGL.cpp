@@ -201,50 +201,47 @@ namespace detailEngine
 		mouseLastX = xPos;
 		mouseLastY = yPos;
 
+		playerCamera.ProcessMouseMovement(xOffset, yOffset);
+
 		pSendMessage(Message(MSG_MOUSEDELTA, float(xOffset), float(yOffset)));
 	}
 
-	void OpenGL::Update(EntityController* entityController, AssetManager* assetManager, SceneManager* sceneManager, double currentTime, double deltaTime)
+	void OpenGL::Update(EntityController* entityController, AssetManager* assetManager, WorldManager* worldManager, double currentTime, double deltaTime)
 	{
 		//std::lock_guard<std::mutex> mut(contextLock);
 
 		glfwPollEvents();
 
-		for (int i = 0; i < sceneManager->sceneList.size(); ++i)
-		{
-			Scene& currentScene = sceneManager->GetSceneRef(0);
-			Camera& camera = currentScene.camera;
+		playerCamera.ProcessKeyboardInput(input, (float)deltaTime);
 			
-			// stuff
-			
-			glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-			glClearColor(0.1f, 0.1f, 0.8f, 1.0f);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-			
-			glm::mat4 projection = glm::perspective(camera.GetZoom(), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.01f, 1000.0f);
-			glm::mat4 view = glm::mat4(1);
-			glm::mat4 model = glm::mat4(1);
-			
-			view = glm::mat4(glm::mat3(camera.GetViewMatrix()));
-			skyTexture->Draw(*skybox, view, projection);
-			
-			view = camera.GetViewMatrix();
-			
-			modelShader->Use();
-			
-			glUniformMatrix4fv(glGetUniformLocation(modelShader->Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
-			glUniformMatrix4fv(glGetUniformLocation(modelShader->Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-			glUniformMatrix4fv(glGetUniformLocation(modelShader->Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
-			glUniform3f(glGetUniformLocation(modelShader->Program, "viewPos"), camera.GetPosition().x, camera.GetPosition().y, camera.GetPosition().z);
-			glUniform3f(glGetUniformLocation(modelShader->Program, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
-			
-			glBindTexture(GL_TEXTURE_2D, defaultTextureID);
-			
-			glBindVertexArray(defaultVAO);
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, defaultEBO);
-			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-			glBindVertexArray(0);
-		}
+		glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+		glClearColor(0.1f, 0.1f, 0.8f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		
+		//glm::mat4 projection = glm::perspective(camera.GetZoom(), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.01f, 1000.0f);
+		glm::mat4 projection = glm::perspective(playerCamera.GetZoom(), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.01f, 1000.0f);
+		glm::mat4 view = glm::mat4(1);
+		glm::mat4 model = glm::mat4(1);
+		
+		view = glm::mat4(glm::mat3(playerCamera.GetViewMatrix()));
+		skyTexture->Draw(*skybox, view, projection);
+		
+		view = playerCamera.GetViewMatrix();
+		
+		modelShader->Use();
+		
+		glUniformMatrix4fv(glGetUniformLocation(modelShader->Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+		glUniformMatrix4fv(glGetUniformLocation(modelShader->Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+		glUniformMatrix4fv(glGetUniformLocation(modelShader->Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
+		glUniform3f(glGetUniformLocation(modelShader->Program, "viewPos"), playerCamera.GetPosition().x, playerCamera.GetPosition().y, playerCamera.GetPosition().z);
+		glUniform3f(glGetUniformLocation(modelShader->Program, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+		
+		glBindTexture(GL_TEXTURE_2D, defaultTextureID);
+		
+		glBindVertexArray(defaultVAO);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, defaultEBO);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		glBindVertexArray(0);
 
 		glfwSwapBuffers(glWindow);
 	}

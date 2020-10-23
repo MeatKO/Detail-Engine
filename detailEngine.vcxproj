@@ -203,6 +203,7 @@
     <ClInclude Include="Scene.hpp" />
     <ClInclude Include="Transformation.hpp" />
     <ClInclude Include="VFS.hpp" />
+    <ClInclude Include="WorldManager.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
