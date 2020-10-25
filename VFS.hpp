@@ -112,20 +112,19 @@ namespace detailEngine
 		std::string fileName = "";
 		std::string fileType = "";
 		std::string filePhysicalPath = "";
+		time_t lastModified = 0;
 		int byteSize = -1;
 		unsigned char* data = nullptr;
 	};
 
-	class VirtualDir
+	class vDir
 	{
 	public:
-		VirtualDir() {}
-		VirtualDir(std::string Name);
-
-		int GetSubDirID(std::string SubDirName);
+		vDir() {}
+		vDir(std::string Name);
 
 		std::string name;
-		std::vector<VirtualDir> subDirs;
+		std::vector<int> subDirs;
 		std::vector<int> fileIDs;
 	};
 
@@ -134,8 +133,12 @@ namespace detailEngine
 	class VirtualFileTree
 	{
 	public:
-		VirtualDir rootDir{ "root" };
+		vDir rootDir{ "root" };
 
+		bool vftLoadFile(std::string fullPath, std::string virtualPath);
+
+		std::vector<vFile> virtualFileList;
+		std::vector<vDir> virtualDirectoryList;
 	};
 
 	class VirtualFileSystem : public Publisher, public Subscriber
@@ -146,7 +149,9 @@ namespace detailEngine
 
 		void PrintTree();
 		bool vLoadFile(std::string fullPath, std::string virtualPath);
+
 		FilePathInfo GetFilePathInfo(int fileID);
+
 		void Terminate();
 		void CheckFileModifications(); // checks if any of the loaded files were modified on the disk
 
@@ -154,7 +159,6 @@ namespace detailEngine
 		VirtualFileTree fileTree;
 		std::mutex fileIO;
 		bool LoadFile(vFile& newFile, std::string path, std::string name, std::string type);
-		std::vector<vFile> virtualFileList;
 		FilePathInfo defaultFilePathInfo; // all fields will be set to "DEFAULT"
 	};
 }

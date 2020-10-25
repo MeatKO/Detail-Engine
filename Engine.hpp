@@ -195,6 +195,8 @@ namespace detailEngine
 			//entityController->AddComponent("Test", "TestAsset", CAT_AABB, assetManager);
 			worldManager->AddDimension("main");
 
+			//vfsEnsureDirectory("detail/testcase1/subfoler/");
+
 			//virtualFileSystem->vEnsureVirtualDir("root/kekw/kekw2");
 			//virtualFileSystem->PrintTree();
 

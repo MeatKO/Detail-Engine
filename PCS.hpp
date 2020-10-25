@@ -45,6 +45,7 @@ namespace detailEngine
 		MSG_PROFILER,       // string, double
 		MSG_STRESSTEST,     // isn't meant to be read, only sent
 		MSG_FILE_MODIFIED,  // will contain a FilePathInfo object and a new time
+		MSG_CREATE_DIR,     // will contain a string with the desired path
 		MSG_SCENE
 	};
 

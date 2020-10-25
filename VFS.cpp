@@ -299,39 +299,39 @@ namespace detailEngine
 
 	bool VirtualFileSystem::vLoadFile(std::string fullPath, std::string virtualPath)
 	{
-		std::string sanitizedPath = vfsSanitizeFilePath(fullPath);
-		FilePathInfo pathInfo = vfsGetFilePathInfo(sanitizedPath);
-
-		if (pathInfo.name.size() > 0 && pathInfo.type.size() > 0)
-		{
-			vFile newFile;
-
-			std::lock_guard<std::mutex> mut(fileIO);
-
-			if (LoadFile(newFile, pathInfo.path, pathInfo.name, pathInfo.type))
-			{
-				if (newFile.byteSize > 0)
-				{
-					pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Info"),
-						std::string("File '" + pathInfo.name + "." + pathInfo.type + "' was added successfully.")));
-					virtualFileList.push_back(newFile);
-
-					return true;
-				}
-
-				pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Info"),
-					std::string("File '" + pathInfo.name + "." + pathInfo.type + "' had a size of 0 and will not be added.")));
-
-				return false;
-			}
-		}
-		else
-		{
-			pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Error"),
-				std::string("PathInfo error for Path '" + sanitizedPath + "' - Name '" + pathInfo.name + "' - Type '" + pathInfo.type + "'.")));
-			pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Info"),
-				std::string("Sanitizing Path '" + fullPath + "' => '" + sanitizedPath + "'.")));
-		}
+		//std::string sanitizedPath = vfsSanitizeFilePath(fullPath);
+		//FilePathInfo pathInfo = vfsGetFilePathInfo(sanitizedPath);
+		//
+		//if (pathInfo.name.size() > 0 && pathInfo.type.size() > 0)
+		//{
+		//	vFile newFile;
+		//
+		//	std::lock_guard<std::mutex> mut(fileIO);
+		//
+		//	if (LoadFile(newFile, pathInfo.path, pathInfo.name, pathInfo.type))
+		//	{
+		//		if (newFile.byteSize > 0)
+		//		{
+		//			pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Info"),
+		//				std::string("File '" + pathInfo.name + "." + pathInfo.type + "' was added successfully.")));
+		//			virtualFileList.push_back(newFile);
+		//
+		//			return true;
+		//		}
+		//
+		//		pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Info"),
+		//			std::string("File '" + pathInfo.name + "." + pathInfo.type + "' had a size of 0 and will not be added.")));
+		//
+		//		return false;
+		//	}
+		//}
+		//else
+		//{
+		//	pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Error"),
+		//		std::string("PathInfo error for Path '" + sanitizedPath + "' - Name '" + pathInfo.name + "' - Type '" + pathInfo.type + "'.")));
+		//	pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Info"),
+		//		std::string("Sanitizing Path '" + fullPath + "' => '" + sanitizedPath + "'.")));
+		//}
 
 		return false;
 	}
@@ -370,12 +370,12 @@ namespace detailEngine
 
 	FilePathInfo VirtualFileSystem::GetFilePathInfo(int fileID)
 	{
-		if (fileID >= 0 && fileID < virtualFileList.size())
+		if (fileID >= 0 && fileID < fileTree.virtualFileList.size())
 		{
 			FilePathInfo newInfo;
-			newInfo.name = virtualFileList[fileID].fileName;
-			newInfo.type = virtualFileList[fileID].fileType;
-			newInfo.path = virtualFileList[fileID].filePhysicalPath;
+			newInfo.name = fileTree.virtualFileList[fileID].fileName;
+			newInfo.type = fileTree.virtualFileList[fileID].fileType;
+			newInfo.path = fileTree.virtualFileList[fileID].filePhysicalPath;
 
 			return newInfo;
 		}
@@ -388,16 +388,16 @@ namespace detailEngine
 		std::lock_guard<std::mutex> mut(fileIO);
 		int totalNonEmpty = 0;
 
-		for (vFile& file : virtualFileList)
+		for (vFile& file : fileTree.virtualFileList)
 		{
 			if (file.byteSize > 0)
 				totalNonEmpty++;
 		}
 
-		pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Info"), std::string("Total number of files loaded : " + std::to_string(virtualFileList.size()))));
+		pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Info"), std::string("Total number of files loaded : " + std::to_string(fileTree.virtualFileList.size()))));
 		pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Info"), std::string("Total number of files loaded : " + std::to_string(totalNonEmpty) + " ( Size > 0 )")));
 
-		for (vFile& file : virtualFileList)
+		for (vFile& file : fileTree.virtualFileList)
 		{
 			if (file.byteSize > 0)
 			{
@@ -515,9 +515,14 @@ namespace detailEngine
 	//	return false;
 	//}
 
-	VirtualDir::VirtualDir(std::string Name)
+	vDir::vDir(std::string Name)
 	{
 		name = Name;
+	}
+
+	bool VirtualFileTree::vftLoadFile(std::string fullPath, std::string virtualPath)
+	{
+		return false;
 	}
 
 	//bool VirtualDir::RecPathSearch(int index, std::vector<std::string>& tokens)
@@ -569,15 +574,4 @@ namespace detailEngine
 	//	//	subDirs[i].RecPrintDirs(spacing + 1);
 	//	//}
 	//}
-
-	int VirtualDir::GetSubDirID(std::string SubDirName)
-	{
-		for (int i = 0; i < subDirs.size(); ++i)
-		{
-			if (subDirs[i].name == SubDirName)
-				return i;
-		}
-
-		return -1;
-	}
 }
