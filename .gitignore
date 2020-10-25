@@ -29,6 +29,7 @@ bld/
 [Oo]bj/
 [Ll]og/
 old/
+glm/out/
 
 !/OpenGL/**
 
