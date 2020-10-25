@@ -206,7 +206,7 @@ namespace detailEngine
 		{
 			// gradually add the directories and create them one by one
 			currentPath += tokens[i] + '/';
-			
+
 			if (!fs::exists(currentPath))
 			{
 				if (!fs::create_directory(currentPath))
@@ -253,11 +253,51 @@ namespace detailEngine
 			info.path = vfsAssemblePath(pathTokens);
 
 		}
-		
+
 		return info;
 	}
 
-	bool VirtualFileSystem::vLoadFile(std::string fullPath)
+	bool vfsPathExists(std::string path)
+	{
+		struct stat info;
+
+		int statRC = stat(vfsSanitizeFilePath(path).c_str(), &info);
+		if (statRC != 0)
+		{
+			if (errno == ENOENT) { return 0; } // something along the path does not exist
+			if (errno == ENOTDIR) { return 0; } // something in path prefix is not a dir
+			return false;
+		}
+
+		return (info.st_mode & S_IFDIR) ? true : false;
+	}
+
+	bool vfsPhysicalFileExists(std::string filePath)
+	{
+		struct stat info;
+		int statRC = stat(vfsSanitizeFilePath(filePath).c_str(), &info);
+
+		if (statRC == 0)
+			return true;
+
+		return false;
+	}
+
+	time_t vfsLastModified(std::string path)
+	{
+		struct stat info;
+
+		int statRC = stat(path.c_str(), &info);
+
+		if (statRC == 0)
+		{
+			return info.st_mtime;
+		}
+
+		return -1;
+	}
+
+	bool VirtualFileSystem::vLoadFile(std::string fullPath, std::string virtualPath)
 	{
 		std::string sanitizedPath = vfsSanitizeFilePath(fullPath);
 		FilePathInfo pathInfo = vfsGetFilePathInfo(sanitizedPath);
@@ -296,32 +336,37 @@ namespace detailEngine
 		return false;
 	}
 
-	bool VirtualFileSystem::vRemoveFile(std::string fileName, std::string fileType)
-	{
-		return vRemoveFile(GetFileIndex(fileName, fileType)); // literally the function below;
-	}
+	//bool VirtualFileSystem::vRemoveFile(std::string fileName, std::string fileType)
+	//{
+	//	return vRemoveFile(GetFileIndex(fileName, fileType)); // literally the function below;
+	//}
 
-	bool VirtualFileSystem::vRemoveFile(int fileID)
-	{
-		std::lock_guard<std::mutex> mut(fileIO);
+	//bool VirtualFileSystem::vRemoveFile(int fileID)
+	//{
+	//	std::lock_guard<std::mutex> mut(fileIO);
+	//
+	//	if (fileID >= 0 && fileID < virtualFileList.size())
+	//	{
+	//		pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Info"),
+	//			std::string("File '" + virtualFileList[fileID].fileName + "." + virtualFileList[fileID].fileType + "' was deleted successfully. Freed " + std::to_string(virtualFileList[fileID].byteSize) + " bytes")));
+	//		
+	//		// Deletes the file data and resets the file size
+	//		virtualFileList[fileID].Terminate();
+	//		virtualFileList[fileID].deleted = true;
+	//	}
+	//
+	//	return false;
+	//}
+	//
+	//void VirtualFileSystem::vEnsureVirtualDir(std::string path)
+	//{
+	//	fileTree.vftEnsurePath(path);
+	//}
 
-		if (fileID >= 0 && fileID < virtualFileList.size())
-		{
-			pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Info"),
-				std::string("File '" + virtualFileList[fileID].fileName + "." + virtualFileList[fileID].fileType + "' was deleted successfully. Freed " + std::to_string(virtualFileList[fileID].byteSize) + " bytes")));
-			
-			// Deletes the file data and resets the file size
-			virtualFileList[fileID].Terminate();
-			virtualFileList[fileID].deleted = true;
-		}
-
-		return false;
-	}
-
-	FilePathInfo VirtualFileSystem::GetFilePathInfo(std::string fileName, std::string fileType)
-	{
-		return GetFilePathInfo(GetFileIndex(fileName, fileType));
-	}
+	//FilePathInfo VirtualFileSystem::GetFilePathInfo(std::string fileName, std::string fileType)
+	//{
+	//	return GetFilePathInfo(GetFileIndex(fileName, fileType));
+	//}
 
 	FilePathInfo VirtualFileSystem::GetFilePathInfo(int fileID)
 	{
@@ -330,7 +375,7 @@ namespace detailEngine
 			FilePathInfo newInfo;
 			newInfo.name = virtualFileList[fileID].fileName;
 			newInfo.type = virtualFileList[fileID].fileType;
-			newInfo.path = virtualFileList[fileID].filePath;
+			newInfo.path = virtualFileList[fileID].filePhysicalPath;
 
 			return newInfo;
 		}
@@ -368,6 +413,11 @@ namespace detailEngine
 
 	}
 
+	void VirtualFileSystem::CheckFileModifications()
+	{
+
+	}
+
 	bool VirtualFileSystem::LoadFile(vFile& newFile, std::string path, std::string name, std::string type)
 	{
 		std::string filePath = path + name + "." + type;
@@ -378,7 +428,7 @@ namespace detailEngine
 		{
 			newFile.fileName = name;
 			newFile.fileType = type;
-			newFile.filePath = path;
+			newFile.filePhysicalPath = path;
 			newFile.byteSize = file_in.tellg();
 			newFile.data = new unsigned char[newFile.byteSize];
 
@@ -409,13 +459,122 @@ namespace detailEngine
 		Terminate();
 	}
 
-	int VirtualFileSystem::GetFileIndex(std::string fileName, std::string fileType)
+	void VirtualFileSystem::PrintTree()
 	{
-		std::lock_guard<std::mutex> mut(fileIO);
+		//fileTree.rootDir.RecPrintDirs(0);
+	}
 
-		for (int i = 0; i < virtualFileList.size(); ++i)
+	//int VirtualFileSystem::GetFileIndex(std::string fileName, std::string fileType)
+	//{
+	//	std::lock_guard<std::mutex> mut(fileIO);
+	//
+	//	for (int i = 0; i < virtualFileList.size(); ++i)
+	//	{
+	//		if (virtualFileList[i].fileName == fileName && virtualFileList[i].fileType == fileType && !virtualFileList[i].deleted)
+	//			return i;
+	//	}
+	//
+	//	return -1;
+	//}
+
+	//int VirtualFileTree::vftCheckPath(std::string path)
+	//{
+	//	std::string sanitizedPath = vfsSanitizeFilePath(path);
+	//
+	//	// using FilePathInfo to filter the path in case there are file name & type (who knows)
+	//	FilePathInfo pathInfo = vfsGetFilePathInfo(sanitizedPath);
+	//	std::vector<std::string> pathTokens = vfsGetPathTokens(pathInfo.path);
+	//
+	//	if (pathTokens.size() > 0)
+	//	{
+	//		if (pathTokens[0] != "root")
+	//		{
+	//			// invalid path (missing root)
+	//			return -1;
+	//		}
+	//		
+	//		return rootDir.RecPathSearch(1, pathTokens);
+	//	}
+	//
+	//	return 0;
+	//}
+	//
+	//void VirtualFileTree::vftEnsurePath(std::string path)
+	//{
+	//	std::string sanitizedPath = vfsSanitizeFilePath(path);
+	//
+	//	// using FilePathInfo to filter the path in case there are file name & type (who knows)
+	//	FilePathInfo pathInfo = vfsGetFilePathInfo(sanitizedPath);
+	//	std::vector<std::string> pathTokens = vfsGetPathTokens(pathInfo.path);
+	//
+	//	rootDir.RecEnsurePath(1, pathTokens);
+	//}
+	//
+	//bool VirtualFileTree::vftAddFile(std::string path, int fileID)
+	//{
+	//	return false;
+	//}
+
+	VirtualDir::VirtualDir(std::string Name)
+	{
+		name = Name;
+	}
+
+	//bool VirtualDir::RecPathSearch(int index, std::vector<std::string>& tokens)
+	//{
+	//	if (index == tokens.size() - 1)
+	//	{
+	//		if (GetSubDirID(tokens.back()) >= 0)
+	//		{
+	//			return  true;
+	//		}
+	//		return false;
+	//	}
+	//
+	//	int subDirID = GetSubDirID(tokens[index]);
+	//	if (subDirID >= 0)
+	//	{
+	//		subDirs[subDirID].RecPathSearch(index + 1, tokens);
+	//	}
+	//	else
+	//	{
+	//		return false;
+	//	}
+	//}
+	//
+	//void VirtualDir::RecEnsurePath(int index, std::vector<std::string>& tokens)
+	//{
+	//	if (index == tokens.size())
+	//		return;
+	//
+	//	int subDirID = GetSubDirID(tokens[index]);
+	//	if (subDirID >= 0)
+	//	{
+	//		subDirs[subDirID].RecPathSearch(index + 1, tokens);
+	//	}
+	//	else
+	//	{
+	//		subDirs.push_back(VirtualDir(tokens[index]));
+	//		subDirs.back().RecPathSearch(index + 1, tokens);
+	//	}
+	//}
+	//
+	//void VirtualDir::RecPrintDirs(int spacing)
+	//{
+	//	//std::string space = std::string(spacing, ' ');
+	//	//
+	//	//for (int i = 0; i < subDirs.size(); ++i)
+	//	//{
+	//	//	std::cout << space << "-" << subDirs[i].name << "\n";
+	//	//	subDirs[i].RecPrintDirs(spacing + 1);
+	//	//}
+	//}
+
+	int VirtualDir::GetSubDirID(std::string SubDirName)
+	{
+		for (int i = 0; i < subDirs.size(); ++i)
 		{
-			if (virtualFileList[i].fileName == fileName && virtualFileList[i].fileType == fileType && !virtualFileList[i].deleted)
+			if (subDirs[i].name == SubDirName)
 				return i;
 		}
 

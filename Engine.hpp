@@ -53,7 +53,7 @@ namespace detailEngine
 				//virtualFileSystem->Update(entityController, assetManager);
 				//debugSystem->Update(input, entityController, assetManager);
 
-				Sleep(1);
+				Sleep(10);
 
 				timer->EndTime("FileSystem Loop");
 			}
@@ -86,6 +86,7 @@ namespace detailEngine
 				wCurrentTime = (double)clock() / CLOCKS_PER_SEC;
 				wDeltaTime = wCurrentTime - wLastTime;
 
+				worldManager->NotifyChannels();
 				worldManager->sUpdate();
 				worldManager->Update();
 
@@ -172,7 +173,16 @@ namespace detailEngine
 			threadList.resize(THR_LAST);
 
 			if (!renderer->Init("deta:l Engine", 1200, 900, input, 4, 5))
+			{
 				pSendMessage(Message(MSG_LOG, std::string("Engine Error"), std::string("Renderer initialization failed.")));
+				shouldClose = true;
+			}
+
+			if (!worldManager->Init(entityController))
+			{
+				pSendMessage(Message(MSG_LOG, std::string("Engine Error"), std::string("WorldManager initialization failed.")));
+				shouldClose = true;
+			}
 
 			threadList[THR_OUTSOURCE] = std::move(std::thread(&Engine::UpdateThread, this));
 			threadList[THR_FILESYSTEM] = std::move(std::thread(&Engine::UpdateFileSystem, this));
@@ -180,9 +190,13 @@ namespace detailEngine
 			threadList[THR_WORLD] = std::move(std::thread(&Engine::UpdateWorld, this));
 			//threadList[THR_MISC] = std::move(std::thread(&Engine::TestFunc, this));
 
-			entityController->AddEntity("Test");
-			assetManager->AddAsset("TestAsset", "FilePath", CAT_AABB);
-			entityController->AddComponent("Test", "TestAsset", CAT_AABB, assetManager);
+			//entityController->AddEntity("Test");
+			//assetManager->AddAsset("TestAsset", "FilePath", CAT_AABB);
+			//entityController->AddComponent("Test", "TestAsset", CAT_AABB, assetManager);
+			worldManager->AddDimension("main");
+
+			//virtualFileSystem->vEnsureVirtualDir("root/kekw/kekw2");
+			//virtualFileSystem->PrintTree();
 
 			timer->EndTime("Engine Init");
 

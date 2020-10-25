@@ -19,7 +19,7 @@ namespace detailEngine
 	{
 	public:
 		Dimension() {}
-		Dimension(std::string Name, int ID) 
+		Dimension(std::string Name, int ID)
 		{
 			id = ID;
 			name = Name;
@@ -77,6 +77,18 @@ namespace detailEngine
 	public:
 		WorldManager() {};
 
+		bool Init(EntityController* entCtrl)
+		{
+			if (entCtrl)
+			{
+				entityController = entCtrl;
+
+				return true;
+			}
+
+			return false;
+		}
+
 		void Update()
 		{
 
@@ -107,6 +119,31 @@ namespace detailEngine
 			pSendMessage(Message(MSG_LOG, std::string("World Manager Info"), std::string("Termination successful.")));
 		}
 
+		void AddEntity(int EntityID, int DimensionID = 0)
+		{
+			Dimension* dimension = GetDimension(DimensionID);
+
+			if (dimension)
+			{
+				Entity entity = entityController->GetEntity(EntityID);
+
+				if (entity.id == EntityID)
+				{
+					dimension->AddEntity(&entity);
+				}
+				else
+				{
+					pSendMessage(Message(MSG_LOG, std::string("World Manager Error"),
+						std::string("Tried to add unexisting Entity [" + std::to_string(EntityID) + "] to Dimension '" + dimension->name + "' [" + std::to_string(DimensionID) + "].")));
+				}
+			}
+			else
+			{
+				pSendMessage(Message(MSG_LOG, std::string("World Manager Error"),
+					std::string("Tried to add Entity [" + std::to_string(EntityID) + "] to an unexisting Dimension [" + std::to_string(DimensionID) + "].")));
+			}
+		}
+
 		// The name must be unique
 		void AddDimension(std::string DimensionName)
 		{
@@ -122,7 +159,7 @@ namespace detailEngine
 			}
 
 			pSendMessage(Message(MSG_LOG, std::string("World Manager Info"),
-				std::string("Dimension '" + DimensionName + "' [" + std::to_string(dimensionPtrs.size()) +"] was Added to the list.")));
+				std::string("Dimension '" + DimensionName + "' [" + std::to_string(dimensionPtrs.size()) + "] was Added to the list.")));
 			// dimensionPtrs.size() will give us the ID of the current element we push, after it gets pushed
 			Dimension* newDimension = new Dimension(DimensionName, dimensionPtrs.size());
 			dimensionPtrs.push_back(newDimension);
@@ -200,6 +237,7 @@ namespace detailEngine
 		}
 
 	private:
+		EntityController* entityController;
 		std::mutex dimensionMutex;
 		std::vector<Dimension*> dimensionPtrs;
 	};

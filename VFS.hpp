@@ -64,9 +64,13 @@ namespace detailEngine
 
 	FilePathInfo vfsGetFilePathInfo(std::string path);
 
+	bool vfsPathExists(std::string path);
+	bool vfsPhysicalFileExists(std::string filePath);
+	time_t vfsLastModified(std::string path);
+
 	class Pack
 	{
-	public: 
+	public:
 		Pack() {}
 	};
 
@@ -74,19 +78,21 @@ namespace detailEngine
 	{
 	public:
 		vFile() {}
-		vFile(std::string FileName, std::string FileType, std::string FilePath = "")
+		vFile(std::string FileName, std::string FileType, std::string FilePath = "", int fileID = -1)
 		{
 			fileName = FileName;
 			fileType = FileType;
-			filePath = FilePath;
+			filePhysicalPath = FilePath;
+			id = fileID;
 		}
-		vFile(std::string FileName, std::string FileType, std::string FilePath, unsigned char* Data, int ByteSize)
+		vFile(std::string FileName, std::string FileType, std::string FilePath, int fileID, unsigned char* Data, int ByteSize)
 		{
 			fileName = FileName;
 			fileType = FileType;
-			filePath = FilePath;
+			filePhysicalPath = FilePath;
 			data = Data;
 			byteSize = ByteSize;
+			id = fileID;
 		}
 
 		// for manual destruction of the data when the engine terminates
@@ -101,12 +107,35 @@ namespace detailEngine
 			}
 		}
 
+		int id = -1;
 		bool deleted = false;
 		std::string fileName = "";
 		std::string fileType = "";
-		std::string filePath = "";
+		std::string filePhysicalPath = "";
 		int byteSize = -1;
 		unsigned char* data = nullptr;
+	};
+
+	class VirtualDir
+	{
+	public:
+		VirtualDir() {}
+		VirtualDir(std::string Name);
+
+		int GetSubDirID(std::string SubDirName);
+
+		std::string name;
+		std::vector<VirtualDir> subDirs;
+		std::vector<int> fileIDs;
+	};
+
+	// Every virtual file path should start with "root/"...
+	// Virtual file paths that start with "/subDir/" or "subDir/" will not be accepted
+	class VirtualFileTree
+	{
+	public:
+		VirtualDir rootDir{ "root" };
+
 	};
 
 	class VirtualFileSystem : public Publisher, public Subscriber
@@ -115,17 +144,14 @@ namespace detailEngine
 		VirtualFileSystem();
 		~VirtualFileSystem();
 
-		int GetFileIndex(std::string fileName, std::string fileType);
-
-		bool vLoadFile(std::string fullPath);
-		bool vRemoveFile(std::string fileName, std::string fileType);
-		bool vRemoveFile(int fileID);
-
-		FilePathInfo GetFilePathInfo(std::string fileName, std::string fileType);
+		void PrintTree();
+		bool vLoadFile(std::string fullPath, std::string virtualPath);
 		FilePathInfo GetFilePathInfo(int fileID);
-
 		void Terminate();
+		void CheckFileModifications(); // checks if any of the loaded files were modified on the disk
 
+	private:
+		VirtualFileTree fileTree;
 		std::mutex fileIO;
 		bool LoadFile(vFile& newFile, std::string path, std::string name, std::string type);
 		std::vector<vFile> virtualFileList;

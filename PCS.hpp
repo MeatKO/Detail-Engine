@@ -44,6 +44,7 @@ namespace detailEngine
 		MSG_PROFILER_ADD,   // string, string (not needed)
 		MSG_PROFILER,       // string, double
 		MSG_STRESSTEST,     // isn't meant to be read, only sent
+		MSG_FILE_MODIFIED,  // will contain a FilePathInfo object and a new time
 		MSG_SCENE
 	};
 
@@ -105,7 +106,7 @@ namespace detailEngine
 	{
 	public:
 		Subscriber() {}
-		
+
 		void AddType(MessageType Type);
 		void RemoveType(MessageType Type);
 		void Subscribe(Channel* channel);
