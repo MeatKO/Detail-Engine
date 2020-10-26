@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include "VFS.hpp"
 
 // PiXeL header
 // includes : 
@@ -63,6 +64,8 @@ namespace detailEngine
 	{
 		unsigned char header[54]; // Each BMP file begins by a 54-bytes header
 	};
+
+	bool LoadTexture(Texture& Texture, vFile& vfile, std::string& error);
 
 	bool LoadTexture(Texture& Texture, std::string FileName, std::string FileType, unsigned char* FileData, unsigned int FileByteSize, std::string& error);
 

@@ -20,6 +20,10 @@ namespace fs = std::filesystem;
 
 namespace detailEngine
 {
+	class Pack;
+	class vFile;
+	class vDir;
+
 	struct FilePathInfo
 	{
 		std::string path = "";
@@ -67,6 +71,8 @@ namespace detailEngine
 	bool vfsPathExists(std::string path);
 	bool vfsPhysicalFileExists(std::string filePath);
 	time_t vfsLastModified(std::string path);
+
+	bool vfsLoadFile(vFile& newFile, std::string path);
 
 	class Pack
 	{

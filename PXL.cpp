@@ -10,6 +10,12 @@ namespace detailEngine
 		}
 	}
 
+	bool LoadTexture(Texture& Texture, vFile& vfile, std::string& error)
+	{
+		std::cout << vfile.fileName << " - " << vfile.fileType << " - " << (long long)vfile.data << " - " << vfile.byteSize << "\n";
+		return LoadTexture(Texture, vfile.fileName, vfile.fileType, vfile.data, vfile.byteSize, error);
+	}
+
 	bool LoadTexture(Texture& Texture, std::string FileName, std::string FileType, unsigned char* FileData, unsigned int FileByteSize, std::string& error)
 	{
 		if (FileType == "tga" || FileType == ".tga")

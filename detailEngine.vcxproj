@@ -172,10 +172,6 @@
     <ClCompile Include="Phy7ics.cpp" />
     <ClCompile Include="Profiler.cpp" />
     <ClCompile Include="PXL.cpp" />
-    <ClCompile Include="SOIL2\etc1_utils.c" />
-    <ClCompile Include="SOIL2\image_DXT.c" />
-    <ClCompile Include="SOIL2\image_helper.c" />
-    <ClCompile Include="SOIL2\SOIL2.c" />
     <ClCompile Include="Source.cpp" />
     <ClCompile Include="VFS.cpp" />
   </ItemGroup>

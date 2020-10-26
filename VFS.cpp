@@ -297,6 +297,34 @@ namespace detailEngine
 		return -1;
 	}
 
+	bool vfsLoadFile(vFile& newFile, std::string path)
+	{
+		std::string sanitizedPath = vfsSanitizeFilePath(path);
+		FilePathInfo pathInfo = vfsGetFilePathInfo(sanitizedPath);
+
+		std::string filePath = pathInfo.path + pathInfo.name + "." + pathInfo.type;
+
+		std::ifstream file_in(filePath, std::ios::in | std::ios::binary | std::ios::ate);
+
+		if (file_in.is_open())
+		{
+			newFile.fileName = pathInfo.name;
+			newFile.fileType = pathInfo.type;
+			newFile.filePhysicalPath = pathInfo.path;
+			newFile.byteSize = file_in.tellg();
+			newFile.data = new unsigned char[newFile.byteSize];
+
+			file_in.seekg(0);
+			file_in.read((char*)newFile.data, newFile.byteSize);
+
+			file_in.close();
+
+			return true;
+		}
+
+		return false;
+	}
+
 	bool VirtualFileSystem::vLoadFile(std::string fullPath, std::string virtualPath)
 	{
 		std::string sanitizedPath = vfsSanitizeFilePath(fullPath);

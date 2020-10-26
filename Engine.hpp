@@ -188,11 +188,7 @@ namespace detailEngine
 			threadList[THR_FILESYSTEM] = std::move(std::thread(&Engine::UpdateFileSystem, this));
 			threadList[THR_BUS] = std::move(std::thread(&Engine::UpdateBus, this));
 			threadList[THR_WORLD] = std::move(std::thread(&Engine::UpdateWorld, this));
-			//threadList[THR_MISC] = std::move(std::thread(&Engine::TestFunc, this));
 
-			//entityController->AddEntity("Test");
-			//assetManager->AddAsset("TestAsset", "FilePath", CAT_AABB);
-			//entityController->AddComponent("Test", "TestAsset", CAT_AABB, assetManager);
 			worldManager->AddDimension("main");
 
 			virtualFileSystem->vEnsurePath("root/detail");

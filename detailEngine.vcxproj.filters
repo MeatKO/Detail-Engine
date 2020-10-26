@@ -30,18 +30,6 @@
     <ClCompile Include="glCubemap.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SOIL2\etc1_utils.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SOIL2\image_DXT.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SOIL2\image_helper.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SOIL2\SOIL2.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ECS.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

@@ -3,11 +3,14 @@
 #include <vector>
 #include <GL/glew.h>
 
+#include "VFS.hpp"
 #include "GLM/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
-#include "SOIL2/SOIL2.h"
+//#include "SOIL2/SOIL2.h"
 #include "glShader.hpp"
+#include "PXL.hpp"
+
 
 namespace detailEngine
 {
