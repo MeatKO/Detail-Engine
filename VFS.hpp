@@ -112,6 +112,7 @@ namespace detailEngine
 		std::string fileName = "";
 		std::string fileType = "";
 		std::string filePhysicalPath = "";
+		std::string fileVirtualPath = "";
 		time_t lastModified = 0;
 		int byteSize = -1;
 		unsigned char* data = nullptr;
@@ -122,20 +123,21 @@ namespace detailEngine
 	public:
 		vDir() {}
 		vDir(std::string Name);
+		vDir(std::string Name, int DirID, int ParentID);
 
+		int dirID = -1, parentID = -1;
 		std::string name;
 		std::vector<int> subDirs;
 		std::vector<int> fileIDs;
 	};
 
-	// Every virtual file path should start with "root/"...
-	// Virtual file paths that start with "/subDir/" or "subDir/" will not be accepted
-	class VirtualFileTree
+	class vFileTree
 	{
 	public:
-		vDir rootDir{ "root" };
-
-		bool vftLoadFile(std::string fullPath, std::string virtualPath);
+		vFileTree()
+		{
+			virtualDirectoryList.push_back(vDir("root", 0, -1));
+		}
 
 		std::vector<vFile> virtualFileList;
 		std::vector<vDir> virtualDirectoryList;
@@ -147,18 +149,34 @@ namespace detailEngine
 		VirtualFileSystem();
 		~VirtualFileSystem();
 
-		void PrintTree();
+		void vPrintTree();
 		bool vLoadFile(std::string fullPath, std::string virtualPath);
+		bool vFreeFile(std::string virtualPath);
+		bool vReloadFile(std::string virtualPath);
 
-		FilePathInfo GetFilePathInfo(int fileID);
+		vFile vGetVirtualFile(std::string fullVirtualPath);
+
+		// will return the dirID
+		int vAddDir(int parentID, std::string newDirName);
+		// false - file already exists
+		void vAddFile(int parentID, int fileID);
+		int vIsDirValid(std::string virtualPath);
+		int vDirContainsDir(int dirID, std::string subDirName);
+		int vEnsurePath(std::string virtualPath);
+		int vGetPathTargetID(std::string virtualPath); // Returns the dirID of the last dir in the chain
+		std::string vTraversePath(int dirID);
+		bool vCheckParents(int dirID, int searchedID); // Check if the searched ID is the dir's parent
 
 		void Terminate();
 		void CheckFileModifications(); // checks if any of the loaded files were modified on the disk
 
 	private:
-		VirtualFileTree fileTree;
-		std::mutex fileIO;
 		bool LoadFile(vFile& newFile, std::string path, std::string name, std::string type);
+		void RecPrintTree(int index, int depth);
+
+		vFile defaultFile { "DEFAULT", "DEFAULT", "DEFAULT", -1 };
+		std::mutex fileIO;
+		vFileTree fileTree;
 		FilePathInfo defaultFilePathInfo; // all fields will be set to "DEFAULT"
 	};
 }

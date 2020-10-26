@@ -195,10 +195,14 @@ namespace detailEngine
 			//entityController->AddComponent("Test", "TestAsset", CAT_AABB, assetManager);
 			worldManager->AddDimension("main");
 
-			//vfsEnsureDirectory("detail/testcase1/subfoler/");
+			virtualFileSystem->vEnsurePath("root/detail");
+			virtualFileSystem->vEnsurePath("root/detail/resources");
+			virtualFileSystem->vEnsurePath("root/detail/models");
+			virtualFileSystem->vEnsurePath("root/detail/textures");
+			virtualFileSystem->vEnsurePath("root/detail/scripts");
+			virtualFileSystem->vEnsurePath("root/detail/sounds");
 
-			//virtualFileSystem->vEnsureVirtualDir("root/kekw/kekw2");
-			//virtualFileSystem->PrintTree();
+			virtualFileSystem->vPrintTree();
 
 			timer->EndTime("Engine Init");
 
