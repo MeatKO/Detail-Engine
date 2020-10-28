@@ -24,13 +24,65 @@ namespace detailEngine
 			char* horizontalLine = new char [widthByteCount];
 			char* imageEnd = (char*)Texture.image + Texture.byteCount;
 
-			memcpy(horizontalLine, (char*)Texture.image, widthByteCount);
-
 			for (int i = 0; i < depth; ++i)
 			{
 				memcpy(horizontalLine, Texture.image + (widthByteCount * i), widthByteCount);
 				memcpy(Texture.image + (widthByteCount * i), imageEnd - (widthByteCount * (i + 1)), widthByteCount);
 				memcpy(imageEnd - (widthByteCount * (i + 1)), horizontalLine, widthByteCount);
+			}
+
+			delete[] horizontalLine;
+		}
+	}
+
+	void FlipTextureHorizontally(Texture& Texture)
+	{
+		if (Texture.image && (Texture.byteCount > 0))
+		{
+			// not in bytes like the vertical flip but in pixel count
+			int depth = Texture.width / 2;
+			int bytesPerPixel = Texture.bpp / 8;
+			int widthByteCount = Texture.width * bytesPerPixel;
+			int currentPixel = 0; // buffer for a single pixel; ... talk about speed
+
+			// we go line by line and flip each line
+			for (int i = 0; i < Texture.height; ++i)
+			{
+				// offset in pixels
+				int widthOffset = i * Texture.width;
+				//flip the left most pixel and the right most pixel, repeat til you hit the center
+				for (int k = 0; k < depth; ++k)
+				{
+					// in pixels not bytes !
+					int leftMostOffset = k;
+					 // reduce by 1 because eventually we want to turn this offset into a char* and if there isnt +1 we will read the line below
+					int rightMostOffset = Texture.width - (k + 1);
+					
+					// now we have to swap the left most pixel and the right most pixel, first we will store the left pixel in the currentPixel buffer
+					// then we will copy the right pixel to the left pixel and finally copy the currenPixel buffer to the right pixel, this will flip the line
+					// we cant just flip the whole thing per-byte because the pixel colors will be swapped as well
+					memcpy((char*)&currentPixel, (char*)Texture.image + ((widthOffset + leftMostOffset) * bytesPerPixel) , bytesPerPixel);
+					memcpy((char*)Texture.image + ((widthOffset + leftMostOffset) * bytesPerPixel), (char*)Texture.image + ((widthOffset + rightMostOffset) * bytesPerPixel) , bytesPerPixel);
+					memcpy((char*)Texture.image + ((widthOffset + rightMostOffset) * bytesPerPixel), (char*)&currentPixel, bytesPerPixel);
+				}
+			}
+		}
+	}
+
+	void FlipTextureReverse(Texture& Texture)
+	{
+		if (Texture.image && (Texture.byteCount > 0))
+		{
+			int bytesPerPixel = Texture.bpp / 8;
+			int depth = (Texture.width * Texture.height) / 2;
+			int currentPixel = 0;
+			char* imageEnd = (char*)Texture.image + Texture.byteCount;
+
+			for (int i = 0; i < depth; ++i)
+			{
+				memcpy((char*)&currentPixel, Texture.image + (i * bytesPerPixel), bytesPerPixel);
+				memcpy(Texture.image + (i * bytesPerPixel), imageEnd - ((i + 1) * bytesPerPixel), bytesPerPixel);
+				memcpy(imageEnd - ((i + 1) * bytesPerPixel), (char*)&currentPixel, bytesPerPixel);
 			}
 		}
 	}

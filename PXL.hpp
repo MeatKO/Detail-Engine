@@ -68,6 +68,8 @@ namespace detailEngine
 	bool LoadTexture(Texture& Texture, vFile& vfile, std::string& error);
 
 	void FlipTextureVertically(Texture& Texture);
+	void FlipTextureHorizontally(Texture& Texture);
+	void FlipTextureReverse(Texture& Texture); // flips both horizontally and vertically
 
 	bool LoadTexture(Texture& Texture, std::string FileName, std::string FileType, unsigned char* FileData, unsigned int FileByteSize, std::string& error);
 

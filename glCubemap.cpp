@@ -170,7 +170,10 @@ namespace detailEngine
 				Texture faceTex;
 				if (LoadTexture(faceTex, faceFile, error))
 				{
-					FlipTextureVertically(faceTex);
+					//FlipTextureVertically(faceTex);
+					//FlipTextureHorizontally(faceTex);
+
+					FlipTextureReverse(faceTex);
 					if (faceTex.format == TEX_RGB)
 					{
 						glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, faceTex.width, faceTex.height, 0, GL_RGB, GL_UNSIGNED_BYTE, faceTex.image);
