@@ -12,8 +12,27 @@ namespace detailEngine
 
 	bool LoadTexture(Texture& Texture, vFile& vfile, std::string& error)
 	{
-		std::cout << vfile.fileName << " - " << vfile.fileType << " - " << (long long)vfile.data << " - " << vfile.byteSize << "\n";
 		return LoadTexture(Texture, vfile.fileName, vfile.fileType, vfile.data, vfile.byteSize, error);
+	}
+
+	void FlipTextureVertically(Texture& Texture)
+	{
+		if (Texture.image && (Texture.byteCount > 0))
+		{
+			int depth = Texture.height / 2;
+			int widthByteCount = Texture.width * (Texture.bpp / 8);
+			char* horizontalLine = new char [widthByteCount];
+			char* imageEnd = (char*)Texture.image + Texture.byteCount;
+
+			memcpy(horizontalLine, (char*)Texture.image, widthByteCount);
+
+			for (int i = 0; i < depth; ++i)
+			{
+				memcpy(horizontalLine, Texture.image + (widthByteCount * i), widthByteCount);
+				memcpy(Texture.image + (widthByteCount * i), imageEnd - (widthByteCount * (i + 1)), widthByteCount);
+				memcpy(imageEnd - (widthByteCount * (i + 1)), horizontalLine, widthByteCount);
+			}
+		}
 	}
 
 	bool LoadTexture(Texture& Texture, std::string FileName, std::string FileType, unsigned char* FileData, unsigned int FileByteSize, std::string& error)

@@ -67,6 +67,8 @@ namespace detailEngine
 
 	bool LoadTexture(Texture& Texture, vFile& vfile, std::string& error);
 
+	void FlipTextureVertically(Texture& Texture);
+
 	bool LoadTexture(Texture& Texture, std::string FileName, std::string FileType, unsigned char* FileData, unsigned int FileByteSize, std::string& error);
 
 	// Supports 24 and 32 bit, RAW and RLE, RGB TGA files only

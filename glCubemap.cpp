@@ -170,6 +170,7 @@ namespace detailEngine
 				Texture faceTex;
 				if (LoadTexture(faceTex, faceFile, error))
 				{
+					FlipTextureVertically(faceTex);
 					if (faceTex.format == TEX_RGB)
 					{
 						glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, faceTex.width, faceTex.height, 0, GL_RGB, GL_UNSIGNED_BYTE, faceTex.image);
@@ -189,19 +190,6 @@ namespace detailEngine
 			}
 
 			faceFile.Terminate();
-
-			//unsigned char *data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
-			//unsigned char* data = SOIL_load_image(faces[i].c_str(), &width, &height, &nrChannels, SOIL_LOAD_RGBA);
-			//if (data)
-			//{
-			//	glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-			//	SOIL_free_image_data(data);
-			//}
-			//else
-			//{
-			//	std::cout << "Cubemap texture failed to load at path: " << faces[i] << std::endl;
-			//	SOIL_free_image_data(data);
-			//}
 		}
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
