@@ -170,9 +170,6 @@ namespace detailEngine
 				Texture faceTex;
 				if (LoadTexture(faceTex, faceFile, error))
 				{
-					//FlipTextureVertically(faceTex);
-					//FlipTextureHorizontally(faceTex);
-
 					FlipTextureReverse(faceTex);
 					if (faceTex.format == TEX_RGB)
 					{

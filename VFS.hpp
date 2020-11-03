@@ -155,6 +155,35 @@ namespace detailEngine
 		VirtualFileSystem();
 		~VirtualFileSystem();
 
+		/*
+		void vLoadFile(std::string physicalPath, std::string virtualPath);
+		void vDeleteFile(std::string virtualPath);
+		void vRenameFile(std::string virtualPath, std::string newName);
+		void vMoveFile(std::string oldVirtualPath, std::string newVirtualPath);
+
+		void vMakeDir(std::string virtualPath);
+		void vRemoveDir(std::string virtualPath); // removes the last element of the path
+		void vMoveDir(std::string oldVirtualPath, std::string newVirtualPath);
+		void vRenameDir(std::string virtualPath, std::string newName); // renames the last element of the path
+
+		void vLoadPack(std::string physicalPath, std::string packName);
+		void vPackDir(std::string virtualPath, std::string packVirtualPath); // places a FileTree Dir into a specific pack dir
+		void vPackFile(std::string virtualPath, std::string packVirtualPath); // places a FileTree File into a specific pack dir
+		void vRenamePack(std::string packName, std::string newPackName);
+
+		int vGetSubDirID(int parentID, std::string subDirName); // returns the id of the sub-directory for a given parent and subdirname, returns -1 for invalid path
+
+		int vAddFileToList(std::string newFileName); // returns the id of the newly created file
+		int vAddDirToList(std::string newDirName); // returns the id of the newly created dir
+
+		bool vIsDirParent(int dirID, int searchedID); // check if the dir has a parent with ID equal to the searchedID;
+
+		int vGetFileID(std::string virtualPath);
+
+		void CheckFileModifications(); // checks if any of the loaded files were modified on the disk
+
+		*/
+
 		void vPrintTree();
 		bool vLoadFile(std::string fullPath, std::string virtualPath);
 		bool vFreeFile(std::string virtualPath);

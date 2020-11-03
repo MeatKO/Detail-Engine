@@ -80,6 +80,7 @@ namespace detailEngine
 
 			for (int i = 0; i < depth; ++i)
 			{
+				// h
 				memcpy((char*)&currentPixel, Texture.image + (i * bytesPerPixel), bytesPerPixel);
 				memcpy(Texture.image + (i * bytesPerPixel), imageEnd - ((i + 1) * bytesPerPixel), bytesPerPixel);
 				memcpy(imageEnd - ((i + 1) * bytesPerPixel), (char*)&currentPixel, bytesPerPixel);

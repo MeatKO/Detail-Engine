@@ -329,13 +329,13 @@ namespace detailEngine
 	{
 		std::string sanitizedPath = vfsSanitizeFilePath(fullPath);
 		FilePathInfo pathInfo = vfsGetFilePathInfo(sanitizedPath);
-		
+
 		if (pathInfo.name.size() > 0 && pathInfo.type.size() > 0)
 		{
 			vFile newFile;
-		
+
 			std::lock_guard<std::mutex> mut(fileIO);
-		
+
 			if (LoadFile(newFile, pathInfo.path, pathInfo.name, pathInfo.type))
 			{
 				newFile.fileVirtualPath = virtualPath;
@@ -352,10 +352,10 @@ namespace detailEngine
 
 					return true;
 				}
-		
+
 				pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Info"),
 					std::string("File '" + pathInfo.name + "." + pathInfo.type + "' had a size of 0 and will not be added.")));
-		
+
 				return false;
 			}
 		}
@@ -371,12 +371,14 @@ namespace detailEngine
 	bool VirtualFileSystem::vFreeFile(std::string virtualPath)
 	{
 		//return fileTree.vftFreeFile(virtualPath);
+		return false;
 	}
 
 	bool VirtualFileSystem::vReloadFile(std::string virtualPath)
 	{
 
 		//return fileTree.vftReloadFile(virtualPath);
+		return false;
 	}
 
 	vFile VirtualFileSystem::vGetVirtualFile(std::string fullVirtualPath)
@@ -459,7 +461,7 @@ namespace detailEngine
 			if (fileID >= 0 && fileID < fileTree.virtualFileList.size())
 			{
 				std::string fileInfo = fileTree.virtualFileList[fileID].fileName + "." + fileTree.virtualFileList[fileID].fileType;
-				
+
 				for (int i = 0; i < fileTree.virtualDirectoryList[parentID].fileIDs.size(); ++i)
 				{
 					if (fileTree.virtualDirectoryList[parentID].fileIDs[i] == fileID)
@@ -633,7 +635,7 @@ namespace detailEngine
 			{
 				pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Info"),
 					std::string("File '" + file.fileName + "." + file.fileType + "' was deleted successfully. Freed " + std::to_string(file.byteSize) + " bytes")));
-		
+
 				// Deletes the file data and resets the file size
 				file.Terminate();
 			}
@@ -679,7 +681,7 @@ namespace detailEngine
 
 	void VirtualFileSystem::RecPrintTree(int index, int depth)
 	{
-		std::string spacing(depth, ' ');
+		std::string spacing(depth, '|');
 
 		// check if the index is valid
 		if (index >= 0 && index < fileTree.virtualDirectoryList.size())
