@@ -39,7 +39,8 @@ namespace detailEngine
 		MSG_ENGINE,
 		MSG_CONSOLE,
 		MSG_ASSET,
-		MSG_FILE,
+		MSG_FILE_LOADED,    // string - full path, FilePathInfo - struct
+		MSG_FILE_DELETED,
 		MSG_LOAD_DIR,
 		MSG_PROFILER_ADD,   // string, string (not needed)
 		MSG_PROFILER,       // string, double

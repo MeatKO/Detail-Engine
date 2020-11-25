@@ -50,6 +50,7 @@ namespace detailEngine
 
 				virtualFileSystem->NotifyChannels();
 				virtualFileSystem->sUpdate();
+				virtualFileSystem->Update();
 				//virtualFileSystem->Update(entityController, assetManager);
 				//debugSystem->Update(input, entityController, assetManager);
 
@@ -191,14 +192,14 @@ namespace detailEngine
 
 			worldManager->AddDimension("main");
 
-			virtualFileSystem->vEnsurePath("root/detail");
-			virtualFileSystem->vEnsurePath("root/detail/resources");
-			virtualFileSystem->vEnsurePath("root/detail/models");
-			virtualFileSystem->vEnsurePath("root/detail/textures");
-			virtualFileSystem->vEnsurePath("root/detail/scripts");
-			virtualFileSystem->vEnsurePath("root/detail/sounds");
+			virtualFileSystem->vMakeDir("root/detail/models");
+			virtualFileSystem->vMakeDir("root/detail/textures");
+			virtualFileSystem->vMakeDir("root/detail/shaders");
 
-			virtualFileSystem->vPrintTree();
+			virtualFileSystem->vLoadFileAsync("detail/debug.file", "root/detail/");
+			virtualFileSystem->vLoadFileAsync("detail/debug.file", "root/detail/");
+
+			virtualFileSystem->PrintFileTree();
 
 			timer->EndTime("Engine Init");
 

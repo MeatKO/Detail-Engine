@@ -74,6 +74,12 @@ namespace detailEngine
 
 	bool vfsLoadFile(vFile& newFile, std::string path);
 
+	struct FileRequest
+	{
+		std::string physicalPath;
+		std::string virtualPath;
+	};
+
 	class Pack
 	{
 	public:
@@ -84,14 +90,11 @@ namespace detailEngine
 	{
 	public:
 		vFile() {}
-		vFile(std::string FileName, std::string FileType, std::string FilePath = "", int fileID = -1)
+		vFile(std::string FileName)
 		{
 			fileName = FileName;
-			fileType = FileType;
-			filePhysicalPath = FilePath;
-			id = fileID;
 		}
-		vFile(std::string FileName, std::string FileType, std::string FilePath, int fileID, unsigned char* Data, int ByteSize)
+		vFile(std::string FileName, std::string FileType, std::string FilePath, int fileID, unsigned char* Data, int ByteSize, int ParentID)
 		{
 			fileName = FileName;
 			fileType = FileType;
@@ -99,11 +102,9 @@ namespace detailEngine
 			data = Data;
 			byteSize = ByteSize;
 			id = fileID;
+			parentID = ParentID;
 		}
 
-		// for manual destruction of the data when the engine terminates
-		// i do it this way because i might copy the pointer into other objects and i dont want it to get deleted
-		// i might've used smart pointers but eh
 		void Terminate()
 		{
 			if ((data != nullptr) && (byteSize >= 0))
@@ -114,6 +115,7 @@ namespace detailEngine
 		}
 
 		int id = -1;
+		int parentID = -1;
 		bool deleted = false;
 		std::string fileName = "";
 		std::string fileType = "";
@@ -122,31 +124,24 @@ namespace detailEngine
 		time_t lastModified = 0;
 		int byteSize = -1;
 		unsigned char* data = nullptr;
+
 	};
 
 	class vDir
 	{
 	public:
 		vDir() {}
-		vDir(std::string Name);
+		vDir(std::string Name)
+		{
+			name = Name;
+		}
 		vDir(std::string Name, int DirID, int ParentID);
 
-		int dirID = -1, parentID = -1;
+		int id = -1;
+		int parentID = -1;
 		std::string name;
-		std::vector<int> subDirs;
-		std::vector<int> fileIDs;
-	};
-
-	class vFileTree
-	{
-	public:
-		vFileTree()
-		{
-			virtualDirectoryList.push_back(vDir("root", 0, -1));
-		}
-
-		std::vector<vFile> virtualFileList;
-		std::vector<vDir> virtualDirectoryList;
+		std::vector<int> directoriesIDList;
+		std::vector<int> filesIDList;
 	};
 
 	class VirtualFileSystem : public Publisher, public Subscriber
@@ -155,63 +150,38 @@ namespace detailEngine
 		VirtualFileSystem();
 		~VirtualFileSystem();
 
-		/*
-		void vLoadFile(std::string physicalPath, std::string virtualPath);
-		void vDeleteFile(std::string virtualPath);
-		void vRenameFile(std::string virtualPath, std::string newName);
-		void vMoveFile(std::string oldVirtualPath, std::string newVirtualPath);
-
-		void vMakeDir(std::string virtualPath);
-		void vRemoveDir(std::string virtualPath); // removes the last element of the path
-		void vMoveDir(std::string oldVirtualPath, std::string newVirtualPath);
-		void vRenameDir(std::string virtualPath, std::string newName); // renames the last element of the path
-
-		void vLoadPack(std::string physicalPath, std::string packName);
-		void vPackDir(std::string virtualPath, std::string packVirtualPath); // places a FileTree Dir into a specific pack dir
-		void vPackFile(std::string virtualPath, std::string packVirtualPath); // places a FileTree File into a specific pack dir
-		void vRenamePack(std::string packName, std::string newPackName);
-
-		int vGetSubDirID(int parentID, std::string subDirName); // returns the id of the sub-directory for a given parent and subdirname, returns -1 for invalid path
-
-		int vAddFileToList(std::string newFileName); // returns the id of the newly created file
-		int vAddDirToList(std::string newDirName); // returns the id of the newly created dir
-
-		bool vIsDirParent(int dirID, int searchedID); // check if the dir has a parent with ID equal to the searchedID;
-
-		int vGetFileID(std::string virtualPath);
-
-		void CheckFileModifications(); // checks if any of the loaded files were modified on the disk
-
-		*/
-
-		void vPrintTree();
-		bool vLoadFile(std::string fullPath, std::string virtualPath);
-		bool vFreeFile(std::string virtualPath);
-		bool vReloadFile(std::string virtualPath);
-
-		vFile vGetVirtualFile(std::string fullVirtualPath);
-
-		// will return the dirID
-		int vAddDir(int parentID, std::string newDirName);
-		// false - file already exists
-		void vAddFile(int parentID, int fileID);
-		int vIsDirValid(std::string virtualPath);
-		int vDirContainsDir(int dirID, std::string subDirName);
-		int vEnsurePath(std::string virtualPath);
-		int vGetPathTargetID(std::string virtualPath); // Returns the dirID of the last dir in the chain
-		std::string vTraversePath(int dirID);
-		bool vCheckParents(int dirID, int searchedID); // Check if the searched ID is the dir's parent
+		void Update();
 
 		void Terminate();
-		void CheckFileModifications(); // checks if any of the loaded files were modified on the disk
+		std::vector<int> CheckForFileModifications(); // checks if the loaded files were modified on disk
+		void PrintFileTree();
+		
+		int vMakeDir(std::string virtualDirectory); // creates the directory and returns the ID of the last directory in the path
+		int DirContainsDir(int DirID, std::string DirName); // returns the ID of the contained dir, returns -1 if the dir is not found
+		int DirContainsFile(int DirID, std::string FileName, std::string FileType); // returns the ID of the contained file, returns -1 if the file is not found
+		int vGetDirID(std::string virtualPath); // returns the ID of the last directory in the path
+
+		void vLoadFile(std::string physicalPath, std::string virtualPath);
+		vFile vGetFile(std::string fullVirtualPath);
+		bool vFileExists(std::string fullVirtualPath);
+
+		void vLoadFileAsync(std::string physicalPath, std::string virtualPath); // a file load request
+		void ProcessFileRequests();
 
 	private:
-		bool LoadFile(vFile& newFile, std::string path, std::string name, std::string type);
-		void RecPrintTree(int index, int depth);
+		bool LoadFile(vFile& newFile, std::string path, std::string name, std::string type, int fileID = -1); // not the full path
+		int AddDirToList(std::string dirName, int dirParent);
+		int AddFileToList(std::string physicalPath);
+		void PrintFileTreeRec(int currentDir, int depth);
 
-		vFile defaultFile { "DEFAULT", "DEFAULT", "DEFAULT", -1 };
 		std::mutex fileIO;
-		vFileTree fileTree;
-		FilePathInfo defaultFilePathInfo; // all fields will be set to "DEFAULT"
+		std::mutex requestLock;
+		std::vector<vFile> virtualFileList;
+		std::vector<vDir> virtualDirectoryList;
+		std::queue<FileRequest> fileRequestList; // for async file loading
+
+		// for functions that need to return objects but the searched object isnt found; ex : trying to get file that doenst exist
+		vFile noFile{ "noFile" };
+		vDir noDir{ "noDir" };
 	};
 }
