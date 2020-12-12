@@ -190,18 +190,16 @@ namespace detailEngine
 			threadList[THR_BUS] = std::move(std::thread(&Engine::UpdateBus, this));
 			threadList[THR_WORLD] = std::move(std::thread(&Engine::UpdateWorld, this));
 
-			worldManager->AddDimension("main");
+			timer->EndTime("Engine Init");
 
-			virtualFileSystem->vMakeDir("root/detail/models");
-			virtualFileSystem->vMakeDir("root/detail/textures");
-			virtualFileSystem->vMakeDir("root/detail/shaders");
+			// Systems test functions : 
 
-			virtualFileSystem->vLoadFileAsync("detail/debug.file", "root/detail/");
-			virtualFileSystem->vLoadFileAsync("detail/debug.file", "root/detail/");
+			virtualFileSystem->MakeDir("~/Models");
+			virtualFileSystem->MakeDir("~/Textures");
+			virtualFileSystem->MakeDir("~/Sounds");
+			virtualFileSystem->MakeDir("~/Shaders");
 
 			virtualFileSystem->PrintFileTree();
-
-			timer->EndTime("Engine Init");
 
 			return true;
 		}
@@ -219,7 +217,7 @@ namespace detailEngine
 			entityController->NotifyChannels();
 			renderer->NotifyChannels();
 			timer->NotifyChannels();
-			
+
 			timer->StartTime("Rendering");
 			renderer->Update(entityController, assetManager, worldManager, currentTime, deltaTime);
 			timer->EndTime("Rendering");

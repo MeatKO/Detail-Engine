@@ -74,6 +74,10 @@ namespace detailEngine
 
 	bool vfsLoadFile(vFile& newFile, std::string path);
 
+	// turns the "/" into "root/"
+	// turns "~" into "root/detail"
+	std::string vfsNormalizeVirtualFilePath(std::string path);
+
 	struct FileRequest
 	{
 		std::string physicalPath;
@@ -135,13 +139,18 @@ namespace detailEngine
 		{
 			name = Name;
 		}
-		vDir(std::string Name, int DirID, int ParentID);
+		vDir(std::string Name, int DirID, int ParentID)
+		{
+			name = Name;
+			id = DirID;
+			parentID = ParentID;
+		}
 
 		int id = -1;
 		int parentID = -1;
 		std::string name;
-		std::vector<int> directoriesIDList;
-		std::vector<int> filesIDList;
+		std::vector<int> subDirIDs;
+		std::vector<int> subFileIDs;
 	};
 
 	class VirtualFileSystem : public Publisher, public Subscriber
@@ -151,27 +160,54 @@ namespace detailEngine
 		~VirtualFileSystem();
 
 		void Update();
-
 		void Terminate();
-		std::vector<int> CheckForFileModifications(); // checks if the loaded files were modified on disk
 		void PrintFileTree();
-		
-		int vMakeDir(std::string virtualDirectory); // creates the directory and returns the ID of the last directory in the path
-		int DirContainsDir(int DirID, std::string DirName); // returns the ID of the contained dir, returns -1 if the dir is not found
-		int DirContainsFile(int DirID, std::string FileName, std::string FileType); // returns the ID of the contained file, returns -1 if the file is not found
-		int vGetDirID(std::string virtualPath); // returns the ID of the last directory in the path
+		std::vector<int> vCheckForFileModifications(); // checks if the loaded files were modified on disk
 
-		void vLoadFile(std::string physicalPath, std::string virtualPath);
-		vFile vGetFile(std::string fullVirtualPath);
-		bool vFileExists(std::string fullVirtualPath);
+		// Directory functions
 
-		void vLoadFileAsync(std::string physicalPath, std::string virtualPath); // a file load request
-		void ProcessFileRequests();
+		void MakeDir(std::string virtualDirPath);
+		// void LoadDir(std::string physicalDirectoryPath, std::string virtualDirectoryPath); // loads the contents of the physical dir into the virtual dir
+		// void RemoveDir(std::string virtualDirectoryPath); // removes only the last dir from the path + all of its children
+		// void RenameDir(std::string virtualDirectoryPath, std::string newDirName); // renames the last dir from the path if possible
+		// void MoveDir(std::string virtualirectoryPath, std::string newVirtualDirectoryPath); // changes the parent of the desired directory
+		//
+		std::string TraverseDirectory(int dirID); // Gives the directory path for a given directory ID
+
+		// File functions
+
+		// void LoadFile(std::string physicalFilePath, std::string virtualFilePath, std::string newFileName = "", std::string newFileType = "");
+		// void RenameFile(std::string virtualFilePath, std::string newFileName, std::string newFileType = "");
+		// void RemoveFile(std::string virtualFilePath);
+		// void MoveFile(std::string virtualFilePath, std::string newVirtualFilePath); // moves the file if possible
+		//
+		// vFile GetFile(std::string virtualFilePath);
+
+		// Hidden functions
+
+		//bool DirContainsDir(std::string virtualDirPath, std::string subDirName, int& subDirID);
+		//bool DirContainsDir(std::string virtualDirPath, int subDirID);
+		bool DirContainsDir(int parentDirID, std::string subDirName);
+		bool DirContainsDir(int parentDirID, std::string subDirName, int& subDirID);
+		bool DirContainsDir(int parentDirID, int subDirID);
+		int AddDirToList(std::string dirName, int dirParent = -1); // returns the directory id
+		void AddDirToDir(int parentDirID, int subDirID);
+		int GetDirID(std::string virtualDirPath);
+		// bool DirExists(std::string virtualDirPath);
+		//
+		// bool DirContainsFile(std::string virtualDirPath, std::string subFileName, std::string subFileType, int& subFileID);
+		// bool DirContainsFile(std::string virtualDirPath, std::string subFileName, std::string subFileType);
+		int AddFileToList(std::string physicalPath, int fileParent = -1); // returns the file id
+		// bool FileExists(std::string virtualFilePath);
+		//
+		// int GetDirID(std::string virtualDirPath);
+		// int GetFileID(std::string virtualFilePath);
+		//
+		// void LoadFileAsync(std::string physicalFilePath, std::string virtualFilePath);
+		// void LoadFileAwait(std::string physicalFilePath, std::string virtualFilePath);
 
 	private:
 		bool LoadFile(vFile& newFile, std::string path, std::string name, std::string type, int fileID = -1); // not the full path
-		int AddDirToList(std::string dirName, int dirParent);
-		int AddFileToList(std::string physicalPath);
 		void PrintFileTreeRec(int currentDir, int depth);
 
 		std::mutex fileIO;
