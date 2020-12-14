@@ -418,6 +418,25 @@ namespace detailEngine
 		}
 	}
 
+	void VirtualFileSystem::PrintWorkspaceDirectoriesRec(std::string parentPath, int depth)
+	{
+		std::vector<FilePathInfo> currentPathInfo = GetDirContents(parentPath);
+
+		std::string spacing(depth, ' ');
+		for (int i = 0; i < currentPathInfo.size(); ++i)
+		{
+			if (currentPathInfo[i].name.size() > 0)
+			{
+				std::cout << spacing << "|-FILE : " << currentPathInfo[i].path << currentPathInfo[i].name << "." << currentPathInfo[i].type << std::endl;
+			}
+			else
+			{
+				std::cout << spacing << "|-DIR  : " << currentPathInfo[i].path << std::endl;
+				PrintWorkspaceDirectoriesRec(currentPathInfo[i].path, depth + 1);
+			}
+		}
+	}
+
 	/*-------------------------------------------------------------------------------------------------Constructors------*/
 
 	VirtualFileSystem::VirtualFileSystem()
@@ -473,6 +492,12 @@ namespace detailEngine
 		PrintFileTreeRec(0, 0);
 	}
 
+	void VirtualFileSystem::PrintWorkspaceDirectories()
+	{
+		std::cout << "FILES ON DISK : \n";
+		PrintWorkspaceDirectoriesRec("detail/", 0);
+	}
+
 	/*-------------------------------------------------------------------------------------------------Routines----------*/
 
 	std::vector<int> VirtualFileSystem::vCheckForFileModifications()
@@ -525,6 +550,102 @@ namespace detailEngine
 		}
 	}
 
+	void VirtualFileSystem::RenameDir(std::string virtualDirectoryPath, std::string newDirName)
+	{ 
+		std::string sanitizedPath = vfsSanitizeFilePath(virtualDirectoryPath);
+		std::string normalizedPath = vfsNormalizeVirtualFilePath(sanitizedPath);
+		int dirID = GetDirID(normalizedPath);
+
+		if (dirID != -1)
+		{
+			if (virtualDirectoryList[dirID].parentID != -1)
+			{
+				std::string parentPathString = TraverseDirectory(virtualDirectoryList[dirID].parentID);
+
+				//we have to check if the dir parent contains a directory of the same name
+				if (!DirContainsDir(virtualDirectoryList[dirID].parentID, newDirName))
+				{
+					virtualDirectoryList[dirID].name = newDirName;
+					pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Error"), std::string("vDir '" + normalizedPath + "' was successfully renamed to '" + newDirName + "'.")));
+				}
+				else
+				{
+					pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Error"), std::string("vDir '" + parentPathString + "' already contains a vDir called '" + newDirName + "'.")));
+				}
+			}
+			else
+			{
+				pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Error"), std::string("Cannot rename vDir 'root'.")));
+			}
+		}
+		else
+		{
+			pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Error"), std::string("Cannot rename unexisting vDir '" + normalizedPath + "'.")));
+		}
+	}
+
+	void VirtualFileSystem::MoveDir(std::string virtualDirectoryPath, std::string newVirtualDirectoryPath)
+	{
+		// Disclaimer : the word "path" was used instead of "directory" in some places, initPathID means initial directory ID
+		std::string sanitizedPath = vfsSanitizeFilePath(virtualDirectoryPath);
+		std::string normalizedPath = vfsNormalizeVirtualFilePath(sanitizedPath);
+		int initPathID = GetDirID(normalizedPath);
+
+		std::string sanitizedDestinationPath = vfsSanitizeFilePath(newVirtualDirectoryPath);
+		std::string normalizedDestinationPath = vfsNormalizeVirtualFilePath(sanitizedDestinationPath);
+		int targetPathID = GetDirID(normalizedDestinationPath);
+
+		if (initPathID != -1)
+		{
+			if (targetPathID != -1)
+			{
+				if (!DirContainsDir(targetPathID, initPathID))
+				{
+					// If the target directory doesnt contain the exact same initial directory, we have to check if it contains a directory with the same name
+					std::string initPathName = virtualDirectoryList[initPathID].name;
+
+					if (!DirContainsDir(targetPathID, initPathName))
+					{
+						// If the target directory doesnt contain a directory with the same name as the initial directory then we change
+						// 1. remove the init directory ID from its parent's list
+						// 2. change the init directory's parentID to the target directory ID
+						// 3. put the init directory ID in the target subDirID list
+
+						int initParentID = virtualDirectoryList[initPathID].parentID;
+						RemoveDirFromDir(initParentID, initPathID);
+
+						virtualDirectoryList[initPathID].parentID = targetPathID;
+
+						AddDirToDir(targetPathID, initPathID);
+
+						pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Info"), std::string("vDir '" + initPathName + "' was successfully moved to '" + normalizedDestinationPath + "'.")));
+					}
+					else
+					{
+						pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Error"), std::string("Path '" + normalizedDestinationPath + "' already contains a vDir called '" + initPathName + "'.")));
+					}
+				}
+				else
+				{
+					pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Warning"), std::string("Tried to move vDir '" + normalizedPath + "' to the same parent directory. Operation will not be executed.")));
+				}
+			}
+			else
+			{
+				pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Error"), std::string("Cannot Move vDir '" + normalizedPath + "' to invalid path '" + normalizedDestinationPath + "'.")));
+			}
+		}
+		else
+		{
+			if (targetPathID == -1)
+			{
+				pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Error"), std::string("Cannot Move invalid vDir '" + normalizedPath + "' to invalid path '" + normalizedDestinationPath + "'.")));
+				return;
+			}
+			pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Error"), std::string("Cannot Move invalid vDir '" + normalizedPath + "' to path '" + normalizedDestinationPath + "'.")));
+		}
+	}
+
 	std::string VirtualFileSystem::TraverseDirectory(int dirID)
 	{
 		std::vector<int> pathTokens;
@@ -558,6 +679,109 @@ namespace detailEngine
 		
 
 		return backDir;
+	}
+
+	void VirtualFileSystem::LoadFile(std::string physicalFilePath, std::string virtualFilePath, std::string newFileName, std::string newFileType)
+	{
+		// get a file path info struct
+		// make the virtual path ( if it doesnt exist )
+		// check if the virtual path already contains that file
+		// set new file name and type if needed
+		// add the id to the target path' last vDir
+		// 
+
+		std::string sanitizedPath = vfsSanitizeFilePath(virtualFilePath);
+		std::string normalizedPath = vfsNormalizeVirtualFilePath(sanitizedPath);
+
+		std::string sanitizedPhysicalPath = vfsSanitizeFilePath(physicalFilePath);
+		int lastDirID = 0;
+
+		MakeDir(normalizedPath);
+		lastDirID = GetDirID(normalizedPath);
+
+		if (lastDirID != -1)
+		{
+			if (lastDirID > 0)
+			{
+				FilePathInfo pathInfo = vfsGetFilePathInfo(sanitizedPhysicalPath);
+
+				if ((pathInfo.name.size() > 0) || (pathInfo.type.size() > 0))
+				{
+					// With these 2 ifs i save like 4 more ifs later
+					if (newFileName.size() == 0)
+						newFileName = pathInfo.name;
+
+					if (newFileType.size() == 0)
+						newFileType = pathInfo.type;
+
+					if (!DirContainsFile(lastDirID, newFileName, newFileType))
+					{
+						int newFileID = AddFileToList(sanitizedPhysicalPath, lastDirID);
+
+						if (newFileID != -1)
+						{
+							virtualFileList[newFileID].fileName = newFileName;
+							virtualFileList[newFileID].fileType = newFileType;
+
+							AddFileToDir(lastDirID, newFileID);
+						}
+						else
+						{
+							pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Error"), std::string("Couldn't load '" + sanitizedPhysicalPath + "'. Unknown error.")));
+						}
+						
+					}
+					else
+					{
+						pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Error"), std::string("vDir '" + normalizedPath + "' already contains a vFile '" + pathInfo.name + "." + pathInfo.type + "' .")));
+					}
+				}
+				else
+				{
+					pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Error"), std::string("Cannot load file from '" + sanitizedPhysicalPath + "' because it has no name or type.")));
+				}
+			}
+			else
+			{
+				pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Error"), std::string("Cannot add a file to 'root'.")));
+			}
+		}
+		else
+		{
+			pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Error"), std::string("Cannot add a file to invalid path.")));
+		}
+	}
+
+	std::vector<FilePathInfo> VirtualFileSystem::GetDirContents(std::string physicalDirPath)
+	{
+		std::string sanitizedPath = vfsSanitizeFilePath(physicalDirPath);
+		std::vector<FilePathInfo> outVec;
+
+		for (const auto& entry : fs::directory_iterator(sanitizedPath))
+		{
+			outVec.push_back( vfsGetFilePathInfo(entry.path().string()));
+		}
+			
+
+		return outVec;
+	}
+
+	bool VirtualFileSystem::DirContainsDir(std::string virtualDirPath, std::string subDirName, int& subDirID)
+	{
+		std::string sanitizedPath = vfsSanitizeFilePath(virtualDirPath);
+		std::string normalizedPath = vfsNormalizeVirtualFilePath(sanitizedPath);
+		int parentDirID = GetDirID(normalizedPath);
+
+		return DirContainsDir(parentDirID, subDirName, subDirID);
+	}
+
+	bool VirtualFileSystem::DirContainsDir(std::string virtualDirPath, int subDirID)
+	{
+		std::string sanitizedPath = vfsSanitizeFilePath(virtualDirPath);
+		std::string normalizedPath = vfsNormalizeVirtualFilePath(sanitizedPath);
+		int parentDirID = GetDirID(normalizedPath);
+
+		return DirContainsDir(parentDirID, subDirID);
 	}
 
 	bool VirtualFileSystem::DirContainsDir(int parentDirID, std::string subDirName)
@@ -694,6 +918,104 @@ namespace detailEngine
 		return lastDirID;
 	}
 
+	void VirtualFileSystem::RemoveDirFromDir(int parentDirID, int subDirID)
+	{
+		if (parentDirID >= 0)
+		{
+			if (parentDirID < virtualDirectoryList.size())
+			{
+				for (int i = 0; i < virtualDirectoryList[parentDirID].subDirIDs.size(); ++i)
+				{
+					if (virtualDirectoryList[parentDirID].subDirIDs[i] == subDirID)
+					{
+						virtualDirectoryList[parentDirID].subDirIDs.erase(virtualDirectoryList[parentDirID].subDirIDs.begin() + i);
+					}
+				}
+			}
+		}
+	}
+
+	void VirtualFileSystem::RemoveDirFromDir(int parentDirID, std::string subDirName)
+	{
+		if (parentDirID >= 0)
+		{
+			if (parentDirID < virtualDirectoryList.size())
+			{
+				for (int i = 0; i < virtualDirectoryList[parentDirID].subDirIDs.size(); ++i)
+				{
+					if (virtualDirectoryList[virtualDirectoryList[parentDirID].subDirIDs[i]].name == subDirName)
+					{
+						virtualDirectoryList[parentDirID].subDirIDs.erase(virtualDirectoryList[parentDirID].subDirIDs.begin() + i);
+					}
+				}
+			}
+		}
+	}
+
+	bool VirtualFileSystem::DirExists(std::string virtualDirPath)
+	{
+		std::string sanitizedPath = vfsSanitizeFilePath(virtualDirPath);
+		std::string normalizedPath = vfsNormalizeVirtualFilePath(sanitizedPath);
+		std::vector<std::string> pathTokens = vfsGetPathTokens(normalizedPath);
+
+		int lastDirID = 0;
+
+		for (int i = 1; i < pathTokens.size(); ++i)
+		{
+			// check if the index is valid
+			if (lastDirID >= 0 && lastDirID < virtualDirectoryList.size())
+			{
+				int subDirID = 0;
+				if (DirContainsDir(lastDirID, pathTokens[i], subDirID))
+				{
+					lastDirID = subDirID;
+				}
+				else
+				{
+					return false;
+				}
+			}
+			else
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	bool VirtualFileSystem::DirContainsFile(std::string virtualDirPath, std::string subFileName, std::string subFileType)
+	{
+		std::string sanitizedPath = vfsSanitizeFilePath(virtualDirPath);
+		std::string normalizedPath = vfsNormalizeVirtualFilePath(sanitizedPath);
+		int parentDirID = GetDirID(normalizedPath);
+
+		return DirContainsFile(parentDirID, subFileName, subFileType);
+	}
+
+	bool VirtualFileSystem::DirContainsFile(int parentDirID, std::string subFileName, std::string subFileType)
+	{
+		if (parentDirID >= 0)
+		{
+			if (parentDirID < virtualDirectoryList.size())
+			{
+				for (int i = 0; i < virtualDirectoryList[parentDirID].subFileIDs.size(); ++i)
+				{
+					int currentSubFileID = virtualDirectoryList[parentDirID].subFileIDs[i];
+
+					if (virtualFileList[currentSubFileID].fileName == subFileName)
+					{
+						if (virtualFileList[currentSubFileID].fileType == subFileType)
+						{
+							return true;
+						}
+					}
+				}
+			}
+		}
+		return false;
+	}
+
 	int VirtualFileSystem::AddFileToList(std::string physicalPath, int fileParent)
 	{
 		std::string sanitizedPath = vfsSanitizeFilePath(physicalPath);
@@ -710,5 +1032,22 @@ namespace detailEngine
 		virtualFileList.push_back(newFile);
 
 		return newFileID;
+	}
+	void VirtualFileSystem::AddFileToDir(int parentDirID, int subFileID)
+	{
+		if (parentDirID != subFileID)
+		{
+			if ((parentDirID >= 0) && (subFileID >= 0))
+			{
+				if ((parentDirID < virtualDirectoryList.size()) && (subFileID < virtualFileList.size()))
+				{
+					virtualDirectoryList[parentDirID].subFileIDs.push_back(subFileID);
+					return;
+				}
+			}
+			pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Error"), std::string("Cannot add vDir [" + std::to_string(subFileID) + "] to vDir [" + std::to_string(parentDirID) + "].")));
+			return;
+		}
+		pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Error"), std::string("Tried to add vDir [" + std::to_string(parentDirID) + "] to itself.")));
 	}
 }

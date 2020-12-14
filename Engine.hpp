@@ -192,12 +192,17 @@ namespace detailEngine
 
 			timer->EndTime("Engine Init");
 
+			Sleep(10); // A wise man once said "If your code needs Sleep() in order to work then its not a good code"... well ugh... I mean it works without it... kind of
+
 			// Systems test functions : 
 
 			virtualFileSystem->MakeDir("~/Models");
 			virtualFileSystem->MakeDir("~/Textures");
 			virtualFileSystem->MakeDir("~/Sounds");
 			virtualFileSystem->MakeDir("~/Shaders");
+			virtualFileSystem->MakeDir("~/Test");
+
+			virtualFileSystem->LoadFile("detail/debug.file", "~/Test");
 
 			virtualFileSystem->PrintFileTree();
 

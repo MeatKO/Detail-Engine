@@ -162,6 +162,7 @@ namespace detailEngine
 		void Update();
 		void Terminate();
 		void PrintFileTree();
+		void PrintWorkspaceDirectories(); // prints all the dirs on disk located in "detail/"
 		std::vector<int> vCheckForFileModifications(); // checks if the loaded files were modified on disk
 
 		// Directory functions
@@ -169,14 +170,14 @@ namespace detailEngine
 		void MakeDir(std::string virtualDirPath);
 		// void LoadDir(std::string physicalDirectoryPath, std::string virtualDirectoryPath); // loads the contents of the physical dir into the virtual dir
 		// void RemoveDir(std::string virtualDirectoryPath); // removes only the last dir from the path + all of its children
-		// void RenameDir(std::string virtualDirectoryPath, std::string newDirName); // renames the last dir from the path if possible
-		// void MoveDir(std::string virtualirectoryPath, std::string newVirtualDirectoryPath); // changes the parent of the desired directory
+		void RenameDir(std::string virtualDirectoryPath, std::string newDirName); // renames the last dir from the path if possible
+		void MoveDir(std::string virtualDirectoryPath, std::string newVirtualDirectoryPath); // changes the parent of the desired directory; FROM - TO
 		//
 		std::string TraverseDirectory(int dirID); // Gives the directory path for a given directory ID
 
 		// File functions
 
-		// void LoadFile(std::string physicalFilePath, std::string virtualFilePath, std::string newFileName = "", std::string newFileType = "");
+		void LoadFile(std::string physicalFilePath, std::string virtualFilePath, std::string newFileName = "", std::string newFileType = "");
 		// void RenameFile(std::string virtualFilePath, std::string newFileName, std::string newFileType = "");
 		// void RemoveFile(std::string virtualFilePath);
 		// void MoveFile(std::string virtualFilePath, std::string newVirtualFilePath); // moves the file if possible
@@ -185,22 +186,26 @@ namespace detailEngine
 
 		// Hidden functions
 
-		//bool DirContainsDir(std::string virtualDirPath, std::string subDirName, int& subDirID);
-		//bool DirContainsDir(std::string virtualDirPath, int subDirID);
+		std::vector<FilePathInfo> GetDirContents(std::string physicalDirPath);
+		bool DirContainsDir(std::string virtualDirPath, std::string subDirName, int& subDirID);
+		bool DirContainsDir(std::string virtualDirPath, int subDirID);
 		bool DirContainsDir(int parentDirID, std::string subDirName);
 		bool DirContainsDir(int parentDirID, std::string subDirName, int& subDirID);
 		bool DirContainsDir(int parentDirID, int subDirID);
 		int AddDirToList(std::string dirName, int dirParent = -1); // returns the directory id
 		void AddDirToDir(int parentDirID, int subDirID);
-		int GetDirID(std::string virtualDirPath);
-		// bool DirExists(std::string virtualDirPath);
+		int GetDirID(std::string virtualDirPath); // returns the ID of the last token in the path
+		void RemoveDirFromDir(int parentDirID, int subDirID);
+		void RemoveDirFromDir(int parentDirID, std::string subDirName);
+		bool DirExists(std::string virtualDirPath);
 		//
 		// bool DirContainsFile(std::string virtualDirPath, std::string subFileName, std::string subFileType, int& subFileID);
-		// bool DirContainsFile(std::string virtualDirPath, std::string subFileName, std::string subFileType);
+		bool DirContainsFile(std::string virtualDirPath, std::string subFileName, std::string subFileType);
+		bool DirContainsFile(int parentDirID, std::string subFileName, std::string subFileType);
 		int AddFileToList(std::string physicalPath, int fileParent = -1); // returns the file id
+		void AddFileToDir(int parentDirID, int subFileID);
 		// bool FileExists(std::string virtualFilePath);
 		//
-		// int GetDirID(std::string virtualDirPath);
 		// int GetFileID(std::string virtualFilePath);
 		//
 		// void LoadFileAsync(std::string physicalFilePath, std::string virtualFilePath);
@@ -209,6 +214,7 @@ namespace detailEngine
 	private:
 		bool LoadFile(vFile& newFile, std::string path, std::string name, std::string type, int fileID = -1); // not the full path
 		void PrintFileTreeRec(int currentDir, int depth);
+		void PrintWorkspaceDirectoriesRec(std::string parentPath, int depth);
 
 		std::mutex fileIO;
 		std::mutex requestLock;
