@@ -1,5 +1,4 @@
 #include "AssetManager.hpp"
-#include "FileSystem.hpp"
 
 namespace detailEngine
 {

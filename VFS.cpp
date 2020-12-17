@@ -752,6 +752,62 @@ namespace detailEngine
 		}
 	}
 
+	vFile VirtualFileSystem::GetFile(std::string virtualFilePath)
+	{
+		std::string sanitizedPath = vfsSanitizeFilePath(virtualFilePath);
+		std::string normalizedPath = vfsNormalizeVirtualFilePath(sanitizedPath);
+		FilePathInfo pathInfo = vfsGetFilePathInfo(normalizedPath);
+
+		if (pathInfo.path.size() > 0)
+		{
+			int parentDirID = GetDirID(pathInfo.path);
+
+			if (parentDirID == -1)
+			{
+				pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Error"), std::string("Cannot get file from an invalid path '" + normalizedPath + "'.")));
+			}
+			else
+			{
+				if (pathInfo.name.size() > 0 && pathInfo.type.size() > 0)
+				{
+					int fileID = -1;
+					if (DirContainsFile(parentDirID, pathInfo.name, pathInfo.type, fileID))
+					{
+						if (fileID == -1)
+						{
+							pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Error"), std::string("vDir '" + pathInfo.path + "' contains file '" + pathInfo.name + "." + pathInfo.type + "' but returns File ID of -1. Unknown error.")));
+						}
+						else
+						{
+							if (fileID >= 0 && fileID < virtualFileList.size())
+							{
+								return virtualFileList[fileID];
+							}
+							else
+							{
+								pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Error"), std::string("vDir '" + pathInfo.path + "' contains file '" + pathInfo.name + "." + pathInfo.type + "' but returns File ID outside of range. Unknown error.")));
+							}
+						}
+					}
+					else
+					{
+						pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Error"), std::string("Path '" + pathInfo.path + "' doesn't contain file '" + pathInfo.name + "." + pathInfo.type + "'.")));
+					}
+				}
+				else
+				{
+					pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Error"), std::string("Cannot get invalid file '" + pathInfo.name +  "." + pathInfo.type + "' from path '" + pathInfo.path + "'.")));
+				}
+			}
+		}
+		else
+		{
+			pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Error"), std::string("Cannot get file from an empty path '" + normalizedPath + "'.")));
+		}
+
+		return noFile;
+	}
+
 	std::vector<FilePathInfo> VirtualFileSystem::GetDirContents(std::string physicalDirPath)
 	{
 		std::string sanitizedPath = vfsSanitizeFilePath(physicalDirPath);
@@ -984,6 +1040,31 @@ namespace detailEngine
 		return true;
 	}
 
+	bool VirtualFileSystem::DirContainsFile(int parentDirID, std::string subFileName, std::string subFileType, int& subFileID)
+	{
+		if (parentDirID >= 0)
+		{
+			if (parentDirID < virtualDirectoryList.size())
+			{
+				for (int i = 0; i < virtualDirectoryList[parentDirID].subFileIDs.size(); ++i)
+				{
+					int currentSubFileID = virtualDirectoryList[parentDirID].subFileIDs[i];
+
+					if (virtualFileList[currentSubFileID].fileName == subFileName)
+					{
+						if (virtualFileList[currentSubFileID].fileType == subFileType)
+						{
+							subFileID = currentSubFileID;
+							return true;
+						}
+					}
+				}
+			}
+		}
+		subFileID = -1;
+		return false;
+	}
+
 	bool VirtualFileSystem::DirContainsFile(std::string virtualDirPath, std::string subFileName, std::string subFileType)
 	{
 		std::string sanitizedPath = vfsSanitizeFilePath(virtualDirPath);
@@ -1033,6 +1114,7 @@ namespace detailEngine
 
 		return newFileID;
 	}
+
 	void VirtualFileSystem::AddFileToDir(int parentDirID, int subFileID)
 	{
 		if (parentDirID != subFileID)

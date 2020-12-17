@@ -7,8 +7,6 @@
 #include <iostream>
 #include <GL/glew.h>
 #include <map>
-
-#include "FileSystem.hpp" // i must use the string functions and sanitizations
 #include "PCS.hpp"
 
 namespace detailEngine

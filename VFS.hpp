@@ -182,7 +182,7 @@ namespace detailEngine
 		// void RemoveFile(std::string virtualFilePath);
 		// void MoveFile(std::string virtualFilePath, std::string newVirtualFilePath); // moves the file if possible
 		//
-		// vFile GetFile(std::string virtualFilePath);
+		vFile GetFile(std::string virtualFilePath);
 
 		// Hidden functions
 
@@ -199,7 +199,7 @@ namespace detailEngine
 		void RemoveDirFromDir(int parentDirID, std::string subDirName);
 		bool DirExists(std::string virtualDirPath);
 		//
-		// bool DirContainsFile(std::string virtualDirPath, std::string subFileName, std::string subFileType, int& subFileID);
+		bool DirContainsFile(int parentDirID, std::string subFileName, std::string subFileType, int& subFileID);
 		bool DirContainsFile(std::string virtualDirPath, std::string subFileName, std::string subFileType);
 		bool DirContainsFile(int parentDirID, std::string subFileName, std::string subFileType);
 		int AddFileToList(std::string physicalPath, int fileParent = -1); // returns the file id
