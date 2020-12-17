@@ -437,6 +437,19 @@ namespace detailEngine
 		}
 	}
 
+	void VirtualFileSystem::RemoveDirRec(int currentDirID)
+	{
+		if (currentDirID > 0 && currentDirID < virtualDirectoryList.size())
+		{
+			for (int i = 0; i < virtualDirectoryList[currentDirID].subDirIDs.size(); ++i)
+			{
+				RemoveDirRec(virtualDirectoryList[currentDirID].subDirIDs[i]);
+			}
+
+			RemoveDirFromDir(virtualDirectoryList[currentDirID].parentID, currentDirID);
+		}
+	}
+
 	/*-------------------------------------------------------------------------------------------------Constructors------*/
 
 	VirtualFileSystem::VirtualFileSystem()
@@ -547,6 +560,29 @@ namespace detailEngine
 					lastDirID = newDirID;
 				}
 			}
+		}
+	}
+
+	void VirtualFileSystem::RemoveDir(std::string virtualDirectoryPath)
+	{
+		std::string sanitizedPath = vfsSanitizeFilePath(virtualDirectoryPath);
+		std::string normalizedPath = vfsNormalizeVirtualFilePath(sanitizedPath);
+		int lastTokenID = GetDirID(virtualDirectoryPath);
+
+		if (lastTokenID != -1)
+		{
+			if (lastTokenID != 0)
+			{
+				RemoveDirRec(lastTokenID);
+			}
+			else
+			{
+				pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Error"), std::string("Cannot remove vDir 'root'.")));
+			}
+		}
+		else
+		{
+			pSendMessage(Message(MSG_LOG, std::string("Virtual FileSystem Error"), std::string("Cannot remove invalid vDir '" + normalizedPath + "'.")));
 		}
 	}
 

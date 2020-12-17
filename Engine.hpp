@@ -201,6 +201,7 @@ namespace detailEngine
 			virtualFileSystem->MakeDir("~/Sounds");
 			virtualFileSystem->MakeDir("~/Shaders");
 			virtualFileSystem->MakeDir("~/Test");
+			virtualFileSystem->MakeDir("~/Test/SubDir1/SubDir2/SubDir3/SubDir4");
 
 			virtualFileSystem->LoadFile("detail/debug.file", "~/Test");
 

@@ -169,7 +169,7 @@ namespace detailEngine
 
 		void MakeDir(std::string virtualDirPath);
 		// void LoadDir(std::string physicalDirectoryPath, std::string virtualDirectoryPath); // loads the contents of the physical dir into the virtual dir
-		// void RemoveDir(std::string virtualDirectoryPath); // removes only the last dir from the path + all of its children
+		void RemoveDir(std::string virtualDirectoryPath); // removes only the last dir from the path + all of its children
 		void RenameDir(std::string virtualDirectoryPath, std::string newDirName); // renames the last dir from the path if possible
 		void MoveDir(std::string virtualDirectoryPath, std::string newVirtualDirectoryPath); // changes the parent of the desired directory; FROM - TO
 		//
@@ -215,6 +215,7 @@ namespace detailEngine
 		bool LoadFile(vFile& newFile, std::string path, std::string name, std::string type, int fileID = -1); // not the full path
 		void PrintFileTreeRec(int currentDir, int depth);
 		void PrintWorkspaceDirectoriesRec(std::string parentPath, int depth);
+		void RemoveDirRec(int currentDirID);
 
 		std::mutex fileIO;
 		std::mutex requestLock;
