@@ -205,6 +205,7 @@ namespace detailEngine
 
 			virtualFileSystem->LoadFile("detail/debug.file", "~/Test");
 
+
 			virtualFileSystem->PrintFileTree();
 
 			return true;
